@@ -1,0 +1,17 @@
+---
+import Layout from './_layout.astro';
+import Dashboard  from './_components/Dasboard';
+import { apiService, serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+
+
+
+
+// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
+// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+---
+
+<Layout title="Dashboard">
+	<Dashboard  client:load/>
+</Layout>

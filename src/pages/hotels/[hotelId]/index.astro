@@ -1,0 +1,15 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import NewHotelScreen from "./_components/NewHotel";
+
+
+const { categoryId } = Astro.params;
+
+
+
+
+---
+
+<DashboardLayout title="admin">
+  <NewHotelScreen categoryData={null} client:load />
+</DashboardLayout>

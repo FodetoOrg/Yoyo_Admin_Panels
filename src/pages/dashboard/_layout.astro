@@ -1,0 +1,45 @@
+---
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import Header from "./_components/Header";
+import PageContainer from "@/components/PageContainer";
+import { Heading } from "@/components/Heading";
+import { stringToDate } from "@/lib/utils/utils";
+
+const { pageTitle } = Astro.props;
+
+const { pathname } = Astro.url;
+
+const currentTab =
+  pathname === "/dashboard"
+    ? "Overview"
+    : pathname === "/dashboard/cities"
+      ? "Cities"
+      : "Hotels";
+
+const fromTime = Astro.url.searchParams.get("fromTime") || "";
+const toTime = Astro.url.searchParams.get("toTime") || "";
+
+let fromDate = stringToDate(fromTime);
+let toDate = stringToDate(toTime);
+
+if (!fromDate || !toDate) {
+  toDate = new Date();
+  //from date is 6 months before to date
+  const sixMonthsAgo = new Date(toDate);
+  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+  fromDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
+}
+---
+
+<DashboardLayout title={pageTitle}>
+  <!-- <PageContainer> -->
+  <div class="p-4 md:px-8">
+    <Heading
+      title={"Dashboard"}
+      description="these are useful for adding tags to products"
+    />
+    <Header client:load currentTab={currentTab} />
+    <slot />
+  </div>
+  <!-- </PageContainer> -->
+</DashboardLayout>
