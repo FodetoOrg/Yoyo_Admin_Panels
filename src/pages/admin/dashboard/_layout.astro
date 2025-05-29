@@ -10,9 +10,9 @@ const { pageTitle } = Astro.props;
 const { pathname } = Astro.url;
 
 const currentTab =
-  pathname === "/dashboard"
+  pathname === "/admin/dashboard"
     ? "Overview"
-    : pathname === "/dashboard/cities"
+    : pathname === "/admin/dashboard/cities"
       ? "Cities"
       : "Hotels";
 

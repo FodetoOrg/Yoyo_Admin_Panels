@@ -1,0 +1,17 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/Screen";
+import { serverApiService, type ApiResponse } from "../../../lib/utils/api";
+import { CONSTANTS, ROUTES } from "../../../lib/utils/constants";
+
+const cities: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+console.log("cities are ", cities);
+---
+
+<DashboardLayout title="Hotels">
+  <Screen cities={cities?.data || []} client:load />
+</DashboardLayout>

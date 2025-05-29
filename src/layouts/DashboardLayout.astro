@@ -2,6 +2,7 @@
 // import { Toaster } from "@/components/ui/sonner";
 import "../styles/global.css";
 import DashboardSidebar from "@/components/sidebar";
+import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
 
 interface Props {
@@ -11,6 +12,10 @@ interface Props {
 const { title = "admin" } = Astro.props;
 
 const { pathname } = Astro.url;
+
+
+
+
 
 
 ---
@@ -39,7 +44,7 @@ const { pathname } = Astro.url;
     <DashboardSidebar
       client:load
       pathname={pathname}
-      navItems={[]}
+      navItems={navItems}
       user={{
         name: "John Doe",
         email: "john.doe@example.com",

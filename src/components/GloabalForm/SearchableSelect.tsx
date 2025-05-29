@@ -4,7 +4,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { CarrotIcon } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import {
   Command,
@@ -41,10 +41,10 @@ export const SearchableSelect = ({
           {value
             ? options.find((option) => option.value === value)?.label
             : placeholder || "Select option..."}
-            <CarrotIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+      <PopoverContent className="w-full p-0">
         <Command>
           <CommandInput placeholder="Search..." className="h-9" />
           <CommandList>

@@ -1,0 +1,24 @@
+---
+import NotFoundContainer from "@/components/NotFound";
+import PageContainer from "@/components/PageContainer";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+
+const title = Astro.url.searchParams.get("title") || "404";
+const description =
+  Astro.url.searchParams.get("description") ||
+  "Sorry, the page you are looking for does not exist.";
+const pageRedirect = Astro.url.searchParams.get("pageRedirect") || "/";
+const pageRedirectText =
+  Astro.url.searchParams.get("pageRedirectText") || "Go to Home";
+const previousPage = Astro.url.searchParams.get("previousPage") || null;
+---
+
+<DashboardLayout title="NotFound">
+  <NotFoundContainer
+    title={title}
+    description={description}
+    pageRedirect={pageRedirect}
+    pageRedirectText={pageRedirectText}
+    previousPage={previousPage || undefined}
+  />
+</DashboardLayout>

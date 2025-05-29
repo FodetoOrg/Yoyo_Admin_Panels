@@ -1,0 +1,25 @@
+---
+import { CONSTANTS, ROUTES } from "../../../../lib/utils/constants";
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import Screen from "./_componnets/Screen";
+import { serverApiService, type ApiResponse } from "../../../../lib/utils/api";
+
+const { cityId } = Astro.params;
+
+let cityData:any = null;
+if (cityId && cityId !== "new") {
+  
+  const city:ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_CITY_ROUTE(cityId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  console.log('city is ',city)
+   cityData = city.data;
+
+}
+---
+
+<DashboardLayout title="admin">
+  <Screen cityData={cityData} client:load />
+</DashboardLayout>

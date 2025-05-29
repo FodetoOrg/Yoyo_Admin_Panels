@@ -1,0 +1,56 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import { Heading } from "@/components/Heading";
+import TabGroup from "@/components/TabGroup";
+import { Button } from "@/components/ui/button";
+import { stringToDate } from "@/lib/utils/utils";
+import { Plus } from "lucide-react";
+
+const { pageTitle } = Astro.props;
+
+const { pathname } = Astro.url;
+const roles = ["customers", "hotelAdmins", "staff"];
+
+const currentTab =
+  pathname === "/admin/users/customers"
+    ? "customers"
+    : pathname === "/admin/users/hotelAdmins"
+      ? "hotelAdmins"
+      : "staff";
+---
+
+<DashboardLayout title={pageTitle}>
+  <!-- <PageContainer> -->
+  <div class="p-4 md:px-8 flex flex-col gap-4">
+    <Heading
+      title={pageTitle}
+      description="these are useful for adding tags to products"
+    />
+
+    <div class="flex justify-between items-center">
+      <TabGroup
+        tabs={roles.map((role) => {
+          return {
+            value: role,
+            action: `/admin/users/${role}`,
+          };
+        })}
+        currentTab={currentTab || ""}
+      />
+      {
+        (currentTab === "hotelAdmins" || currentTab === "staff") && (
+          <Button className="">
+            <a
+              href={`/admin/users/${currentTab}/new`}
+              class="text-xs md:text-sm flex items-center  "
+            >
+              <Plus className="mr-2 h-4 w-4 text-white" /> Add New
+            </a>
+          </Button>
+        )
+      }
+    </div>
+    <slot />
+  </div>
+  <!-- </PageContainer> -->
+</DashboardLayout>

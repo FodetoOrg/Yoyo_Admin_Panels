@@ -1,0 +1,26 @@
+---
+import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
+import NewHotelScreen from "./_components/NewHotel";
+import {
+  serverApiService,
+  type ApiResponse,
+} from "../../../../../lib/utils/api";
+import { CONSTANTS, ROUTES } from "../../../../../lib/utils/constants";
+
+const { hotelAdminId } = Astro.params;
+
+let hotelAdminData: any = null;
+if (hotelAdminId && hotelAdminId !== "new") {
+  const hotel: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_HOTEL_ROUTE(hotelAdminId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  console.log("hotel is ", hotel);
+  hotelAdminData = hotel.data.hotel;
+}
+---
+
+<DashboardLayout title="admin">
+  <NewHotelScreen hotelAdminData={hotelAdminData} client:load />
+</DashboardLayout>

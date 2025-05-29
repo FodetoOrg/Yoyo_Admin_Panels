@@ -35,6 +35,7 @@ interface FileState {
   name?: string;
   size?: number;
   isExisting?: boolean;
+  base64?: string;
 }
 
 const DynamicForm = ({
@@ -72,7 +73,6 @@ const DynamicForm = ({
 
   useEffect(() => {
     if (defaultValues) {
-      console.log("defaultValues ", defaultValues);
       const initialFileStates: Record<string, FileState[]> = {};
       fields.forEach((field) => {
         if (field.type === "file" && defaultValues[field.name]) {
@@ -82,6 +82,7 @@ const DynamicForm = ({
             file: null,
             preview: url,
             isExisting: true,
+            base64: url, // Store the URL as base64 for existing images
           }));
         }
       });
@@ -92,15 +93,9 @@ const DynamicForm = ({
   const handleFileChange = (fieldName: string, newFiles: FileState[]) => {
     setFileStates((prev) => {
       const existingFiles = prev[fieldName] || [];
-      const newFileStates = newFiles.map((filestate) => ({
-        file: filestate.file,
-        preview: URL.createObjectURL(filestate?.file),
-        isExisting: false,
-      }));
-
       return {
         ...prev,
-        [fieldName]: [...existingFiles, ...newFileStates],
+        [fieldName]: [...existingFiles, ...newFiles],
       };
     });
   };
@@ -179,48 +174,24 @@ const DynamicForm = ({
 
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
-      console.log("dynamic form ", values);
       setIsSubmitting(true);
       const fileFields = fields.filter((f) => f.type === "file");
-      console.log("files are ", fileFields);
-      const uploadPromises = fileFields.map(async (field) => {
+      
+      // Process file fields
+      const fileData = fileFields.reduce((acc, field) => {
         const fieldFiles = fileStates[field.name] || [];
-        console.log(fieldFiles);
-        // Only upload new files
-        const filesToUpload = fieldFiles
-          .filter((fileState) => !fileState.isExisting && fileState.file)
-          .map((fileState) => fileState.file!);
-        console.log("filesToUpload ", filesToUpload);
-        let uploadedUrls: string[] = [];
-        if (filesToUpload.length > 0) {
-          uploadedUrls = (await onFileUpload?.(filesToUpload)) || [];
-          // return
-          if (uploadedUrls.length === 0) {
-           
-            // toast("Unable to do action", {
-            //   description: "Please try after sometime/try to contact company",
-            // });
-            return;
-          }
-        }
-        console.log("uploadedUrls ", uploadedUrls);
-        // Combine existing URLs with new uploaded URLs
-        const allUrls = fieldFiles
-          .map((fileState) =>
-            !fileState.isExisting ? uploadedUrls.shift() : fileState.preview
-          )
-          .filter(Boolean) as string[];
+        // For each file, use base64 if it's a new file, or the existing URL
+        const fileData = fieldFiles.map(fileState => 
+          fileState.isExisting ? fileState.preview : fileState.base64
+        ).filter(Boolean);
+        
+        return {
+          ...acc,
+          [field.name]: fileData
+        };
+      }, {});
 
-        return { [field.name]: allUrls };
-      });
-
-      const uploadedUrls = await Promise.all(uploadPromises);
-      const fileUrls = uploadedUrls.reduce(
-        (acc, curr) => ({ ...acc, ...curr }),
-        {}
-      );
-
-      // Transform dynamic group values into a more usable format
+      // Transform dynamic group values
       const transformedValues = { ...values };
       fields.forEach((field) => {
         if (field.type === "dynamicGroup") {
@@ -239,24 +210,24 @@ const DynamicForm = ({
       });
 
       const resp = await onSubmit(
-        { ...transformedValues, ...fileUrls },
+        { ...transformedValues, ...fileData },
         defaultValues ? true : false
       );
-      if (resp.data.success) {
-        // toast("success", {
-        //   description: "Friday, February 10, 2023 at 5:57 PM",
-        // });
 
+      // Handle API response
+      if (resp && resp.success) {
         if (onsuccess) {
           window.location.href = onsuccess;
         }
       } else {
-        // toast("Unable to do action", {
-        //   description: resp.data.message,
-        // });
+        // Handle error response
+        const errorMessage = resp?.message || 'An error occurred while submitting the form';
+        //  console.log("errorMessage is ", errorMessage);
+        alert(errorMessage); // You can replace this with your preferred notification system
       }
 
-      if (resp.data.success) {
+      // Reset form if needed
+      if (resp && resp.success) {
         const initialGroups: Record<string, number[]> = {};
         fields.forEach((field) => {
           if (field.type === "dynamicGroup") {
@@ -264,9 +235,11 @@ const DynamicForm = ({
           }
         });
         setDynamicGroups(initialGroups);
-        // window.location.href = "/dashboard/categories";
       }
-    } catch (error) {
+    } catch (error: any) {
+      // Handle API errors
+      const errorMessage = error.response?.data?.message || error.message || 'An error occurred while submitting the form';
+     // You can replace this with your preferred notification system
       console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);
@@ -474,7 +447,7 @@ const DynamicForm = ({
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-8"
+            className="flex flex-col gap-4"
           >
             <div className={`grid gap-6 ${getGridClass(columns)}`}>
               {fields.map((field) => (
@@ -505,7 +478,7 @@ const DynamicForm = ({
                 </div>
               ))}
             </div>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button  type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
           </form>

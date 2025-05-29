@@ -122,8 +122,13 @@ export interface PaginatedResponse<T> {
 // Client-side API service
 export const apiService = {
   get: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
-    const response: AxiosResponse<T> = await clientApi.get(url, config);
-    return response.data;
+    try {
+      const response: AxiosResponse<T> = await clientApi.get(url, config);
+      return response.data;
+    } catch (error: any) {
+      handleApiError(error);
+      return error.response.data;
+    }
   },
 
   post: async <T>(
@@ -131,8 +136,13 @@ export const apiService = {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> => {
-    const response: AxiosResponse<T> = await clientApi.post(url, data, config);
-    return response.data;
+    try {
+      const response: AxiosResponse<T> = await clientApi.post(url, data, config);
+      return response.data;
+    } catch (error: any) {
+      handleApiError(error);
+      return error.response.data;
+    }
   },
 
   put: async <T>(
@@ -140,13 +150,23 @@ export const apiService = {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> => {
-    const response: AxiosResponse<T> = await clientApi.put(url, data, config);
-    return response.data;
+    try {
+      const response: AxiosResponse<T> = await clientApi.put(url, data, config);
+      return response.data;
+    } catch (error: any) {
+      handleApiError(error);
+      return error.response.data;
+    }
   },
 
   delete: async <T>(url: string, config?: AxiosRequestConfig): Promise<T> => {
-    const response: AxiosResponse<T> = await clientApi.delete(url, config);
-    return response.data;
+    try {
+      const response: AxiosResponse<T> = await clientApi.delete(url, config);
+      return response.data;
+    } catch (error: any) {
+      handleApiError(error);
+      return error.response.data;
+    }
   },
 
   patch: async <T>(
@@ -154,9 +174,104 @@ export const apiService = {
     data?: any,
     config?: AxiosRequestConfig
   ): Promise<T> => {
-    const response: AxiosResponse<T> = await clientApi.patch(url, data, config);
-    return response.data;
+    try {
+      const response: AxiosResponse<T> = await clientApi.patch(url, data, config);
+      return response.data;
+    } catch (error: any) {
+      handleApiError(error);
+      return error.response.data;
+    }
   },
+};
+
+// Helper function to handle API errors
+const handleApiError = (error: any) => {
+  if (!error.response) {
+    // Network error or no response
+    error.response = {
+      data: {
+        success: false,
+        message: 'Network error. Please check your connection.',
+        status: 0
+      }
+    };
+    return;
+  }
+
+  const { status, data } = error.response;
+
+  switch (status) {
+    case 400:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Bad request. Please check your input.',
+        status: 400
+      };
+      break;
+
+    case 401:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Unauthorized. Please login again.',
+        status: 401
+      };
+      break;
+
+    case 403:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Forbidden. You do not have permission to perform this action.',
+        status: 403
+      };
+      break;
+
+    case 404:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Resource not found.',
+        status: 404
+      };
+      break;
+
+    case 413:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Payload too large. Please reduce the size of your request.',
+        status: 413
+      };
+      break;
+
+    case 422:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Validation error. Please check your input.',
+        status: 422
+      };
+      break;
+
+    case 429:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Too many requests. Please try again later.',
+        status: 429
+      };
+      break;
+
+    case 500:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'Internal server error. Please try again later.',
+        status: 500
+      };
+      break;
+
+    default:
+      error.response.data = {
+        success: false,
+        message: data?.message || 'An unexpected error occurred.',
+        status: status || 500
+      };
+  }
 };
 
 async function refreshTokenFromCookies(
@@ -224,7 +339,8 @@ export const serverApiService = {
           return retryResponse.data;
         }
       }
-      throw error;
+      handleApiError(error);
+      return error.response.data;
     }
   },
 
@@ -258,7 +374,8 @@ export const serverApiService = {
           return retryResponse.data;
         }
       }
-      throw error;
+      handleApiError(error);
+      return error.response.data;
     }
   },
 
@@ -292,7 +409,8 @@ export const serverApiService = {
           return retryResponse.data;
         }
       }
-      throw error;
+      handleApiError(error);
+      return error.response.data;
     }
   },
 
@@ -325,7 +443,8 @@ export const serverApiService = {
           return retryResponse.data;
         }
       }
-      throw error;
+      handleApiError(error);
+      return error.response.data;
     }
   },
 
@@ -359,7 +478,8 @@ export const serverApiService = {
           return retryResponse.data;
         }
       }
-      throw error;
+      handleApiError(error);
+      return error.response.data;
     }
   },
 };

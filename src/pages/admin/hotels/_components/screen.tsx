@@ -6,27 +6,27 @@ import { Button } from "@/components/ui/button";
 import { columns, datePickers, filterFields } from "./columns";
 
 interface Props {
-  categoriesData: any[];
+  hotels: any[];
   writeAccess: boolean;
 }
 
-const CategoriesScree = ({
-  categoriesData = [],
+const HotelsScreen = ({
+  hotels = [],
   writeAccess = false,
 }: Props) => {
-  console.log("categoriesData ", categoriesData);
+  console.log("categoriesData ", hotels);
   return (
     <PageContainer>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <Heading
-            title={"Categories"}
-            description="these are useful for adding tags to products"
+            title={"Hotels"}
+            description="these are the hotels that you can manage"
           ></Heading>
           {writeAccess && (
             <Button>
               <a
-                href="/hotels/new"
+                href="/admin/hotels/new"
                 className="text-xs md:text-sm flex items-center  "
               >
                 <Plus className="mr-2 h-4 w-4 text-white" /> Add New
@@ -37,7 +37,7 @@ const CategoriesScree = ({
         <DataTable
           columns={columns}
           filterFields={filterFields}
-          data={categoriesData}
+          data={hotels}
           datePickers={datePickers}
           hiddenColumns={writeAccess?[]:['actions']}
         />
@@ -46,4 +46,4 @@ const CategoriesScree = ({
   );
 };
 
-export default CategoriesScree;
+export default HotelsScreen;

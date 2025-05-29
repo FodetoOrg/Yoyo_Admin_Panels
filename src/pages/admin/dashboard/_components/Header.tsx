@@ -6,15 +6,15 @@ import React from "react";
 const DashboardTabs = [
   {
     value: "Overview",
-    action: "/dashboard",
+    action: "/admin/dashboard",
   },
   {
     value: "Cities",
-    action: "/dashboard/cities",
+    action: "/admin/dashboard/cities",
   },
   {
     value: "Hotels",
-    action: "/dashboard/hotels",
+    action: "/admin/dashboard/hotels",
   },
 ];
 

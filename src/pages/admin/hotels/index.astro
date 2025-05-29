@@ -1,0 +1,21 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { apiService, serverApiService, type ApiResponse } from "../../../lib/utils/api";
+import { CONSTANTS, ROUTES } from "../../../lib/utils/constants";
+
+const res:ApiResponse<{}> = await serverApiService.get(ROUTES.GET_ALL_HOTELS_ROUTE, Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "", Astro.cookies);
+
+console.log('res is ', res);
+let hotels:any[] = [];
+
+if(res.success){
+    hotels = res.data;
+}
+
+---
+
+<DashboardLayout title="Hotels">
+    <Screen hotels={hotels} client:load writeAccess={true} />
+    
+</DashboardLayout>

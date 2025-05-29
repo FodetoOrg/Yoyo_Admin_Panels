@@ -11,6 +11,7 @@ interface FileState {
   name?: string;
   size?: number;
   isExisting?: boolean;
+  base64?: string;
 }
 
 interface FileUploaderProps {
@@ -24,39 +25,140 @@ interface FileUploaderProps {
   files: FileState[];
 }
 
+const MAX_TOTAL_SIZE = 25 * 1024 * 1024; // 25MB total limit
+const COMPRESSION_QUALITY = 0.7; // 70% quality for compression
+
 export const FileUploader = ({
   field,
   onFileChange,
   onFileRemove,
   files = [],
 }: FileUploaderProps) => {
-  const maxSize = field.maxFileSize || 1024 * 1024 * 2; // 2MB default
+  const maxSize = field.maxFileSize || 1024 * 1024 * 2; // 2MB default per file
   const maxFiles = field.maxFiles || 1;
 
-  const handleDrop = (acceptedFiles: File[]) => {
+  console.log('files are ',files)
+
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          // Calculate new dimensions while maintaining aspect ratio
+          const MAX_WIDTH = 1920;
+          const MAX_HEIGHT = 1080;
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height = Math.round((height * MAX_WIDTH) / width);
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width = Math.round((width * MAX_HEIGHT) / height);
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (blob) {
+                const compressedFile = new File([blob], file.name, {
+                  type: 'image/jpeg',
+                  lastModified: Date.now(),
+                });
+                resolve(compressedFile);
+              } else {
+                reject(new Error('Failed to compress image'));
+              }
+            },
+            'image/jpeg',
+            COMPRESSION_QUALITY
+          );
+        };
+        img.onerror = () => reject(new Error('Failed to load image'));
+      };
+      reader.onerror = () => reject(new Error('Failed to read file'));
+    });
+  };
+
+  const convertToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
+  const calculateTotalSize = (currentFiles: FileState[], newFiles: File[]): number => {
+    const existingSize = currentFiles.reduce((sum, file) => sum + (file.size || 0), 0);
+    const newSize = newFiles.reduce((sum, file) => sum + file.size, 0);
+    return existingSize + newSize;
+  };
+
+  const handleDrop = async (acceptedFiles: File[]) => {
+    // Check total number of files
     if (acceptedFiles.length + files.length > maxFiles) {
-      // toast.error(`Cannot upload more than ${maxFiles} files`);
+      alert(`Cannot upload more than ${maxFiles} files`);
       return;
     }
 
-    // Validate file sizes
-    const validFiles = acceptedFiles.filter((file) => {
-      if (file.size > maxSize) {
-        // toast.error(`File ${file.name} is larger than ${formatBytes(maxSize)}`);
-        return false;
-      }
-      return true;
-    });
+    // Check total size
+    if (calculateTotalSize(files, acceptedFiles) > MAX_TOTAL_SIZE) {
+      alert(`Total size of all files cannot exceed ${formatBytes(MAX_TOTAL_SIZE)}`);
+      return;
+    }
+
+    // Validate and compress files
+    const validFiles = await Promise.all(
+      acceptedFiles
+        .filter((file) => {
+          if (file.size > maxSize) {
+            alert(`File ${file.name} is larger than ${formatBytes(maxSize)}`);
+            return false;
+          }
+          return true;
+        })
+        .map(async (file) => {
+          try {
+            // Compress image if it's an image file
+            if (file.type.startsWith('image/')) {
+              return await compressImage(file);
+            }
+            return file;
+          } catch (error) {
+            console.error('Error compressing file:', error);
+            return file;
+          }
+        })
+    );
 
     if (validFiles.length > 0) {
-      const newFileStates = validFiles.map((file) => ({
-        file,
-        preview: URL.createObjectURL(file),
-        name: file.name,
-        size: file.size,
-        isExisting: false,
-      }));
-
+      const newFileStates = await Promise.all(
+        validFiles.map(async (file) => {
+          const base64 = await convertToBase64(file);
+          return {
+            file,
+            preview: URL.createObjectURL(file),
+            name: file.name,
+            size: file.size,
+            isExisting: false,
+            base64,
+          };
+        })
+      );
 
       onFileChange(field.name, newFileStates);
     }
@@ -87,7 +189,7 @@ export const FileUploader = ({
             <p className="text-sm text-muted-foreground/70">
               You can upload up to {maxFiles}{" "}
               {maxFiles === 1 ? "file" : "files"}
-              (max {formatBytes(maxSize)} each)
+              (max {formatBytes(maxSize)} each, total size limit: {formatBytes(MAX_TOTAL_SIZE)})
             </p>
           </div>
         </div>
@@ -107,7 +209,7 @@ export const FileUploader = ({
               className="flex items-center space-x-4 rounded-md border p-4"
             >
               <img
-                src={file.preview}
+                src={file.preview.url}
                 alt={file.isExisting ? "Existing image" : file.name}
                 className="h-12 w-12 rounded-md object-cover"
               />

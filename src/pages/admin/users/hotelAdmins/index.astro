@@ -1,0 +1,35 @@
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import DashboardLayout from "../_layout.astro";
+import Screen from "./_components/screen";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const page = Astro.url.searchParams.get("page") || 1;
+const limit = Astro.url.searchParams.get("limit") || 10;
+
+interface userSchema {
+  id: string;
+  name: string;
+  phone: string;
+  role: string;
+  firebaseUid: string;
+  createdAt: string;
+}
+
+const customers: ApiResponse<{
+  users: userSchema[];
+  total: number;
+  page: number;
+  limit: number;
+}> = await serverApiService.get(
+  ROUTES.GET_ALL_USERS_ROUTE("hotel", Number(page), Number(limit)),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+console.log("hotels here ", customers.data);
+---
+
+<DashboardLayout pageTitle="Hotels">
+  <Screen hotelAdmins={customers.data.users} client:load />
+</DashboardLayout>

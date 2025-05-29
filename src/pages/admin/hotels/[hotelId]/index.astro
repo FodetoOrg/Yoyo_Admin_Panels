@@ -1,0 +1,88 @@
+---
+import { CONSTANTS, ROUTES } from "../../../../lib/utils/constants";
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import NewHotelScreen from "./_components/NewHotel";
+import { serverApiService, type ApiResponse } from "../../../../lib/utils/api";
+import { redirectToNotFound } from "@/lib/utils/utils";
+
+const { hotelId } = Astro.params;
+const accessToken = Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "";
+
+let hotelPromise: Promise<ApiResponse<any>> | null = null;
+
+if (hotelId && hotelId !== "new") {
+  hotelPromise = serverApiService.get(
+    ROUTES.GET_HOTEL_ROUTE(hotelId),
+    accessToken,
+    Astro.cookies
+  );
+}
+
+// Build array of promises (hotelPromise is added conditionally)
+const promises: Promise<any>[] = [
+  serverApiService.get(
+    ROUTES.GET_HOTEL_ALLUSERS_ROUTE,
+    accessToken,
+    Astro.cookies
+  ),
+  serverApiService.get(ROUTES.GET_ALL_CITIES_ROUTE, accessToken, Astro.cookies),
+];
+
+if (hotelPromise) {
+  promises.unshift(hotelPromise); // hotel comes first
+}
+
+const results = await Promise.all(promises);
+
+let hotelResponse: ApiResponse<any> | null = null;
+let hotelUsersResponse: ApiResponse<any>;
+let citiesResponse: ApiResponse<any>;
+
+if (hotelPromise) {
+  [hotelResponse, hotelUsersResponse, citiesResponse] = results;
+} else {
+  [hotelUsersResponse, citiesResponse] = results;
+}
+
+// Handle hotel not found
+if (hotelId && hotelId !== "new" && hotelResponse && !hotelResponse.success) {
+  return redirectToNotFound(
+    Astro,
+    "Hotel not found",
+    "The hotel you are looking for does not exist",
+    "/admin/hotels",
+    "Go to Hotels",
+    "/admin/hotels"
+  );
+}
+
+// Handle hotelUsers fetch failure
+if (!hotelUsersResponse.success || !citiesResponse.success) {
+  return redirectToNotFound(
+    Astro,
+    "Something went wrong",
+    "Unable to fetch hotel users. Please try again later.",
+    "/admin/hotels",
+    "Go to Hotels",
+    "/admin/hotels"
+  );
+}
+
+const hotelData = hotelResponse?.data?.hotel || null;
+
+console.log("citiesResponse is ", citiesResponse);
+
+const cities = citiesResponse.data.map((city: any) => ({
+  label: city.state + "/" + city.name,
+  value: city.id,
+}));
+---
+
+<DashboardLayout title="admin">
+  <NewHotelScreen
+    cities={cities}
+    hotelData={hotelData}
+    hotelUsers={hotelUsersResponse.data}
+    client:load
+  />
+</DashboardLayout>

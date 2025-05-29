@@ -3,22 +3,31 @@ import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
 import * as z from "zod";
 
-interface Props {
-  categoryData?: any[] | null;
+interface CityData {
+  id?: string;
+  name: string;
+  state:string;
+ 
 }
 
-const NewCategoryScreen = ({ categoryData }: Props) => {
-  console.log("categoryData are ", categoryData);
-  const getFormConfig = () => {
-    if (!categoryData) return formConfig;
+interface Props {
+  cityData?: CityData | null;
+}
 
-    console.log("formConfig ", formConfig);
+const Screen = ({ cityData }: Props) => {
+
+
+
+  console.log('cityData is ',cityData)
+  const getFormConfig = () => {
+    if (!cityData) return formConfig;
+
     const idField = {
       name: "id",
       type: "input" as const,
       validation: z.string(),
-      label: "Category ID",
-      placeholder: "Enter category id",
+      label: "City ID",
+      placeholder: "City ID",
       space: 1,
       editable: false,
     };
@@ -26,11 +35,10 @@ const NewCategoryScreen = ({ categoryData }: Props) => {
     return {
       ...formConfig,
       defaultValues: {
-        id: categoryData.id,
-        name: categoryData.name,
-        active: categoryData.active,
-        description: categoryData.description || "",
-        images: categoryData.images || [],
+        id: cityData.id,
+        name: cityData.name,
+        state:cityData.state
+       
       },
       fields: [idField, ...formConfig.fields],
     };
@@ -43,4 +51,4 @@ const NewCategoryScreen = ({ categoryData }: Props) => {
   );
 };
 
-export default NewCategoryScreen;
+export default Screen;

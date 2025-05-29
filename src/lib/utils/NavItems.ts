@@ -1,0 +1,71 @@
+import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin } from "lucide-react";
+
+export interface NavItem {
+    title: string;
+    url: string;
+    disabled?: boolean;
+    external?: boolean;
+    icon?: any;
+    label?: string;
+    description?: string;
+    isActive?: boolean;
+    items?: NavItem[];
+    allowedRoles?: any[]; // New property for role-based access
+    badge?: string; // New property for showing badges
+    show?: boolean;
+  }
+  
+
+  export const navItems: NavItem[] = [
+    {
+      title: "Dashboard",
+      url: "/admin/dashboard",
+      icon: LayoutDashboard,
+      isActive: false,
+      allowedRoles: ["admin", "manager", "employee"],
+      show: true,
+    },
+    {
+      title: "Cities",
+      url: "/admin/cities",
+      icon: MapPin,
+      isActive: false,
+      allowedRoles: ["admin", "manager"],
+      show: true,
+    },
+    {
+      title: "Users",
+      url: "/admin/users",
+      icon: Users,
+      isActive: false,
+      allowedRoles: ["admin", "manager", "employee"],
+      show: true,
+    },
+    {
+      title: "Hotels",
+      url: "/admin/hotels",
+      icon: Hotel,
+      isActive: false,
+      allowedRoles: ["admin", "manager"],
+      show: true,
+    },
+   
+    {
+      title: "Bookings",
+      url: "/admin/bookings",
+      icon: Calendar,
+      isActive: false,
+      allowedRoles: ["admin", "manager", "employee"],
+      show: true,
+    },
+    {
+      title: "Invoices",
+      url: "/admin/invoices",
+      icon: Receipt,
+      isActive: false,
+      allowedRoles: ["admin", "manager"],
+      show: true,
+    },
+    
+  ];
+  

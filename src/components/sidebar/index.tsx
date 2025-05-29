@@ -32,6 +32,7 @@ import {
   ChevronsUpDown,
   CreditCard,
   GalleryVerticalEnd,
+  Hotel,
   LogOut,
   Settings,
   type LucideIcon,
