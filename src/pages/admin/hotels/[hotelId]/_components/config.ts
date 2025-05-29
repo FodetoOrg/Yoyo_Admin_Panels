@@ -19,6 +19,7 @@ const formConfig: FormConfig = {
       label: "Hotel Name",
       placeholder: "Enter hotel name",
       space: 1,
+      order: 1,
     },
     {
       name: "description",
@@ -27,6 +28,7 @@ const formConfig: FormConfig = {
       label: "Description",
       placeholder: "Enter hotel description",
       space: 1,
+      order: 3,
     },
     {
       name: "address",
@@ -35,6 +37,7 @@ const formConfig: FormConfig = {
       label: "Address",
       placeholder: "Enter hotel address",
       space: 1,
+      order: 4,
     },
     {
       name: "zipCode",
@@ -43,6 +46,7 @@ const formConfig: FormConfig = {
       label: "ZIP Code",
       placeholder: "Enter ZIP code",
       space: 1,
+      order: 5,
     },
     {
       name: "starRating",

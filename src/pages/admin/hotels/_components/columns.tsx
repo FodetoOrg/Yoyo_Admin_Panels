@@ -139,7 +139,7 @@ export const columns: ColumnDef<Category>[] = [
               Copy Category
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <a href={`/hotels/${category.id}`}>
+            <a href={`/admin/hotels/${category.id}`}>
               <DropdownMenuItem>Edit Category</DropdownMenuItem>
             </a>
             {/* <GlobalDeleteModal

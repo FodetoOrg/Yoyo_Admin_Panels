@@ -17,11 +17,12 @@ if (hotelId && hotelId !== "new") {
     Astro.cookies
   );
 }
+console.log("hotelId is ", hotelId);
 
 // Build array of promises (hotelPromise is added conditionally)
 const promises: Promise<any>[] = [
   serverApiService.get(
-    ROUTES.GET_HOTEL_ALLUSERS_ROUTE,
+    `${ROUTES.GET_HOTEL_ALLUSERS_ROUTE}?hotelId=${hotelId !== "new" ? hotelId : ""}`,
     accessToken,
     Astro.cookies
   ),
@@ -72,10 +73,15 @@ const hotelData = hotelResponse?.data?.hotel || null;
 
 console.log("citiesResponse is ", citiesResponse);
 
+console.log("hotelData is ", hotelData);
+
 const cities = citiesResponse.data.map((city: any) => ({
   label: city.state + "/" + city.name,
   value: city.id,
 }));
+
+
+
 ---
 
 <DashboardLayout title="admin">

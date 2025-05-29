@@ -9,11 +9,11 @@ interface HotelData {
   description: string;
   address: string;
   city: string;
-  state: string;
-  country: string;
+  ownerId?: string;
   zipCode: string;
   starRating?: number;
   amenities?: string[];
+  cityId?: string;
   images?: Array<{
     data: string;
     fileName: string;
@@ -39,7 +39,7 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
   console.log("cities is ", cities);
   const getFormConfig = () => {
     const hotelUsersField = {
-      name: "hotelUsers",
+      name: "ownerId",
       type: "select",
       validation: z.string().min(1, {
         message: "Hotel user is required.",
@@ -51,10 +51,11 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
       })),
       space: 1,
       isSearchable: true,
+      order: 2,
     };
 
     const cityField = {
-      name: "city",
+      name: "cityId",
       type: "select",
       validation: z.string().min(1, {
         message: "City is required.",
@@ -63,6 +64,7 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
       options: cities,
       space: 1,
       isSearchable: true,
+      order: 6,
     };
 
     if (!hotelData)
@@ -80,6 +82,7 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
       placeholder: "Hotel ID",
       space: 1,
       editable: false,
+      order: 0,
     };
 
     return {
@@ -90,14 +93,14 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
         description: hotelData.description,
         address: hotelData.address,
         city: hotelData.city,
-        state: hotelData.state,
-        country: hotelData.country,
+        ownerId: hotelData.ownerId,
         zipCode: hotelData.zipCode,
         starRating: hotelData.starRating?.toString(),
         amenities: hotelData.amenities || [],
         images: hotelData.images || [],
+        cityId: hotelData.cityId,
       },
-      fields: [idField, hotelUsersField, ...formConfig.fields, cityField],
+      fields: [idField, hotelUsersField,cityField, ...formConfig.fields],
     };
   };
 

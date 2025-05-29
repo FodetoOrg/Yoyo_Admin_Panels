@@ -57,9 +57,18 @@ const DynamicForm = ({
     {}
   );
 
+  // Sort fields by order property
+  const sortedFields = React.useMemo(() => {
+    return [...fields].sort((a, b) => {
+      const orderA = a.order ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.order ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
+  }, [fields]);
+
   React.useEffect(() => {
     const initialGroups: Record<string, number[]> = {};
-    fields.forEach((field) => {
+    sortedFields.forEach((field) => {
       if (field.type === "dynamicGroup") {
         const defaultGroupLength = defaultValues?.[field.name]?.length || 1;
         initialGroups[field.name] = Array.from(
@@ -69,12 +78,12 @@ const DynamicForm = ({
       }
     });
     setDynamicGroups(initialGroups);
-  }, [fields, defaultValues]);
+  }, [sortedFields, defaultValues]);
 
   useEffect(() => {
     if (defaultValues) {
       const initialFileStates: Record<string, FileState[]> = {};
-      fields.forEach((field) => {
+      sortedFields.forEach((field) => {
         if (field.type === "file" && defaultValues[field.name]) {
           initialFileStates[field.name] = (
             defaultValues[field.name] as string[]
@@ -82,13 +91,13 @@ const DynamicForm = ({
             file: null,
             preview: url,
             isExisting: true,
-            base64: url, // Store the URL as base64 for existing images
+            base64: url,
           }));
         }
       });
       setFileStates(initialFileStates);
     }
-  }, [defaultValues, fields]);
+  }, [defaultValues, sortedFields]);
 
   const handleFileChange = (fieldName: string, newFiles: FileState[]) => {
     setFileStates((prev) => {
@@ -110,7 +119,7 @@ const DynamicForm = ({
   const createSchema = () => {
     const schemaObject: Record<string, any> = {};
 
-    fields.forEach((field) => {
+    sortedFields.forEach((field) => {
       if (field.type === "dynamicGroup") {
         const groupSchema: Record<string, any> = {};
         const groupIndices = dynamicGroups[field.name] || [0];
@@ -121,15 +130,12 @@ const DynamicForm = ({
         });
         schemaObject[field.name] = z.object(groupSchema);
       } else if (field.name.includes(".")) {
-        // For nested fields like "storeAddress.street"
         const [parentKey, childKey] = field.name.split(".");
 
-        // Ensure the parent schema is an object
         if (!schemaObject[parentKey]) {
           schemaObject[parentKey] = z.object({});
         }
 
-        // Append child validation
         schemaObject[parentKey] = schemaObject[parentKey].extend({
           [childKey]: field.validation,
         });
@@ -153,7 +159,7 @@ const DynamicForm = ({
       ...defaultValues,
       ...(defaultValues &&
         Object.fromEntries(
-          fields
+          sortedFields
             .filter((field) => field.type === "dynamicGroup")
             .map((field) => {
               const groupValues = defaultValues[field.name] || [];
@@ -175,12 +181,10 @@ const DynamicForm = ({
   const handleSubmit = async (values: z.infer<typeof formSchema>) => {
     try {
       setIsSubmitting(true);
-      const fileFields = fields.filter((f) => f.type === "file");
+      const fileFields = sortedFields.filter((f) => f.type === "file");
       
-      // Process file fields
       const fileData = fileFields.reduce((acc, field) => {
         const fieldFiles = fileStates[field.name] || [];
-        // For each file, use base64 if it's a new file, or the existing URL
         const fileData = fieldFiles.map(fileState => 
           fileState.isExisting ? fileState.preview : fileState.base64
         ).filter(Boolean);
@@ -191,9 +195,8 @@ const DynamicForm = ({
         };
       }, {});
 
-      // Transform dynamic group values
       const transformedValues = { ...values };
-      fields.forEach((field) => {
+      sortedFields.forEach((field) => {
         if (field.type === "dynamicGroup") {
           const groupData: any[] = [];
           const indices = dynamicGroups[field.name] || [0];
@@ -214,22 +217,18 @@ const DynamicForm = ({
         defaultValues ? true : false
       );
 
-      // Handle API response
       if (resp && resp.success) {
         if (onsuccess) {
           window.location.href = onsuccess;
         }
       } else {
-        // Handle error response
         const errorMessage = resp?.message || 'An error occurred while submitting the form';
-        //  console.log("errorMessage is ", errorMessage);
-        alert(errorMessage); // You can replace this with your preferred notification system
+        alert(errorMessage);
       }
 
-      // Reset form if needed
       if (resp && resp.success) {
         const initialGroups: Record<string, number[]> = {};
-        fields.forEach((field) => {
+        sortedFields.forEach((field) => {
           if (field.type === "dynamicGroup") {
             initialGroups[field.name] = [0];
           }
@@ -237,9 +236,7 @@ const DynamicForm = ({
         setDynamicGroups(initialGroups);
       }
     } catch (error: any) {
-      // Handle API errors
       const errorMessage = error.response?.data?.message || error.message || 'An error occurred while submitting the form';
-     // You can replace this with your preferred notification system
       console.error("Form submission error:", error);
     } finally {
       setIsSubmitting(false);
@@ -260,7 +257,7 @@ const DynamicForm = ({
   const removeDynamicGroup = (fieldName: string, indexToRemove: number) => {
     setDynamicGroups((prev) => {
       const currentIndices = prev[fieldName] || [0];
-      if (currentIndices.length <= 1) return prev; // Maintain minimum of 1 group
+      if (currentIndices.length <= 1) return prev;
 
       const newIndices = currentIndices.filter(
         (index) => index !== indexToRemove
@@ -271,9 +268,8 @@ const DynamicForm = ({
       };
     });
 
-    // Clear form values for removed group
     const fieldsToClear: string[] = [];
-    fields
+    sortedFields
       .find((f) => f.name === fieldName)
       ?.dynamicFields?.forEach((subField) => {
         fieldsToClear.push(`${fieldName}.${subField.name}_${indexToRemove}`);
@@ -295,7 +291,7 @@ const DynamicForm = ({
           return (
             <div
               key={`${field.name}_${index}`}
-              className={`${getColumnClass(field.space)}   rounded-lg relative`}
+              className={`${getColumnClass(field.space)} rounded-lg relative`}
             >
               <div className="flex gap-4 flex-wrap">
                 {field.dynamicFields?.map((subField) => (
@@ -303,7 +299,6 @@ const DynamicForm = ({
                     key={`${subField.name}_${index}`}
                     control={form.control}
                     name={`${field.name}.${subField.name}_${index}`}
-                    // defaultValue={defaultValue[subField.name]}
                     render={({ field: formField }) => (
                       <FormItem
                         className={`flex-1 min-w-[200px] ${getColumnClass(
@@ -438,6 +433,7 @@ const DynamicForm = ({
         return null;
     }
   };
+
   return (
     <Card className="mx-auto w-full">
       <CardHeader>
@@ -450,7 +446,7 @@ const DynamicForm = ({
             className="flex flex-col gap-4"
           >
             <div className={`grid gap-6 ${getGridClass(columns)}`}>
-              {fields.map((field) => (
+              {sortedFields.map((field) => (
                 <div
                   key={field.name}
                   className={`col-span-1 ${getColumnClass(field.space)}`}
@@ -478,7 +474,7 @@ const DynamicForm = ({
                 </div>
               ))}
             </div>
-            <Button  type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting}>
               {isSubmitting ? "Submitting..." : "Submit"}
             </Button>
           </form>

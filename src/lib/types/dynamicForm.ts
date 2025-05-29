@@ -20,6 +20,7 @@ export interface FieldConfig {
   dynamicFields?: FieldConfig[];
   editable?: boolean;
   inputType?: string;
+  order?: number;
 }
 
 export interface FormConfig {
