@@ -104,10 +104,21 @@ const formConfig: FormConfig = {
   ],
   columns: 2,
   onSubmit: async (values, isUpdate) => {
+    let mapCoordinates =
+      values.latitude && values.longitude
+        ? `${values.latitude},${values.longitude}`
+        : null;
+
+    values = {
+      ...values,
+      mapCoordinates,
+    };
+
     if (isUpdate) {
       // return await actions.updateHotel({
       //   ...values,
       // });
+      return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), values);
     } else {
       return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, values);
     }

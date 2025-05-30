@@ -14,6 +14,7 @@ interface HotelData {
   starRating?: number;
   amenities?: string[];
   cityId?: string;
+  mapCoordinates?: string;
   images?: Array<{
     data: string;
     fileName: string;
@@ -99,8 +100,10 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
         amenities: hotelData.amenities || [],
         images: hotelData.images || [],
         cityId: hotelData.cityId,
+        latitude: Number(hotelData.mapCoordinates?.split(",")[0]),
+        longitude: Number(hotelData.mapCoordinates?.split(",")[1]),
       },
-      fields: [idField, hotelUsersField,cityField, ...formConfig.fields],
+      fields: [idField, hotelUsersField, cityField, ...formConfig.fields],
     };
   };
 
