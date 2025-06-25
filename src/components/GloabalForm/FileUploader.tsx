@@ -209,7 +209,7 @@ export const FileUploader = ({
               className="flex items-center space-x-4 rounded-md border p-4"
             >
               <img
-                src={file.preview.url}
+                src={file.isExisting ? file.preview.url : file.preview}
                 alt={file.isExisting ? "Existing image" : file.name}
                 className="h-12 w-12 rounded-md object-cover"
               />

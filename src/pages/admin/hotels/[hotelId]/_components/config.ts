@@ -118,7 +118,8 @@ const formConfig: FormConfig = {
       // return await actions.updateHotel({
       //   ...values,
       // });
-      return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), values);
+      console.log("values", values);
+      // return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), values);
     } else {
       return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, values);
     }

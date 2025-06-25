@@ -16,7 +16,7 @@ import {
 } from "@/lib/utils/firebase";
 import { signInWithPhoneNumber } from "firebase/auth";
 import { Loader2 } from "lucide-react";
-import  {apiService, setCookie, type ApiResponse } from "@/lib/utils/api";
+import { apiService, setCookie, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const AuthScreen = () => {
@@ -94,6 +94,7 @@ const AuthScreen = () => {
 
       // Handle successful login
       console.log("Successfully logged in");
+      window.location.href = "/";
       // TODO: Redirect to dashboard or home page
     } catch (error) {
       console.error("Error verifying OTP:", error);

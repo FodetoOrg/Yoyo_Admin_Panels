@@ -31,7 +31,7 @@ export const auth = defineMiddleware(
 
       // Allow the request to proceed
 
-      const res:ApiResponse<{}> = await serverApiService.get(
+      const res: ApiResponse<{}> = await serverApiService.get(
         ROUTES.VERIFY_ME_ROUTE,
         token?.value || "",
         cookies
@@ -39,10 +39,10 @@ export const auth = defineMiddleware(
 
       console.log("res in middleware ", res);
       if (res.success) {
-        if (url.pathname === "/auth") {
-          return redirect("/dashboard");
+        if (url.pathname === "/auth" || url.pathname === "/") {
+          return redirect("/admin/dashboard");
         }
-      } 
+      }
 
       const resp = await next();
 
