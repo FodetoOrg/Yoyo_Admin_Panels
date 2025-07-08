@@ -1,13 +1,25 @@
 // Auth utility functions
-export const getCurrentUser = () => {
-  // This should come from your actual auth context/API
-  // For now, returning mock data
+export const getCurrentUser = (astroLocals?: any) => {
+  // Get user from Astro.locals.user if available
+  if (astroLocals?.user) {
+    return astroLocals.user;
+  }
+  
+  // Fallback for client-side (this should be replaced with proper client auth)
+  if (typeof window !== 'undefined') {
+    const userData = localStorage.getItem('currentUser');
+    if (userData) {
+      return JSON.parse(userData);
+    }
+  }
+  
+  // Default fallback
   return {
     id: "usr_001",
     name: "John Doe",
     email: "john@example.com",
-    role: "super_admin", // or "hotel_admin"
-    hotelId: null, // for hotel_admin, this would be their hotel ID
+    role: "super_admin",
+    hotelId: null,
   };
 };
 

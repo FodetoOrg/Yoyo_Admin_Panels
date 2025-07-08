@@ -41,7 +41,7 @@ const hotelsResponse: ApiResponse<any> = await serverApiService.get(
 );
 
 const hotels = hotelsResponse.success ? hotelsResponse.data : [];
-const currentUser = { role: "super_admin" }; // This should come from auth context in real app
+const currentUser = Astro.locals.user || { role: "super_admin" };
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -57,7 +57,9 @@ const currentUser = { role: "super_admin" }; // This should come from auth conte
           <div id="dashboard-tabs"></div>
         </div>
         <div class="flex items-center gap-4">
-          <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
+          {currentUser.role === "super_admin" && (
+            <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
+          )}
           <div id="date-picker"></div>
         </div>
       </div>
@@ -71,8 +73,8 @@ const currentUser = { role: "super_admin" }; // This should come from auth conte
   import TabGroup from "@/components/TabGroup";
   import { DateRangePicker } from "@/components/DateRangePicker";
   
-  // Get current user and determine which tabs to show
-  const currentUser = { role: "super_admin" }; // This should come from auth
+  // Get current user from server-side data
+  const currentUser = window.currentUser || { role: "super_admin" };
   const pathname = window.location.pathname;
   
   const currentTab =
@@ -129,4 +131,11 @@ const currentUser = { role: "super_admin" }; // This should come from auth conte
     // This would be properly mounted in a real React app
     datePickerContainer.innerHTML = '<div class="text-sm text-muted-foreground">Date Range Picker</div>';
   }
+</script>
+
+<script define:vars={{ currentUser }}>
+  // Make currentUser available to client-side scripts
+  window.currentUser = currentUser;
+  // Store in localStorage for client-side auth utilities
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
 </script>

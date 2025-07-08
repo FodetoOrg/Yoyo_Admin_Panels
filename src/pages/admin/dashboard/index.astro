@@ -11,18 +11,16 @@ import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
 </Layout>
 
 <script>
-  // Check if viewing as hotel admin
+  const currentUser = window.currentUser || { role: "super_admin" };
   const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const currentUser = { role: "super_admin" }; // This should come from auth
+  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
   
-  // If viewing as hotel admin or user is hotel admin, show hotel-specific dashboard
-  if (viewAsHotel || currentUser.role === "hotel_admin") {
-    // In a real app, you'd properly mount the HotelSpecificDashboard component
-    // For now, we'll modify the existing dashboard
+  // Show hotel-specific dashboard for hotel admins or when viewing as hotel admin
+  if (effectiveRole === "hotel_admin") {
     const dashboardContent = document.getElementById("dashboard-content");
     if (dashboardContent) {
-      // Add hotel-specific indicator
-      const hotelName = localStorage.getItem("viewAsHotelName") || "Your Hotel";
+      const hotelName = localStorage.getItem("viewAsHotelName") || 
+                       (currentUser.role === "hotel_admin" ? "Your Hotel" : "Selected Hotel");
       const indicator = document.createElement("div");
       indicator.className = "mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg";
       indicator.innerHTML = `
