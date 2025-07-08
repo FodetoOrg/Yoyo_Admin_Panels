@@ -14,7 +14,7 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
 } from "@/lib/utils/firebase";
-import { signInWithPhoneNumber } from "firebase/auth";
+import { signInWithPhoneNumber, signOut } from "firebase/auth";
 import { Loader2 } from "lucide-react";
 import { apiService, setCookie, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
@@ -72,7 +72,9 @@ const AuthScreen = () => {
       // Get the ID token
       const idToken = await result.user.getIdToken();
 
-      setCookie
+      console.log('idToken ',idToken)
+      // setCookie
+      
 
       // Send token to backend
       // const response = await apiService.login(idToken)
