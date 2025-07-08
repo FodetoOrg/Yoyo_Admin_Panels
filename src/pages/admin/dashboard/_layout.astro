@@ -28,6 +28,7 @@ if (isSuperAdmin(currentUser)) {
   }
 }
 
+
 const fromTime = Astro.url.searchParams.get("fromTime") || "";
 const toTime = Astro.url.searchParams.get("toTime") || "";
 
@@ -72,6 +73,7 @@ if (isSuperAdmin(currentUser)) {
     }
   );
 }
+
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -114,12 +116,7 @@ if (isSuperAdmin(currentUser)) {
   </div>
 </DashboardLayout>
 
-<script define:vars={{ currentUser }}>
-  // Make currentUser available to client-side scripts
-  window.currentUser = currentUser;
-  // Store in localStorage for client-side auth utilities
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-</script>
+
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -162,9 +159,4 @@ if (isSuperAdmin(currentUser)) {
   </div>
 </DashboardLayout>
 
-<script define:vars={{ currentUser }}>
-  // Make currentUser available to client-side scripts
-  window.currentUser = currentUser;
-  // Store in localStorage for client-side auth utilities
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-</script>
+

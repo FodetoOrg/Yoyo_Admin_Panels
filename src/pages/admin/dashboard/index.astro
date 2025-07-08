@@ -2,6 +2,7 @@
 import Layout from './_layout.astro';
 import Dashboard from './_components/Dasboard';
 import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
+
 import { UserRole, isSuperAdmin, isHotelAdmin, getEffectiveHotelId } from "@/lib/utils/auth";
 
 const currentUser = Astro.locals.user;
@@ -9,6 +10,7 @@ const effectiveHotelId = getEffectiveHotelId(currentUser);
 
 // Check if viewing as hotel admin or is hotel admin
 const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUser) && effectiveHotelId);
+
 ---
 
 <Layout pageTitle="Dashboard">
@@ -23,4 +25,8 @@ const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUse
       <Dashboard client:load />
     )}
   </div>
+
 </Layout>
+
+
+
