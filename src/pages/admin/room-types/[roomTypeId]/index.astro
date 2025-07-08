@@ -1,0 +1,44 @@
+---
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import RoomTypeForm from "./_components/RoomTypeForm";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const { roomTypeId } = Astro.params;
+
+let roomTypeData: any = null;
+if (roomTypeId && roomTypeId !== "new") {
+  // Mock API call - replace with actual API call
+  const mockRoomTypes = [
+    {
+      id: "rt_001",
+      name: "Standard Room",
+      description: "Basic room with essential amenities",
+      basePrice: 100,
+      maxOccupancy: 2,
+      amenities: ["wifi", "ac_heating", "tv"],
+      status: "active",
+    },
+    {
+      id: "rt_002", 
+      name: "Deluxe Room",
+      description: "Spacious room with premium amenities",
+      basePrice: 150,
+      maxOccupancy: 3,
+      amenities: ["wifi", "ac_heating", "tv", "minibar", "balcony"],
+      status: "active",
+    },
+  ];
+  
+  roomTypeData = mockRoomTypes.find(rt => rt.id === roomTypeId);
+}
+---
+
+<DashboardLayout title="Room Type Management">
+  <RoomTypeForm roomTypeData={roomTypeData} client:load />
+</DashboardLayout>

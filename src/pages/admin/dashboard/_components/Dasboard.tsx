@@ -360,9 +360,7 @@ const chartConfig = {
 
 const Dasboard = () => {
   return (
-    <div >
-      
-
+    <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard title="Total Hotels" value="10" />
         <StatsCard title="Total Hotels" value="10" />
@@ -398,25 +396,46 @@ const Dasboard = () => {
           showGrid={true}
         />
       </div>
-      <PieGraph
-        data={[
-          {
-            name: "Sales",
-            value: 100,
-          },
-          {
-            name: "Sales",
-            value: 100,
-          },
-          {
-            name: "Sales",
-            value: 100,
-          },
-        ]}
-        className="mx-auto aspect-square max-h-[360px]"
-        labelText="Total"
-        fillKey="fill"
-      />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <PieGraph
+          data={[
+            {
+              name: "Hotels",
+              value: 45,
+            },
+            {
+              name: "Bookings",
+              value: 30,
+            },
+            {
+              name: "Revenue",
+              value: 25,
+            },
+          ]}
+          className="mx-auto aspect-square max-h-[360px]"
+          labelText="Total"
+          fillKey="fill"
+        />
+        <PieGraph
+          data={[
+            {
+              name: "Active",
+              value: 80,
+            },
+            {
+              name: "Pending",
+              value: 15,
+            },
+            {
+              name: "Cancelled",
+              value: 5,
+            },
+          ]}
+          className="mx-auto aspect-square max-h-[360px]"
+          labelText="Status"
+          fillKey="fill"
+        />
+      </div>
     </div>
   );
 };

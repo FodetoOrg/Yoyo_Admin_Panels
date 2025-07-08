@@ -8,6 +8,9 @@ import { UserRole, isSuperAdmin, isHotelAdmin, getEffectiveHotelId } from "@/lib
 const currentUser = Astro.locals.user;
 const effectiveHotelId = getEffectiveHotelId(currentUser);
 
+// Check if viewing as hotel admin
+const isViewingAs = typeof window !== 'undefined' ? !!localStorage.getItem("viewAsHotel") : false;
+
 // Check if viewing as hotel admin or is hotel admin
 const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUser) && effectiveHotelId);
 
@@ -18,7 +21,8 @@ const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUse
     {showHotelDashboard ? (
       <HotelSpecificDashboard 
         hotelId={effectiveHotelId}
-        hotelName={isHotelAdmin(currentUser) ? "Your Hotel" : "Selected Hotel"}
+        hotelName={isHotelAdmin(currentUser) ? "Your Hotel" : "Hotel Dashboard"}
+        isViewingAs={isSuperAdmin(currentUser) && !!effectiveHotelId}
         client:load 
       />
     ) : (

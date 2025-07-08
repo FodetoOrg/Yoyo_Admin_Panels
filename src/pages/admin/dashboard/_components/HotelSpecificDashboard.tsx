@@ -9,9 +9,10 @@ import { Badge } from "@/components/ui/badge";
 interface HotelSpecificDashboardProps {
   hotelId?: string;
   hotelName?: string;
+  isViewingAs?: boolean;
 }
 
-const HotelSpecificDashboard = ({ hotelId, hotelName }: HotelSpecificDashboardProps) => {
+const HotelSpecificDashboard = ({ hotelId, hotelName, isViewingAs = false }: HotelSpecificDashboardProps) => {
   // Mock data specific to the hotel
   const hotelData = [
     { date: "Jan", bookings: 45, revenue: 12000, occupancy: 78 },
@@ -45,7 +46,14 @@ const HotelSpecificDashboard = ({ hotelId, hotelName }: HotelSpecificDashboardPr
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-2xl">{hotelName || "Hotel Dashboard"}</CardTitle>
+              <CardTitle className="text-2xl">
+                {hotelName || "Hotel Dashboard"}
+                {isViewingAs && (
+                  <span className="ml-2 text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                    Viewing as Hotel Admin
+                  </span>
+                )}
+              </CardTitle>
               <p className="text-muted-foreground">Real-time analytics and performance metrics</p>
             </div>
             <Badge variant="default" className="bg-green-500">
