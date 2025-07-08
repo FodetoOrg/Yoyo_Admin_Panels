@@ -1,0 +1,51 @@
+import React from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+
+interface HotelSelectorProps {
+  hotels: Array<{
+    id: string;
+    name: string;
+    city: string;
+    rating: number;
+    status: string;
+  }>;
+  selectedHotel: string;
+  onHotelChange: (hotelId: string) => void;
+}
+
+const HotelSelector = ({ hotels, selectedHotel, onHotelChange }: HotelSelectorProps) => {
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm font-medium">Select Hotel:</span>
+      <Select value={selectedHotel} onValueChange={onHotelChange}>
+        <SelectTrigger className="w-[300px]">
+          <SelectValue placeholder="Choose a hotel..." />
+        </SelectTrigger>
+        <SelectContent>
+          {hotels.map((hotel) => (
+            <SelectItem key={hotel.id} value={hotel.id}>
+              <div className="flex items-center justify-between w-full">
+                <span>{hotel.name} - {hotel.city}</span>
+                <Badge 
+                  variant={hotel.status === "active" ? "default" : "secondary"}
+                  className="ml-2"
+                >
+                  {hotel.rating}★
+                </Badge>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+};
+
+export default HotelSelector;

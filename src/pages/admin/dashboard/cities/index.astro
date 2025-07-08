@@ -1,11 +1,35 @@
 ---
 import Layout from '../_layout.astro';
+import CityDashboard from './_components/CityDashboard';
+import CitySelector from './_components/CitySelector';
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
+// Fetch cities data
+const citiesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
 
+const cities = citiesResponse.success ? citiesResponse.data : [];
+const selectedCity = Astro.url.searchParams.get("city") || (cities[0]?.id || "");
 // Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
 // Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
 <Layout title="Dashboard">
-
+  <div class="space-y-4">
+    <CitySelector 
+      cities={cities} 
+      selectedCity={selectedCity}
+      onCityChange={(cityId) => {
+        const url = new URL(window.location);
+        url.searchParams.set('city', cityId);
+        window.location.href = url.toString();
+      }}
+      client:load 
+    />
+    <CityDashboard selectedCity={selectedCity} cities={cities} client:load />
+  </div>
 </Layout>
