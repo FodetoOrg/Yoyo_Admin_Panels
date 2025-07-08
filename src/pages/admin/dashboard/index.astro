@@ -1,17 +1,35 @@
 ---
 import Layout from './_layout.astro';
 import Dashboard  from './_components/Dasboard';
-import { apiService, serverApiService, type ApiResponse } from "@/lib/utils/api";
-import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
-
-
-
-
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
 ---
 
 <Layout title="Dashboard">
-	<Dashboard  client:load/>
+  <div id="dashboard-content">
+    <Dashboard client:load />
+  </div>
 </Layout>
+
+<script>
+  // Check if viewing as hotel admin
+  const viewAsHotel = localStorage.getItem("viewAsHotel");
+  const currentUser = { role: "super_admin" }; // This should come from auth
+  
+  // If viewing as hotel admin or user is hotel admin, show hotel-specific dashboard
+  if (viewAsHotel || currentUser.role === "hotel_admin") {
+    // In a real app, you'd properly mount the HotelSpecificDashboard component
+    // For now, we'll modify the existing dashboard
+    const dashboardContent = document.getElementById("dashboard-content");
+    if (dashboardContent) {
+      // Add hotel-specific indicator
+      const hotelName = localStorage.getItem("viewAsHotelName") || "Your Hotel";
+      const indicator = document.createElement("div");
+      indicator.className = "mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg";
+      indicator.innerHTML = `
+        <h3 class="text-lg font-semibold text-blue-800">Hotel Dashboard: ${hotelName}</h3>
+        <p class="text-sm text-blue-600">Viewing hotel-specific analytics and data</p>
+      `;
+      dashboardContent.insertBefore(indicator, dashboardContent.firstChild);
+    }
+  }
+</script>

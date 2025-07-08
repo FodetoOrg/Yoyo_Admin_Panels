@@ -6,6 +6,7 @@ import { Heading } from "@/components/Heading";
 import { stringToDate } from "@/lib/utils/utils";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+import ViewAsAdmin from "./_components/ViewAsAdmin";
 
 const { pageTitle } = Astro.props;
 
@@ -40,7 +41,7 @@ const hotelsResponse: ApiResponse<any> = await serverApiService.get(
 );
 
 const hotels = hotelsResponse.success ? hotelsResponse.data : [];
-const currentUser = { role: "super_admin" }; // This should come from auth context
+const currentUser = { role: "super_admin" }; // This should come from auth context in real app
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -50,8 +51,82 @@ const currentUser = { role: "super_admin" }; // This should come from auth conte
       title={"Dashboard"}
       description="these are useful for adding tags to products"
     />
-    <Header client:load currentTab={currentTab} hotels={hotels} currentUser={currentUser} />
+    <div class="space-y-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          <div id="dashboard-tabs"></div>
+        </div>
+        <div class="flex items-center gap-4">
+          <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
+          <div id="date-picker"></div>
+        </div>
+      </div>
+    </div>
     <slot />
   </div>
   <!-- </PageContainer> -->
 </DashboardLayout>
+
+<script>
+  import TabGroup from "@/components/TabGroup";
+  import { DateRangePicker } from "@/components/DateRangePicker";
+  
+  // Get current user and determine which tabs to show
+  const currentUser = { role: "super_admin" }; // This should come from auth
+  const pathname = window.location.pathname;
+  
+  const currentTab =
+    pathname === "/admin/dashboard"
+      ? "Overview"
+      : pathname === "/admin/dashboard/cities"
+        ? "Cities"
+        : "Hotels";
+
+  // Check if viewing as hotel admin
+  const viewAsHotel = localStorage.getItem("viewAsHotel");
+  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
+  
+  let dashboardTabs = [
+    {
+      value: "Overview",
+      action: "/admin/dashboard",
+    }
+  ];
+  
+  // Only show Cities and Hotels tabs for super admin (not when viewing as hotel admin)
+  if (effectiveRole === "super_admin") {
+    dashboardTabs.push(
+      {
+        value: "Cities",
+        action: "/admin/dashboard/cities",
+      },
+      {
+        value: "Hotels",
+        action: "/admin/dashboard/hotels",
+      }
+    );
+  }
+  
+  // Render tabs
+  const tabsContainer = document.getElementById("dashboard-tabs");
+  if (tabsContainer && dashboardTabs.length > 1) {
+    // Create and mount TabGroup component
+    // This is a simplified version - in a real app you'd use proper React mounting
+    const tabsHTML = dashboardTabs.map(tab => 
+      `<a href="${tab.action}" class="px-3 py-2 text-sm font-medium rounded-md ${
+        currentTab === tab.value 
+          ? 'bg-primary text-primary-foreground' 
+          : 'text-muted-foreground hover:text-foreground'
+      }">${tab.value}</a>`
+    ).join('');
+    
+    tabsContainer.innerHTML = `<div class="flex space-x-1">${tabsHTML}</div>`;
+  }
+  
+  // Render date picker
+  const datePickerContainer = document.getElementById("date-picker");
+  if (datePickerContainer) {
+    // This would be properly mounted in a real React app
+    datePickerContainer.innerHTML = '<div class="text-sm text-muted-foreground">Date Range Picker</div>';
+  }
+</script>
