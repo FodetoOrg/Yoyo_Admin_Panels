@@ -98,13 +98,13 @@ export default function AppSidebar({
     // Filter navigation items based on effective role
     const filtered = navItems.filter((item) => {
       if (!item.show) return false;
-      
+
       // For hotel admins (including super admin viewing as hotel admin)
       if (effectiveRole === "hotel_admin") {
         // Hide Cities page for hotel admins
         if (item.url === "/admin/cities") return false;
       }
-      
+
       return true;
     });
     setFilteredNavItems(filtered);
@@ -241,7 +241,7 @@ export default function AppSidebar({
                   <AvatarImage src={""} alt={user.name} />
                   <AvatarFallback className="rounded-lg">
                     {user?.name
-                      .split(" ")
+                      ?.split(" ")
                       .map((n) => n[0])
                       .join("")}
                   </AvatarFallback>
@@ -252,7 +252,7 @@ export default function AppSidebar({
                 </div>
                 <LogOut
                   onClick={async () => {
-                    
+
                   }}
                   className="ml-auto size-4"
                 />

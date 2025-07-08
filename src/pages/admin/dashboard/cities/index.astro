@@ -14,22 +14,3 @@ import NotFound from "@/components/NotFound";
   </div>
 </Layout>
 
-<script>
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  // Only show cities dashboard for super admin
-  if (effectiveRole === "super_admin") {
-    const content = document.getElementById("cities-content");
-    if (content) {
-      content.innerHTML = `
-        <div class="space-y-4">
-          <div class="text-lg font-semibold">Cities Dashboard</div>
-          <p class="text-muted-foreground">Select a city to view detailed analytics</p>
-          <!-- City selector and dashboard would be mounted here -->
-        </div>
-      `;
-    }
-  }
-</script>

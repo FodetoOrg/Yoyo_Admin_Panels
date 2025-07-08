@@ -1,6 +1,8 @@
 ---
 import Layout from '../_layout.astro';
 import NotFound from "@/components/NotFound";
+
+
 ---
 
 <Layout title="Dashboard">
@@ -14,22 +16,3 @@ import NotFound from "@/components/NotFound";
   </div>
 </Layout>
 
-<script>
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  // Only show hotels dashboard for super admin
-  if (effectiveRole === "super_admin") {
-    const content = document.getElementById("hotels-content");
-    if (content) {
-      content.innerHTML = `
-        <div class="space-y-4">
-          <div class="text-lg font-semibold">Hotels Dashboard</div>
-          <p class="text-muted-foreground">Select a hotel to view detailed analytics</p>
-          <!-- Hotel selector and dashboard would be mounted here -->
-        </div>
-      `;
-    }
-  }
-</script>

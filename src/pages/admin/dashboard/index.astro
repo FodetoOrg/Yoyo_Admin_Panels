@@ -2,6 +2,7 @@
 import Layout from './_layout.astro';
 import Dashboard  from './_components/Dasboard';
 import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
+
 ---
 
 <Layout title="Dashboard">
@@ -10,24 +11,3 @@ import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
   </div>
 </Layout>
 
-<script>
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  // Show hotel-specific dashboard for hotel admins or when viewing as hotel admin
-  if (effectiveRole === "hotel_admin") {
-    const dashboardContent = document.getElementById("dashboard-content");
-    if (dashboardContent) {
-      const hotelName = localStorage.getItem("viewAsHotelName") || 
-                       (currentUser.role === "hotel_admin" ? "Your Hotel" : "Selected Hotel");
-      const indicator = document.createElement("div");
-      indicator.className = "mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg";
-      indicator.innerHTML = `
-        <h3 class="text-lg font-semibold text-blue-800">Hotel Dashboard: ${hotelName}</h3>
-        <p class="text-sm text-blue-600">Viewing hotel-specific analytics and data</p>
-      `;
-      dashboardContent.insertBefore(indicator, dashboardContent.firstChild);
-    }
-  }
-</script>

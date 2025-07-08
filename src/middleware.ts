@@ -26,7 +26,7 @@ export const auth = defineMiddleware(
       // For example, you could decode and verify the JWT token
       // const decoded = jwt.verify(token.value, process.env.JWT_SECRET);
 
-      // Add user info to locals if needed
+      // // Add user info to locals if needed
       // locals.user = decoded;
 
       // Allow the request to proceed
@@ -39,6 +39,9 @@ export const auth = defineMiddleware(
 
       console.log("res in middleware ", res);
       if (res.success) {
+        console.log('user is ',cookies.get(CONSTANTS.USER)?.value)
+        
+        locals.user = cookies.get(CONSTANTS.USER)?.value 
         if (url.pathname === "/auth" || url.pathname === "/") {
           return redirect("/admin/dashboard");
         }

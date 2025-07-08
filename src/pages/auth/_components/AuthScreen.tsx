@@ -72,15 +72,16 @@ const AuthScreen = () => {
       // Get the ID token
       const idToken = await result.user.getIdToken();
 
-      console.log('idToken ',idToken)
+      console.log('idToken ', idToken)
       // setCookie
-      
+
 
       // Send token to backend
       // const response = await apiService.login(idToken)
       const response: ApiResponse<{
         accessToken: string;
         refreshToken: string;
+        user: any
       }> = await apiService.post(ROUTES.LOGIN_ROUTE, {
         idToken,
       });
@@ -91,6 +92,7 @@ const AuthScreen = () => {
       }
       setCookie(CONSTANTS.ACCESS_TOKEN_KEY, response.data.accessToken);
       setCookie(CONSTANTS.REFRESH_TOKEN_KEY, response.data.refreshToken);
+      setCookie(CONSTANTS.USER, JSON.stringify(response.data.user))
 
       console.log("response", response);
 

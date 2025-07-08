@@ -12,6 +12,14 @@ const { pageTitle } = Astro.props;
 
 const { pathname } = Astro.url;
 
+if(!Astro.locals.user){
+  Astro.cookies.delete(CONSTANTS.ACCESS_TOKEN_KEY)
+  Astro.cookies.delete(CONSTANTS.REFRESH_TOKEN_KEY)
+  Astro.cookies.delete(CONSTANTS.USER)
+
+  return Astro.redirect('/auth')
+}
+
 const currentTab =
   pathname === "/admin/dashboard"
     ? "Overview"
@@ -41,7 +49,31 @@ const hotelsResponse: ApiResponse<any> = await serverApiService.get(
 );
 
 const hotels = hotelsResponse.success ? hotelsResponse.data : [];
-const currentUser = Astro.locals.user || { role: "super_admin" };
+const currentUser = Astro.locals.user 
+
+let dashboardTabs = [
+    {
+      value: "Overview",
+      action: "/admin/dashboard",
+    }
+  ];
+  
+  // Only show Cities and Hotels tabs for super admin (not when viewing as hotel admin)
+  if (Astro.locals.user.role === "super_admin") {
+    dashboardTabs.push(
+      {
+        value: "Cities",
+        action: "/admin/dashboard/cities",
+      },
+      {
+        value: "Hotels",
+        action: "/admin/dashboard/hotels",
+      }
+    );
+  }
+  
+
+console.log('currentUser ',currentUser)
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -69,73 +101,3 @@ const currentUser = Astro.locals.user || { role: "super_admin" };
   <!-- </PageContainer> -->
 </DashboardLayout>
 
-<script>
-  import TabGroup from "@/components/TabGroup";
-  import { DateRangePicker } from "@/components/DateRangePicker";
-  
-  // Get current user from server-side data
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const pathname = window.location.pathname;
-  
-  const currentTab =
-    pathname === "/admin/dashboard"
-      ? "Overview"
-      : pathname === "/admin/dashboard/cities"
-        ? "Cities"
-        : "Hotels";
-
-  // Check if viewing as hotel admin
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  let dashboardTabs = [
-    {
-      value: "Overview",
-      action: "/admin/dashboard",
-    }
-  ];
-  
-  // Only show Cities and Hotels tabs for super admin (not when viewing as hotel admin)
-  if (effectiveRole === "super_admin") {
-    dashboardTabs.push(
-      {
-        value: "Cities",
-        action: "/admin/dashboard/cities",
-      },
-      {
-        value: "Hotels",
-        action: "/admin/dashboard/hotels",
-      }
-    );
-  }
-  
-  // Render tabs
-  const tabsContainer = document.getElementById("dashboard-tabs");
-  if (tabsContainer && dashboardTabs.length > 1) {
-    // Create and mount TabGroup component
-    // This is a simplified version - in a real app you'd use proper React mounting
-    const tabsHTML = dashboardTabs.map(tab => 
-      `<a href="${tab.action}" class="px-3 py-2 text-sm font-medium rounded-md ${
-        currentTab === tab.value 
-          ? 'bg-primary text-primary-foreground' 
-          : 'text-muted-foreground hover:text-foreground'
-      }">${tab.value}</a>`
-    ).join('');
-    
-    tabsContainer.innerHTML = `<div class="flex space-x-1">${tabsHTML}</div>`;
-  }
-  
-  // Render date picker
-  const datePickerContainer = document.getElementById("date-picker");
-  if (datePickerContainer) {
-    // This would be properly mounted in a real React app
-    datePickerContainer.innerHTML = '<div class="text-sm text-muted-foreground">Date Range Picker</div>';
-  }
-</script>
-
-<script define:vars={{ currentUser }}>
-  // Make currentUser available to client-side scripts
-  window.currentUser = currentUser;
-  // Store in localStorage for client-side auth utilities
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-</script>
