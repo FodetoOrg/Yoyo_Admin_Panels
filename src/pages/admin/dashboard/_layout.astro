@@ -4,6 +4,8 @@ import Header from "./_components/Header";
 import PageContainer from "@/components/PageContainer";
 import { Heading } from "@/components/Heading";
 import { stringToDate } from "@/lib/utils/utils";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const { pageTitle } = Astro.props;
 
@@ -29,6 +31,16 @@ if (!fromDate || !toDate) {
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   fromDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
 }
+
+// Fetch hotels for ViewAsAdmin component
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hotels = hotelsResponse.success ? hotelsResponse.data : [];
+const currentUser = { role: "super_admin" }; // This should come from auth context
 ---
 
 <DashboardLayout title={pageTitle}>
@@ -38,7 +50,7 @@ if (!fromDate || !toDate) {
       title={"Dashboard"}
       description="these are useful for adding tags to products"
     />
-    <Header client:load currentTab={currentTab} />
+    <Header client:load currentTab={currentTab} hotels={hotels} currentUser={currentUser} />
     <slot />
   </div>
   <!-- </PageContainer> -->

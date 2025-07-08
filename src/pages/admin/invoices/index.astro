@@ -1,0 +1,12 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { mockInvoices } from "../../../lib/mock-data";
+
+// Use mock data - replace with actual API call
+const invoices = mockInvoices;
+---
+
+<DashboardLayout title="Invoices">
+  <Screen invoices={invoices} client:load />
+</DashboardLayout>

@@ -1,4 +1,4 @@
-import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin } from "lucide-react";
+import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin, CreditCard } from "lucide-react";
 
 export interface NavItem {
     title: string;
@@ -62,6 +62,14 @@ export interface NavItem {
       title: "Invoices",
       url: "/admin/invoices",
       icon: Receipt,
+      isActive: false,
+      allowedRoles: ["admin", "manager"],
+      show: true,
+    },
+    {
+      title: "Payments",
+      url: "/admin/payments",
+      icon: CreditCard,
       isActive: false,
       allowedRoles: ["admin", "manager"],
       show: true,
