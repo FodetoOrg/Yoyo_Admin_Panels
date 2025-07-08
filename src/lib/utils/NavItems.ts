@@ -1,4 +1,4 @@
-import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin, CreditCard, Bed } from "lucide-react";
+import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin, CreditCard, Bed, Tag, Percent, DollarSign } from "lucide-react";
 import { UserRole } from "./auth";
 
 export interface NavItem {
@@ -50,6 +50,22 @@ export interface NavItem {
       allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
+    {
+      title: "Room Types",
+      url: "/admin/room-types",
+      icon: Tag,
+      isActive: false,
+      allowedRoles: [UserRole.SUPER_ADMIN],
+      show: true,
+    },
+    {
+      title: "Coupons",
+      url: "/admin/coupons",
+      icon: Percent,
+      isActive: false,
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+      show: true,
+    },
    
     {
       title: "Bookings",
@@ -73,6 +89,22 @@ export interface NavItem {
       icon: Bed,
       isActive: false,
       allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+      show: true,
+    },
+    {
+      title: "Revenue Management",
+      url: "/admin/revenue",
+      icon: DollarSign,
+      isActive: false,
+      allowedRoles: [UserRole.SUPER_ADMIN],
+      show: true,
+    },
+    {
+      title: "Dynamic Pricing",
+      url: "/admin/pricing",
+      icon: DollarSign,
+      isActive: false,
+      allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
     {

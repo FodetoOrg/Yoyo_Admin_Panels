@@ -1,0 +1,62 @@
+---
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import CouponForm from "./_components/CouponForm";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const { couponId } = Astro.params;
+
+let couponData: any = null;
+if (couponId && couponId !== "new") {
+  // Mock API call - replace with actual API call
+  const mockCoupons = [
+    {
+      id: "cp_001",
+      code: "SUMMER25",
+      description: "25% off summer bookings",
+      discountType: "percentage",
+      discountValue: 25,
+      maxDiscountAmount: 100,
+      minOrderAmount: 200,
+      validFrom: "2024-06-01T00:00",
+      validTo: "2024-08-31T23:59",
+      usageLimit: 100,
+      priceIncreasePercentage: 5,
+      status: "active",
+    },
+  ];
+  
+  couponData = mockCoupons.find(c => c.id === couponId);
+}
+
+// Mock data for dropdowns
+const mockCities = [
+  { id: "city_001", name: "New York" },
+  { id: "city_002", name: "Los Angeles" },
+];
+
+const mockHotels = [
+  { id: "htl_001", name: "Grand Plaza Hotel" },
+  { id: "htl_002", name: "Seaside Resort" },
+];
+
+const mockRoomTypes = [
+  { id: "rt_001", name: "Standard Room" },
+  { id: "rt_002", name: "Deluxe Room" },
+];
+---
+
+<DashboardLayout title="Coupon Management">
+  <CouponForm 
+    couponData={couponData}
+    cities={mockCities}
+    hotels={mockHotels}
+    roomTypes={mockRoomTypes}
+    client:load 
+  />
+</DashboardLayout>

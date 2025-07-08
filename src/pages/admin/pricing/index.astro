@@ -1,0 +1,45 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Mock data - replace with actual API calls
+const mockCities = [
+  { id: "city_001", name: "New York" },
+  { id: "city_002", name: "Los Angeles" },
+  { id: "city_003", name: "Chicago" },
+];
+
+const mockHotels = [
+  { id: "htl_001", name: "Grand Plaza Hotel", cityId: "city_001" },
+  { id: "htl_002", name: "Seaside Resort", cityId: "city_002" },
+  { id: "htl_003", name: "Mountain View Lodge", cityId: "city_003" },
+];
+
+const mockRoomTypes = [
+  { id: "rt_001", name: "Standard Room" },
+  { id: "rt_002", name: "Deluxe Room" },
+  { id: "rt_003", name: "Suite" },
+];
+
+const mockCoupons = [
+  { id: "cp_001", code: "SUMMER25", description: "25% off summer bookings" },
+  { id: "cp_002", code: "WELCOME50", description: "$50 off your first booking" },
+];
+---
+
+<DashboardLayout title="Dynamic Pricing">
+  <Screen 
+    cities={mockCities}
+    hotels={mockHotels}
+    roomTypes={mockRoomTypes}
+    coupons={mockCoupons}
+    client:load 
+  />
+</DashboardLayout>

@@ -91,6 +91,16 @@ const formConfig: FormConfig = {
       space: 1,
       inputType: "number",
     },
+    {
+      name: "commissionRate",
+      type: "input",
+      validation: z.number().min(0).max(100),
+      label: "Commission Rate (%)",
+      placeholder: "Commission percentage (e.g., 15)",
+      space: 1,
+      inputType: "number",
+      order: 15,
+    },
 
     {
       name: "images",
