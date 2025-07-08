@@ -1,33 +1,26 @@
 ---
 import Layout from './_layout.astro';
-import Dashboard  from './_components/Dasboard';
+import Dashboard from './_components/Dasboard';
 import HotelSpecificDashboard from './_components/HotelSpecificDashboard';
+import { UserRole, isSuperAdmin, isHotelAdmin, getEffectiveHotelId } from "@/lib/utils/auth";
+
+const currentUser = Astro.locals.user;
+const effectiveHotelId = getEffectiveHotelId(currentUser);
+
+// Check if viewing as hotel admin or is hotel admin
+const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUser) && effectiveHotelId);
 ---
 
-<Layout title="Dashboard">
-  <div id="dashboard-content">
-    <Dashboard client:load />
+<Layout pageTitle="Dashboard">
+  <div class="mt-6">
+    {showHotelDashboard ? (
+      <HotelSpecificDashboard 
+        hotelId={effectiveHotelId}
+        hotelName={isHotelAdmin(currentUser) ? "Your Hotel" : "Selected Hotel"}
+        client:load 
+      />
+    ) : (
+      <Dashboard client:load />
+    )}
   </div>
 </Layout>
-
-<script>
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  // Show hotel-specific dashboard for hotel admins or when viewing as hotel admin
-  if (effectiveRole === "hotel_admin") {
-    const dashboardContent = document.getElementById("dashboard-content");
-    if (dashboardContent) {
-      const hotelName = localStorage.getItem("viewAsHotelName") || 
-                       (currentUser.role === "hotel_admin" ? "Your Hotel" : "Selected Hotel");
-      const indicator = document.createElement("div");
-      indicator.className = "mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg";
-      indicator.innerHTML = `
-        <h3 class="text-lg font-semibold text-blue-800">Hotel Dashboard: ${hotelName}</h3>
-        <p class="text-sm text-blue-600">Viewing hotel-specific analytics and data</p>
-      `;
-      dashboardContent.insertBefore(indicator, dashboardContent.firstChild);
-    }
-  }
-</script>

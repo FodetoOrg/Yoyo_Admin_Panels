@@ -7,17 +7,26 @@ import { stringToDate } from "@/lib/utils/utils";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 import ViewAsAdmin from "./_components/ViewAsAdmin";
+import { UserRole, isSuperAdmin, redirectIfUnauthorized } from "@/lib/utils/auth";
 
 const { pageTitle } = Astro.props;
-
 const { pathname } = Astro.url;
 
-const currentTab =
-  pathname === "/admin/dashboard"
-    ? "Overview"
-    : pathname === "/admin/dashboard/cities"
-      ? "Cities"
-      : "Hotels";
+// Check authentication and authorization
+const redirectResponse = redirectIfUnauthorized(Astro);
+if (redirectResponse) return redirectResponse;
+
+const currentUser = Astro.locals.user;
+
+// Determine current tab based on pathname and user role
+let currentTab = "Overview";
+if (isSuperAdmin(currentUser)) {
+  if (pathname === "/admin/dashboard/cities") {
+    currentTab = "Cities";
+  } else if (pathname === "/admin/dashboard/hotels") {
+    currentTab = "Hotels";
+  }
+}
 
 const fromTime = Astro.url.searchParams.get("fromTime") || "";
 const toTime = Astro.url.searchParams.get("toTime") || "";
@@ -27,111 +36,131 @@ let toDate = stringToDate(toTime);
 
 if (!fromDate || !toDate) {
   toDate = new Date();
-  //from date is 6 months before to date
   const sixMonthsAgo = new Date(toDate);
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   fromDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
 }
 
-// Fetch hotels for ViewAsAdmin component
-const hotelsResponse: ApiResponse<any> = await serverApiService.get(
-  ROUTES.GET_ALL_HOTELS_ROUTE,
-  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-  Astro.cookies
-);
+// Fetch hotels for ViewAsAdmin component (only for super admin)
+let hotels: any[] = [];
+if (isSuperAdmin(currentUser)) {
+  const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_HOTELS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  hotels = hotelsResponse.success ? hotelsResponse.data : [];
+}
 
-const hotels = hotelsResponse.success ? hotelsResponse.data : [];
-const currentUser = Astro.locals.user || { role: "super_admin" };
+// Build dashboard tabs based on user role
+const dashboardTabs = [];
+dashboardTabs.push({
+  value: "Overview",
+  action: "/admin/dashboard",
+});
+
+// Only super admin can see Cities and Hotels tabs
+if (isSuperAdmin(currentUser)) {
+  dashboardTabs.push(
+    {
+      value: "Cities", 
+      action: "/admin/dashboard/cities",
+    },
+    {
+      value: "Hotels",
+      action: "/admin/dashboard/hotels", 
+    }
+  );
+}
 ---
 
 <DashboardLayout title={pageTitle}>
-  <!-- <PageContainer> -->
   <div class="p-4 md:px-8">
     <Heading
-      title={"Dashboard"}
-      description="these are useful for adding tags to products"
+      title="Dashboard"
+      description={isSuperAdmin(currentUser) 
+        ? "Comprehensive analytics and management overview" 
+        : "Your hotel analytics and performance metrics"
+      }
     />
     <div class="space-y-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
-          <div id="dashboard-tabs"></div>
+          {dashboardTabs.length > 1 && (
+            <div class="flex space-x-1">
+              {dashboardTabs.map(tab => (
+                <a 
+                  href={tab.action} 
+                  class={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentTab === tab.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.value}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div class="flex items-center gap-4">
-          {currentUser.role === "super_admin" && (
+          {isSuperAdmin(currentUser) && (
             <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
           )}
-          <div id="date-picker"></div>
         </div>
       </div>
     </div>
     <slot />
   </div>
-  <!-- </PageContainer> -->
 </DashboardLayout>
 
-<script>
-  import TabGroup from "@/components/TabGroup";
-  import { DateRangePicker } from "@/components/DateRangePicker";
-  
-  // Get current user from server-side data
-  const currentUser = window.currentUser || { role: "super_admin" };
-  const pathname = window.location.pathname;
-  
-  const currentTab =
-    pathname === "/admin/dashboard"
-      ? "Overview"
-      : pathname === "/admin/dashboard/cities"
-        ? "Cities"
-        : "Hotels";
-
-  // Check if viewing as hotel admin
-  const viewAsHotel = localStorage.getItem("viewAsHotel");
-  const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
-  
-  let dashboardTabs = [
-    {
-      value: "Overview",
-      action: "/admin/dashboard",
-    }
-  ];
-  
-  // Only show Cities and Hotels tabs for super admin (not when viewing as hotel admin)
-  if (effectiveRole === "super_admin") {
-    dashboardTabs.push(
-      {
-        value: "Cities",
-        action: "/admin/dashboard/cities",
-      },
-      {
-        value: "Hotels",
-        action: "/admin/dashboard/hotels",
-      }
-    );
-  }
-  
-  // Render tabs
-  const tabsContainer = document.getElementById("dashboard-tabs");
-  if (tabsContainer && dashboardTabs.length > 1) {
-    // Create and mount TabGroup component
-    // This is a simplified version - in a real app you'd use proper React mounting
-    const tabsHTML = dashboardTabs.map(tab => 
-      `<a href="${tab.action}" class="px-3 py-2 text-sm font-medium rounded-md ${
-        currentTab === tab.value 
-          ? 'bg-primary text-primary-foreground' 
-          : 'text-muted-foreground hover:text-foreground'
-      }">${tab.value}</a>`
-    ).join('');
-    
-    tabsContainer.innerHTML = `<div class="flex space-x-1">${tabsHTML}</div>`;
-  }
-  
-  // Render date picker
-  const datePickerContainer = document.getElementById("date-picker");
-  if (datePickerContainer) {
-    // This would be properly mounted in a real React app
-    datePickerContainer.innerHTML = '<div class="text-sm text-muted-foreground">Date Range Picker</div>';
-  }
+<script define:vars={{ currentUser }}>
+  // Make currentUser available to client-side scripts
+  window.currentUser = currentUser;
+  // Store in localStorage for client-side auth utilities
+  localStorage.setItem('currentUser', JSON.stringify(currentUser));
 </script>
+---
+
+<DashboardLayout title={pageTitle}>
+  <div class="p-4 md:px-8">
+    <Heading
+      title="Dashboard"
+      description={isSuperAdmin(currentUser) 
+        ? "Comprehensive analytics and management overview" 
+        : "Your hotel analytics and performance metrics"
+      }
+    />
+    <div class="space-y-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          {dashboardTabs.length > 1 && (
+            <div class="flex space-x-1">
+              {dashboardTabs.map(tab => (
+                <a 
+                  href={tab.action} 
+                  class={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentTab === tab.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.value}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        <div class="flex items-center gap-4">
+          {isSuperAdmin(currentUser) && (
+            <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
+          )}
+        </div>
+      </div>
+    </div>
+    <slot />
+  </div>
+</DashboardLayout>
 
 <script define:vars={{ currentUser }}>
   // Make currentUser available to client-side scripts
