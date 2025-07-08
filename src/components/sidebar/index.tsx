@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getCurrentUser, getEffectiveRole, isHotelAdmin, isSuperAdmin } from "@/lib/utils/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -91,15 +92,27 @@ export default function AppSidebar({
   navItems,
   user,
 }: AppSidebarProps) {
-  console.log("filteredNavs ", navItems);
   const [mounted, setMounted] = useState(false);
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
+  const currentUser = getCurrentUser();
+  const effectiveRole = getEffectiveRole(currentUser);
 
   useEffect(() => {
-    const filtered = navItems.filter((item) => item.show);
+    // Filter navigation items based on effective role
+    const filtered = navItems.filter((item) => {
+      if (!item.show) return false;
+      
+      // For hotel admins (including super admin viewing as hotel admin)
+      if (effectiveRole === "hotel_admin") {
+        // Hide Cities page for hotel admins
+        if (item.url === "/admin/cities") return false;
+      }
+      
+      return true;
+    });
     setFilteredNavItems(filtered);
-  }, [navItems]);
+  }, [navItems, effectiveRole]);
 
   useEffect(() => {
     setMounted(true);

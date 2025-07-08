@@ -1,6 +1,7 @@
 import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Heading } from "@/components/Heading";
+import { getCurrentUser, getEffectiveHotelId } from "@/lib/utils/auth";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { columns, datePickers, filterFields } from "./columns";
@@ -11,13 +12,24 @@ interface Props {
 }
 
 const InvoicesScreen = ({ invoices = [] }: Props) => {
+  const currentUser = getCurrentUser();
+  const effectiveHotelId = getEffectiveHotelId(currentUser);
+  
+  // Filter invoices based on user role
+  const filteredInvoices = effectiveHotelId 
+    ? invoices.filter(invoice => invoice.hotelId === effectiveHotelId)
+    : invoices;
+
   return (
     <PageContainer>
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <Heading
             title="Invoices"
-            description="Manage billing and payment invoices"
+            description={effectiveHotelId 
+              ? "Manage your hotel billing and payment invoices" 
+              : "Manage billing and payment invoices"
+            }
           />
           <Button>
             <a
@@ -31,7 +43,7 @@ const InvoicesScreen = ({ invoices = [] }: Props) => {
         <DataTable
           columns={columns}
           filterFields={filterFields}
-          data={invoices}
+          data={filteredInvoices}
           datePickers={datePickers}
           hiddenColumns={[]}
         />

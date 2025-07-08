@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getCurrentUser, isSuperAdmin } from "@/lib/utils/auth";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -24,12 +25,17 @@ interface ViewAsAdminProps {
 const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
   const [selectedHotel, setSelectedHotel] = useState<string>("");
   const [isViewingAs, setIsViewingAs] = useState(false);
+  const [selectedHotelName, setSelectedHotelName] = useState<string>("");
 
   const handleViewAsHotel = () => {
     if (selectedHotel) {
       setIsViewingAs(true);
       // Store in localStorage for persistence across pages
       localStorage.setItem("viewAsHotel", selectedHotel);
+      const hotel = hotels.find(h => h.id === selectedHotel);
+      if (hotel) {
+        localStorage.setItem("viewAsHotelName", hotel.name);
+      }
       // Reload to apply the view
       window.location.reload();
     }
@@ -38,20 +44,23 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
   const handleExitView = () => {
     setIsViewingAs(false);
     localStorage.removeItem("viewAsHotel");
+    localStorage.removeItem("viewAsHotelName");
     window.location.reload();
   };
 
   // Check if currently viewing as a hotel admin
   React.useEffect(() => {
     const viewAsHotel = localStorage.getItem("viewAsHotel");
+    const viewAsHotelName = localStorage.getItem("viewAsHotelName");
     if (viewAsHotel) {
       setIsViewingAs(true);
       setSelectedHotel(viewAsHotel);
+      setSelectedHotelName(viewAsHotelName || "");
     }
   }, []);
 
   // Only show for super admin
-  if (currentUser.role !== "super_admin") {
+  if (!isSuperAdmin(currentUser)) {
     return null;
   }
 
@@ -60,7 +69,7 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
       {isViewingAs ? (
         <div className="flex items-center gap-2">
           <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Viewing as: {hotels.find(h => h.id === selectedHotel)?.name}
+            Viewing as: {selectedHotelName || hotels.find(h => h.id === selectedHotel)?.name}
           </Badge>
           <Button
             variant="outline"
