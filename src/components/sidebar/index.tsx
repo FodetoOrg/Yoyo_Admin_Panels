@@ -99,7 +99,7 @@ export default function AppSidebar({
     const filtered = navItems.filter((item) => {
       if (!item.show) return false;
 
-      
+
       // For hotel admins (including super admin viewing as hotel admin) 
       if (effectiveRole === UserRole.HOTEL_ADMIN) {
         // Hide Cities page for hotel admins
@@ -129,8 +129,22 @@ export default function AppSidebar({
 
   const renderIcon = (iconName: any | undefined) => {
     if (!iconName) return null;
-    const IconComponent = iconName;
-    return IconComponent ? <IconComponent className="size-4" /> : null;
+
+    // Check if it's a valid React component (function)
+    if (typeof iconName === 'function') {
+      const IconComponent = iconName;
+      return <IconComponent className="size-4" />;
+    }
+
+    // If it's an object, it might be a Lucide React icon
+    if (typeof iconName === 'object' && iconName.$$typeof) {
+      // This is likely a React element, not a component
+      return React.cloneElement(iconName, { className: "size-4" });
+    }
+
+    // Log warning for debugging
+    console.warn('Invalid icon type received:', typeof iconName, iconName);
+    return null;
   };
 
   return (

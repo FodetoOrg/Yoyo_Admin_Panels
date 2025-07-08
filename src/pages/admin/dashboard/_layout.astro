@@ -13,6 +13,7 @@ const { pathname } = Astro.url;
 // User is already authenticated by middleware
 const currentUser = Astro.locals.user;
 
+console.log('currentUser in dashboard is ',currentUser)
 // Determine current tab based on pathname and user role
 let currentTab = "Overview";
 if (isSuperAdmin(currentUser)) {
@@ -27,8 +28,8 @@ if (isSuperAdmin(currentUser)) {
 const fromTime = Astro.url.searchParams.get("fromTime") || "";
 const toTime = Astro.url.searchParams.get("toTime") || "";
 
-let fromDate = stringToDate(fromTime);
-let toDate = stringToDate(toTime);
+let fromDate = new Date(fromTime).toLocaleDateString();
+let toDate = new Date(toTime).toLocaleDateString();
 
 // Fetch hotels for ViewAsAdmin component (only for super admin)
 let hotels: any[] = [];
