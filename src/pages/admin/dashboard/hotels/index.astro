@@ -1,15 +1,17 @@
 ---
 import Layout from '../_layout.astro';
 
-import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/utils/auth";
 import HotelDashboard from "./_components/HotelDashboard";
 import HotelSelector from "./_components/HotelSelector";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
-// Only super admin can access hotels dashboard
-const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
-if (redirectResponse) return redirectResponse;
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
 
 // Fetch hotels data
 const hotelsResponse: ApiResponse<any> = await serverApiService.get(

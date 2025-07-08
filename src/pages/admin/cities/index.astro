@@ -3,11 +3,13 @@ import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/Screen";
 import { serverApiService, type ApiResponse } from "../../../lib/utils/api";
 import { CONSTANTS, ROUTES } from "../../../lib/utils/constants";
-import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/utils/auth";
 
-// Only super admin can access cities management
-const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
-if (redirectResponse) return redirectResponse;
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
 
 const cities: ApiResponse<any> = await serverApiService.get(
   ROUTES.GET_CITIES_ROUTE,

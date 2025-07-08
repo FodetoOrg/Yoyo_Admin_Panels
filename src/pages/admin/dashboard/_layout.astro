@@ -1,21 +1,16 @@
 ---
 import DashboardLayout from "@/layouts/DashboardLayout.astro";
-import Header from "./_components/Header";
 import PageContainer from "@/components/PageContainer";
 import { Heading } from "@/components/Heading";
-import { stringToDate } from "@/lib/utils/utils";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 import ViewAsAdmin from "./_components/ViewAsAdmin";
-import { UserRole, isSuperAdmin, redirectIfUnauthorized } from "@/lib/utils/auth";
+import { UserRole, isSuperAdmin } from "@/lib/utils/auth";
 
 const { pageTitle } = Astro.props;
 const { pathname } = Astro.url;
 
-// Check authentication and authorization
-const redirectResponse = redirectIfUnauthorized(Astro);
-if (redirectResponse) return redirectResponse;
-
+// User is already authenticated by middleware
 const currentUser = Astro.locals.user;
 
 // Determine current tab based on pathname and user role
@@ -34,13 +29,6 @@ const toTime = Astro.url.searchParams.get("toTime") || "";
 
 let fromDate = stringToDate(fromTime);
 let toDate = stringToDate(toTime);
-
-if (!fromDate || !toDate) {
-  toDate = new Date();
-  const sixMonthsAgo = new Date(toDate);
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-  fromDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
-}
 
 // Fetch hotels for ViewAsAdmin component (only for super admin)
 let hotels: any[] = [];
