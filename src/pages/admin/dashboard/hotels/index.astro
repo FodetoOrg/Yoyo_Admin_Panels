@@ -15,14 +15,12 @@ import NotFound from "@/components/NotFound";
 </Layout>
 
 <script>
-  // Check user role and view-as context
-  const currentUser = { role: "super_admin" }; // This should come from auth
+  const currentUser = window.currentUser || { role: "super_admin" };
   const viewAsHotel = localStorage.getItem("viewAsHotel");
   const effectiveRole = viewAsHotel && currentUser.role === "super_admin" ? "hotel_admin" : currentUser.role;
   
-  // Only show hotels dashboard for super admin (not when viewing as hotel admin)
+  // Only show hotels dashboard for super admin
   if (effectiveRole === "super_admin") {
-    // Load the actual hotels dashboard
     const content = document.getElementById("hotels-content");
     if (content) {
       content.innerHTML = `

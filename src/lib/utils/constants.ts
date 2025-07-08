@@ -19,6 +19,10 @@ export const ROUTES = {
   CREATE_HOTEL_ADMIN_ROUTE: "/api/v1/auth/addHotelAdmin",
   GET_HOTEL_ALLUSERS_ROUTE: "/api/v1/hotels/hotelUsers",
   GET_ALL_CITIES_ROUTE: "/api/v1/cities",
+  GET_HOTEL_ROOMS_ROUTE: (hotelId: string) => `/api/v1/hotels/${hotelId}/rooms`,
+  CREATE_ROOM_ROUTE: (hotelId: string) => `/api/v1/hotels/${hotelId}/rooms`,
+  UPDATE_ROOM_ROUTE: (hotelId: string, roomId: string) => `/api/v1/hotels/${hotelId}/rooms/${roomId}`,
+  DELETE_ROOM_ROUTE: (hotelId: string, roomId: string) => `/api/v1/hotels/${hotelId}/rooms/${roomId}`,
 };
 
 export const STATES_OPTIONS = [
@@ -61,4 +65,36 @@ export const AMENITIES_OPTIONS = [
   { label: "Parking", value: "parking" },
   { label: "Room Service", value: "room_service" },
   { label: "Business Center", value: "business_center" },
+];
+
+export const ROOM_AMENITIES_OPTIONS = [
+  { label: "Free Wi-Fi", value: "free_wifi" },
+  { label: "Swimming Pool", value: "swimming_pool" },
+  { label: "Fitness Center", value: "fitness_center" },
+  { label: "Spa", value: "spa" },
+  { label: "Room Service", value: "room_service" },
+  { label: "AC / Heating", value: "ac_heating" },
+  { label: "Parking", value: "parking" },
+  { label: "TV", value: "tv" },
+  { label: "Minibar", value: "minibar" },
+  { label: "Balcony", value: "balcony" },
+  { label: "Pet Friendly", value: "pet_friendly" },
+  { label: "Safe", value: "safe" },
+  { label: "Coffee Maker", value: "coffee_maker" },
+  { label: "Hair Dryer", value: "hair_dryer" },
+  { label: "Iron", value: "iron" },
+  { label: "Bathrobe", value: "bathrobe" },
+  { label: "Slippers", value: "slippers" },
+];
+
+export const ROOM_TYPES = [
+  { label: "Standard Room", value: "standard" },
+  { label: "Deluxe Room", value: "deluxe" },
+  { label: "Suite", value: "suite" },
+  { label: "Executive Room", value: "executive" },
+  { label: "Presidential Suite", value: "presidential" },
+  { label: "Family Room", value: "family" },
+  { label: "Single Room", value: "single" },
+  { label: "Double Room", value: "double" },
+  { label: "Twin Room", value: "twin" },
 ];

@@ -79,11 +79,7 @@ interface AppSidebarProps {
   children: React.ReactNode;
   pathname: string;
   navItems: NavItem[];
-  user: {
-    name: string;
-    email: string;
-    userType: string;
-  };
+  user: any;
 }
 
 export default function AppSidebar({
@@ -95,7 +91,7 @@ export default function AppSidebar({
   const [mounted, setMounted] = useState(false);
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
-  const currentUser = getCurrentUser();
+  const currentUser = user;
   const effectiveRole = getEffectiveRole(currentUser);
 
   useEffect(() => {
@@ -145,7 +141,7 @@ export default function AppSidebar({
               <span className="truncate text-xs flex items-center gap-2">
                 {company.plan}
                 <Badge variant="secondary" className="ml-2">
-                  {user?.userType}
+                  {user?.role}
                 </Badge>
               </span>
             </div>

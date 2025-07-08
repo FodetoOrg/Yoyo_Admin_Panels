@@ -12,12 +12,13 @@ interface Props {
 const { title = "admin" } = Astro.props;
 
 const { pathname } = Astro.url;
-
-
-
-
-
-
+const currentUser = Astro.locals.user || {
+  id: "usr_001",
+  name: "John Doe",
+  email: "john@example.com",
+  role: "super_admin",
+  hotelId: null,
+};
 ---
 
 <!doctype html>
@@ -45,11 +46,7 @@ const { pathname } = Astro.url;
       client:load
       pathname={pathname}
       navItems={navItems}
-      user={{
-        name: "John Doe",
-        email: "john.doe@example.com",
-        userType: "Admin",
-      }}
+      user={currentUser}
     >
       <slot />
     </DashboardSidebar>

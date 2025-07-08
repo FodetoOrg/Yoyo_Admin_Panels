@@ -1,0 +1,13 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { mockRooms, mockHotels } from "../../../lib/mock-data";
+
+// Use mock data - replace with actual API call
+const rooms = mockRooms;
+const hotels = mockHotels.map(hotel => ({ id: hotel.id, name: hotel.name }));
+---
+
+<DashboardLayout title="Rooms">
+  <Screen rooms={rooms} hotels={hotels} client:load />
+</DashboardLayout>

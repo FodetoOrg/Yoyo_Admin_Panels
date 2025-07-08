@@ -1,0 +1,19 @@
+---
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import RoomForm from "./_components/RoomForm";
+import { mockRooms, mockHotels } from "../../../../lib/mock-data";
+
+const { roomId } = Astro.params;
+
+let roomData: any = null;
+if (roomId && roomId !== "new") {
+  // Mock API call - replace with actual API call
+  roomData = mockRooms.find(room => room.id === roomId);
+}
+
+const hotels = mockHotels.map(hotel => ({ id: hotel.id, name: hotel.name }));
+---
+
+<DashboardLayout title="Room Management">
+  <RoomForm roomData={roomData} hotels={hotels} client:load />
+</DashboardLayout>
