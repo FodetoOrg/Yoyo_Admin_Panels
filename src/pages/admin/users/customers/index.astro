@@ -3,6 +3,11 @@ import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import DashboardLayout from "../_layout.astro";
 import Screen from "./_components/screen";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
+
+// Only super admin can access users management
+const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
+if (redirectResponse) return redirectResponse;
 
 const page = Astro.url.searchParams.get("page") || 1;
 const limit = Astro.url.searchParams.get("limit") || 10;

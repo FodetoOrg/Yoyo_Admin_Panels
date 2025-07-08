@@ -4,6 +4,7 @@ import "../styles/global.css";
 import DashboardSidebar from "@/components/sidebar";
 import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
+import { CONSTANTS } from "@/lib/utils/constants";
 
 interface Props {
   title: string;
@@ -12,13 +13,16 @@ interface Props {
 const { title = "admin" } = Astro.props;
 
 const { pathname } = Astro.url;
-const currentUser = Astro.locals.user || {
-  id: "usr_001",
-  name: "John Doe",
-  email: "john@example.com",
-  role: "super_admin",
-  hotelId: null,
-};
+
+// Check if user is authenticated
+if (!Astro.locals.user) {
+  Astro.cookies.delete(CONSTANTS.ACCESS_TOKEN_KEY);
+  Astro.cookies.delete(CONSTANTS.REFRESH_TOKEN_KEY);
+  Astro.cookies.delete(CONSTANTS.USER);
+  return Astro.redirect('/auth');
+}
+
+const currentUser = Astro.locals.user;
 ---
 
 <!doctype html>

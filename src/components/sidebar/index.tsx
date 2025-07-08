@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getCurrentUser, getEffectiveRole, isHotelAdmin, isSuperAdmin } from "@/lib/utils/auth";
+import { getCurrentUser, getEffectiveRole, isHotelAdmin, isSuperAdmin, UserRole } from "@/lib/utils/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -44,7 +44,7 @@ import { Icons } from "./Icons";
 
 
 // Define user roles
-export type UserRole = "admin" | "employee" | "manager" | "store" | "customer";
+// export type UserRole = "admin" | "employee" | "manager" | "store" | "customer";
 
 // Enhanced NavItem interface with role-based access
 export interface NavItem {
@@ -99,10 +99,15 @@ export default function AppSidebar({
     const filtered = navItems.filter((item) => {
       if (!item.show) return false;
 
-      // For hotel admins (including super admin viewing as hotel admin)
-      if (effectiveRole === "hotel_admin") {
+      
+      // For hotel admins (including super admin viewing as hotel admin) 
+      if (effectiveRole === UserRole.HOTEL_ADMIN) {
         // Hide Cities page for hotel admins
         if (item.url === "/admin/cities") return false;
+        // Hide Users page for hotel admins
+        if (item.url === "/admin/users") return false;
+        // Hide Hotels page for hotel admins
+        if (item.url === "/admin/hotels") return false;
       }
 
       return true;
@@ -122,9 +127,9 @@ export default function AppSidebar({
     console.log("Logging out...");
   };
 
-  const renderIcon = (iconName: IconKeys | undefined) => {
+  const renderIcon = (iconName: any | undefined) => {
     if (!iconName) return null;
-    const IconComponent = Icons[iconName];
+    const IconComponent = iconName;
     return IconComponent ? <IconComponent className="size-4" /> : null;
   };
 

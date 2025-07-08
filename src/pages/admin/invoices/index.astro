@@ -2,6 +2,11 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { mockInvoices } from "../../../lib/mock-data";
+import { redirectIfUnauthorized } from "@/lib/utils/auth";
+
+// Check authentication and authorization
+const redirectResponse = redirectIfUnauthorized(Astro);
+if (redirectResponse) return redirectResponse;
 
 // Use mock data - replace with actual API call
 const invoices = mockInvoices;

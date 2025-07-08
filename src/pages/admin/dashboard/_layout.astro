@@ -7,25 +7,27 @@ import { stringToDate } from "@/lib/utils/utils";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 import ViewAsAdmin from "./_components/ViewAsAdmin";
+import { UserRole, isSuperAdmin, redirectIfUnauthorized } from "@/lib/utils/auth";
 
 const { pageTitle } = Astro.props;
-
 const { pathname } = Astro.url;
 
-if(!Astro.locals.user){
-  Astro.cookies.delete(CONSTANTS.ACCESS_TOKEN_KEY)
-  Astro.cookies.delete(CONSTANTS.REFRESH_TOKEN_KEY)
-  Astro.cookies.delete(CONSTANTS.USER)
+// Check authentication and authorization
+const redirectResponse = redirectIfUnauthorized(Astro);
+if (redirectResponse) return redirectResponse;
 
-  return Astro.redirect('/auth')
+const currentUser = Astro.locals.user;
+
+// Determine current tab based on pathname and user role
+let currentTab = "Overview";
+if (isSuperAdmin(currentUser)) {
+  if (pathname === "/admin/dashboard/cities") {
+    currentTab = "Cities";
+  } else if (pathname === "/admin/dashboard/hotels") {
+    currentTab = "Hotels";
+  }
 }
 
-const currentTab =
-  pathname === "/admin/dashboard"
-    ? "Overview"
-    : pathname === "/admin/dashboard/cities"
-      ? "Cities"
-      : "Hotels";
 
 const fromTime = Astro.url.searchParams.get("fromTime") || "";
 const toTime = Astro.url.searchParams.get("toTime") || "";
@@ -35,69 +37,126 @@ let toDate = stringToDate(toTime);
 
 if (!fromDate || !toDate) {
   toDate = new Date();
-  //from date is 6 months before to date
   const sixMonthsAgo = new Date(toDate);
   sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
   fromDate = new Date(sixMonthsAgo.getFullYear(), sixMonthsAgo.getMonth(), 1);
 }
 
-// Fetch hotels for ViewAsAdmin component
-const hotelsResponse: ApiResponse<any> = await serverApiService.get(
-  ROUTES.GET_ALL_HOTELS_ROUTE,
-  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-  Astro.cookies
-);
+// Fetch hotels for ViewAsAdmin component (only for super admin)
+let hotels: any[] = [];
+if (isSuperAdmin(currentUser)) {
+  const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_HOTELS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  hotels = hotelsResponse.success ? hotelsResponse.data : [];
+}
 
-const hotels = hotelsResponse.success ? hotelsResponse.data : [];
-const currentUser = Astro.locals.user 
+// Build dashboard tabs based on user role
+const dashboardTabs = [];
+dashboardTabs.push({
+  value: "Overview",
+  action: "/admin/dashboard",
+});
 
-let dashboardTabs = [
+// Only super admin can see Cities and Hotels tabs
+if (isSuperAdmin(currentUser)) {
+  dashboardTabs.push(
     {
-      value: "Overview",
-      action: "/admin/dashboard",
+      value: "Cities", 
+      action: "/admin/dashboard/cities",
+    },
+    {
+      value: "Hotels",
+      action: "/admin/dashboard/hotels", 
     }
-  ];
-  
-  // Only show Cities and Hotels tabs for super admin (not when viewing as hotel admin)
-  if (Astro.locals.user.role === "super_admin") {
-    dashboardTabs.push(
-      {
-        value: "Cities",
-        action: "/admin/dashboard/cities",
-      },
-      {
-        value: "Hotels",
-        action: "/admin/dashboard/hotels",
-      }
-    );
-  }
-  
+  );
+}
 
-console.log('currentUser ',currentUser)
 ---
 
 <DashboardLayout title={pageTitle}>
-  <!-- <PageContainer> -->
   <div class="p-4 md:px-8">
     <Heading
-      title={"Dashboard"}
-      description="these are useful for adding tags to products"
+      title="Dashboard"
+      description={isSuperAdmin(currentUser) 
+        ? "Comprehensive analytics and management overview" 
+        : "Your hotel analytics and performance metrics"
+      }
     />
     <div class="space-y-4">
       <div class="flex justify-between items-center">
         <div class="flex items-center gap-4">
-          <div id="dashboard-tabs"></div>
+          {dashboardTabs.length > 1 && (
+            <div class="flex space-x-1">
+              {dashboardTabs.map(tab => (
+                <a 
+                  href={tab.action} 
+                  class={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentTab === tab.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.value}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
         <div class="flex items-center gap-4">
-          {currentUser.role === "super_admin" && (
+          {isSuperAdmin(currentUser) && (
             <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
           )}
-          <div id="date-picker"></div>
         </div>
       </div>
     </div>
     <slot />
   </div>
-  <!-- </PageContainer> -->
 </DashboardLayout>
+
+
+---
+
+<DashboardLayout title={pageTitle}>
+  <div class="p-4 md:px-8">
+    <Heading
+      title="Dashboard"
+      description={isSuperAdmin(currentUser) 
+        ? "Comprehensive analytics and management overview" 
+        : "Your hotel analytics and performance metrics"
+      }
+    />
+    <div class="space-y-4">
+      <div class="flex justify-between items-center">
+        <div class="flex items-center gap-4">
+          {dashboardTabs.length > 1 && (
+            <div class="flex space-x-1">
+              {dashboardTabs.map(tab => (
+                <a 
+                  href={tab.action} 
+                  class={`px-3 py-2 text-sm font-medium rounded-md ${
+                    currentTab === tab.value 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {tab.value}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+        <div class="flex items-center gap-4">
+          {isSuperAdmin(currentUser) && (
+            <ViewAsAdmin hotels={hotels} currentUser={currentUser} client:load />
+          )}
+        </div>
+      </div>
+    </div>
+    <slot />
+  </div>
+</DashboardLayout>
+
 

@@ -1,16 +1,47 @@
 ---
 import Layout from '../_layout.astro';
+import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
 import NotFound from "@/components/NotFound";
+import CityDashboard from "./_components/CityDashboard";
+import CitySelector from "./_components/CitySelector";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Only super admin can access cities dashboard
+const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
+if (redirectResponse) return redirectResponse;
+
+// Fetch cities data
+const citiesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const cities = citiesResponse.success ? citiesResponse.data : [];
+const selectedCityId = Astro.url.searchParams.get("cityId") || (cities.length > 0 ? cities[0].id : "");
 ---
 
-<Layout title="Dashboard">
-  <div id="cities-content">
-    <NotFound 
-      title="Access Denied"
-      description="This page is only available to super administrators."
-      pageRedirect="/admin/dashboard"
-      pageRedirectText="Go to Dashboard"
+<Layout pageTitle="Cities Dashboard">
+  <div class="space-y-6 mt-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold">Cities Analytics</h2>
+      <CitySelector 
+        cities={cities}
+        selectedCity={selectedCityId}
+        onCityChange={(cityId) => {
+          window.location.href = `/admin/dashboard/cities?cityId=${cityId}`;
+        }}
+        client:load
+      />
+    </div>
+    
+    <CityDashboard 
+      selectedCity={selectedCityId}
+      cities={cities}
+      client:load
     />
   </div>
+
 </Layout>
 

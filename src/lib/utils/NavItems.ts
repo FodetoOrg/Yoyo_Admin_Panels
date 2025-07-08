@@ -1,4 +1,5 @@
 import { Hotel, Users, Calendar, Receipt, LayoutDashboard, MapPin, CreditCard, Bed } from "lucide-react";
+import { UserRole } from "./auth";
 
 export interface NavItem {
     title: string;
@@ -22,7 +23,7 @@ export interface NavItem {
       url: "/admin/dashboard",
       icon: LayoutDashboard,
       isActive: false,
-      allowedRoles: ["admin", "manager", "employee"],
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     {
@@ -30,7 +31,7 @@ export interface NavItem {
       url: "/admin/cities",
       icon: MapPin,
       isActive: false,
-      allowedRoles: ["admin", "manager"],
+      allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
     {
@@ -38,7 +39,7 @@ export interface NavItem {
       url: "/admin/users",
       icon: Users,
       isActive: false,
-      allowedRoles: ["admin", "manager", "employee"],
+      allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
     {
@@ -46,7 +47,7 @@ export interface NavItem {
       url: "/admin/hotels",
       icon: Hotel,
       isActive: false,
-      allowedRoles: ["admin", "manager"],
+      allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
    
@@ -55,7 +56,7 @@ export interface NavItem {
       url: "/admin/bookings",
       icon: Calendar,
       isActive: false,
-      allowedRoles: ["admin", "manager", "employee"],
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     {
@@ -63,7 +64,7 @@ export interface NavItem {
       url: "/admin/invoices",
       icon: Receipt,
       isActive: false,
-      allowedRoles: ["admin", "manager"],
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     {
@@ -71,7 +72,7 @@ export interface NavItem {
       url: "/admin/rooms",
       icon: Bed,
       isActive: false,
-      allowedRoles: ["admin", "manager"],
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     {
@@ -79,9 +80,8 @@ export interface NavItem {
       url: "/admin/payments",
       icon: CreditCard,
       isActive: false,
-      allowedRoles: ["admin", "manager"],
+      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     
   ];
-  

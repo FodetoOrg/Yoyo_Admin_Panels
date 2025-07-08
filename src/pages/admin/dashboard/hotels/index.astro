@@ -1,18 +1,49 @@
 ---
 import Layout from '../_layout.astro';
-import NotFound from "@/components/NotFound";
 
+import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
+import HotelDashboard from "./_components/HotelDashboard";
+import HotelSelector from "./_components/HotelSelector";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Only super admin can access hotels dashboard
+const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
+if (redirectResponse) return redirectResponse;
+
+// Fetch hotels data
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hotels = hotelsResponse.success ? hotelsResponse.data : [];
+const selectedHotelId = Astro.url.searchParams.get("hotelId") || (hotels.length > 0 ? hotels[0].id : "");
 
 ---
 
-<Layout title="Dashboard">
-  <div id="hotels-content">
-    <NotFound 
-      title="Access Denied"
-      description="This page is only available to super administrators."
-      pageRedirect="/admin/dashboard"
-      pageRedirectText="Go to Dashboard"
+<Layout pageTitle="Hotels Dashboard">
+  <div class="space-y-6 mt-6">
+    <div class="flex justify-between items-center">
+      <h2 class="text-2xl font-bold">Hotels Analytics</h2>
+      <HotelSelector 
+        hotels={hotels}
+        selectedHotel={selectedHotelId}
+        onHotelChange={(hotelId) => {
+          window.location.href = `/admin/dashboard/hotels?hotelId=${hotelId}`;
+        }}
+        client:load
+      />
+    </div>
+    
+    <HotelDashboard 
+      selectedHotel={selectedHotelId}
+      hotels={hotels}
+      client:load
     />
   </div>
+
 </Layout>
+
 
