@@ -88,25 +88,3 @@ export const canAccessPage = (user: any, page: string) => {
   // Regular users don't have admin access
   return false;
 };
-
-export const redirectIfUnauthorized = (Astro: any, requiredRole?: UserRole) => {
-  const user = Astro.locals.user;
-  
-  if (!user) {
-    Astro.cookies.delete('accessToken');
-    Astro.cookies.delete('refreshToken');
-    return Astro.redirect('/auth');
-  }
-  
-  // Check if user can access this page
-  if (!canAccessPage(user, Astro.url.pathname)) {
-    return Astro.redirect('/admin/dashboard');
-  }
-  
-  // Check specific role requirement
-  if (requiredRole && user.role !== requiredRole && user.role !== UserRole.SUPER_ADMIN) {
-    return Astro.redirect('/admin/dashboard');
-  }
-  
-  return null;
-};

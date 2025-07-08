@@ -2,11 +2,13 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { mockPayments } from "../../../lib/mock-data";
-import { redirectIfUnauthorized } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/utils/auth";
 
-// Check authentication and authorization
-const redirectResponse = redirectIfUnauthorized(Astro);
-if (redirectResponse) return redirectResponse;
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
 
 // Use mock data - replace with actual API call
 const payments = mockPayments;

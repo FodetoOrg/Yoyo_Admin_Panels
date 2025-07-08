@@ -3,11 +3,13 @@ import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { apiService, serverApiService, type ApiResponse } from "../../../lib/utils/api";
 import { CONSTANTS, ROUTES } from "../../../lib/utils/constants";
-import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/utils/auth";
 
-// Only super admin can access hotels management
-const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
-if (redirectResponse) return redirectResponse;
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
 
 const res:ApiResponse<{}> = await serverApiService.get(ROUTES.GET_ALL_HOTELS_ROUTE, Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "", Astro.cookies);
 

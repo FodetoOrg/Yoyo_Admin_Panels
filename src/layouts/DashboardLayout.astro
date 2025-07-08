@@ -1,27 +1,17 @@
 ---
-// import { Toaster } from "@/components/ui/sonner";
 import "../styles/global.css";
 import DashboardSidebar from "@/components/sidebar";
 import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
-import { CONSTANTS } from "@/lib/utils/constants";
 
 interface Props {
   title: string;
 }
 
 const { title = "admin" } = Astro.props;
-
 const { pathname } = Astro.url;
 
-// Check if user is authenticated
-if (!Astro.locals.user) {
-  Astro.cookies.delete(CONSTANTS.ACCESS_TOKEN_KEY);
-  Astro.cookies.delete(CONSTANTS.REFRESH_TOKEN_KEY);
-  Astro.cookies.delete(CONSTANTS.USER);
-  return Astro.redirect('/auth');
-}
-
+// User is already authenticated by middleware
 const currentUser = Astro.locals.user;
 ---
 

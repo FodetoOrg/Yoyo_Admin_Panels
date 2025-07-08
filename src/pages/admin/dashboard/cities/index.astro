@@ -1,15 +1,16 @@
 ---
 import Layout from '../_layout.astro';
-import { UserRole, redirectIfUnauthorized } from "@/lib/utils/auth";
-import NotFound from "@/components/NotFound";
+import { UserRole } from "@/lib/utils/auth";
 import CityDashboard from "./_components/CityDashboard";
 import CitySelector from "./_components/CitySelector";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
-// Only super admin can access cities dashboard
-const redirectResponse = redirectIfUnauthorized(Astro, UserRole.SUPER_ADMIN);
-if (redirectResponse) return redirectResponse;
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
 
 // Fetch cities data
 const citiesResponse: ApiResponse<any> = await serverApiService.get(
