@@ -237,13 +237,3 @@ export const columns: ColumnDef<Room>[] = [
 
 export const filterFields = ["status", "type", "floor"];
 export const datePickers = ["createdAt"];
-</DropdownMenuItem>
-            </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
-  },
-];
-
-export const filterFields = ["status", "type", "floor"];
-export const datePickers = ["createdAt"];
