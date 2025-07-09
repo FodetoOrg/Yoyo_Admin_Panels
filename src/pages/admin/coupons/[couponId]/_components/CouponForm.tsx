@@ -28,37 +28,7 @@ interface Props {
 const CouponForm = ({ couponData, cities, hotels, roomTypes }: Props) => {
   const getFormConfig = () => {
     // Add mapping fields
-    const cityField = {
-      name: "applicableCities",
-      type: "multiselect" as const,
-      validation: z.array(z.string()),
-      label: "Applicable Cities (Optional)",
-      options: cities.map(city => ({ label: city.name, value: city.id })),
-      space: 2,
-      order: 12,
-    };
-
-    const hotelField = {
-      name: "applicableHotels",
-      type: "multiselect" as const,
-      validation: z.array(z.string()),
-      label: "Applicable Hotels (Optional)",
-      options: hotels.map(hotel => ({ label: hotel.name, value: hotel.id })),
-      space: 2,
-      order: 13,
-    };
-
-    const roomTypeField = {
-      name: "applicableRoomTypes",
-      type: "multiselect" as const,
-      validation: z.array(z.string()),
-      label: "Applicable Room Types (Optional)",
-      options: roomTypes.map(rt => ({ label: rt.name, value: rt.id })),
-      space: 2,
-      order: 14,
-    };
-
-    let fields = [...formConfig.fields, cityField, hotelField, roomTypeField];
+    let fields = [...formConfig.fields];
 
     if (!couponData) {
       return {
@@ -94,9 +64,6 @@ const CouponForm = ({ couponData, cities, hotels, roomTypes }: Props) => {
         usageLimit: couponData.usageLimit,
         priceIncreasePercentage: couponData.priceIncreasePercentage,
         status: couponData.status,
-        applicableCities: [],
-        applicableHotels: [],
-        applicableRoomTypes: [],
       },
       fields: [idField, ...fields],
     };

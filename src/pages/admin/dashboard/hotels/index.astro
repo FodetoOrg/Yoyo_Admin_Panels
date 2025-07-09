@@ -23,6 +23,9 @@ const hotelsResponse: ApiResponse<any> = await serverApiService.get(
 const hotels = hotelsResponse.success ? hotelsResponse.data : [];
 const selectedHotelId = Astro.url.searchParams.get("hotelId") || (hotels.length > 0 ? hotels[0].id : "");
 
+console.log('hotels data:', hotels);
+console.log('selectedHotelId:', selectedHotelId);
+
 ---
 
 <Layout pageTitle="Hotels Dashboard">

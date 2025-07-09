@@ -1,15 +1,27 @@
 ---
-import DashboardLayout from "../../../layouts/DashboardLayout.astro";
-import Screen from "./_components/screen";
+import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
+import MappingScreen from "./_components/MappingScreen";
 import { UserRole } from "@/lib/utils/auth";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
-if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
   return Astro.redirect('/admin/dashboard');
 }
 
+const { couponId } = Astro.params;
+
+if (!couponId || couponId === "new") {
+  return Astro.redirect('/admin/coupons');
+}
+
 // Mock data - replace with actual API calls
+const mockCoupon = {
+  id: couponId,
+  code: "SUMMER25",
+  description: "25% off summer bookings"
+};
+
 const mockCities = [
   { id: "city_001", name: "New York" },
   { id: "city_002", name: "Los Angeles" },
@@ -20,6 +32,7 @@ const mockHotels = [
   { id: "htl_001", name: "Grand Plaza Hotel", cityId: "city_001" },
   { id: "htl_002", name: "Seaside Resort", cityId: "city_002" },
   { id: "htl_003", name: "Mountain View Lodge", cityId: "city_003" },
+  { id: "htl_004", name: "Downtown Suites", cityId: "city_001" },
 ];
 
 const mockRoomTypes = [
@@ -27,13 +40,23 @@ const mockRoomTypes = [
   { id: "rt_002", name: "Deluxe Room" },
   { id: "rt_003", name: "Suite" },
 ];
+
+// Mock existing mappings
+const mockExistingMappings = {
+  cities: ["city_001"],
+  hotels: ["htl_001", "htl_004"],
+  roomTypes: ["rt_001", "rt_002"]
+};
 ---
 
-<DashboardLayout title="Dynamic Pricing">
-  <Screen 
+<DashboardLayout title="Coupon Mapping">
+  <MappingScreen 
+    couponId={couponId}
+    couponCode={mockCoupon.code}
     cities={mockCities}
     hotels={mockHotels}
     roomTypes={mockRoomTypes}
+    existingMappings={mockExistingMappings}
     client:load 
   />
 </DashboardLayout>

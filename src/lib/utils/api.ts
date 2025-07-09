@@ -35,6 +35,9 @@ export const deleteCookie = (name: string) => {
   document.cookie = `${name}=; path=/; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 };
 
+// Export constants for use in other files
+export { CONSTANTS };
+
 // Create client-side axios instance
 const clientApi = axios.create({
   baseURL: import.meta.env.PUBLIC_API_URL || "http://localhost:3000",

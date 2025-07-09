@@ -38,6 +38,7 @@ import {
   Settings,
   type LucideIcon,
 } from "lucide-react";
+import { deleteCookie, CONSTANTS } from "@/lib/utils/api";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Icons } from "./Icons";
 
@@ -124,7 +125,18 @@ export default function AppSidebar({
   }
 
   const handleLogout = () => {
-    console.log("Logging out...");
+    // Clear all authentication cookies
+    deleteCookie(CONSTANTS.ACCESS_TOKEN_KEY);
+    deleteCookie(CONSTANTS.REFRESH_TOKEN_KEY);
+    deleteCookie(CONSTANTS.USER);
+    
+    // Clear localStorage
+    localStorage.removeItem("viewAsHotel");
+    localStorage.removeItem("viewAsHotelName");
+    localStorage.removeItem("currentUser");
+    
+    // Redirect to auth page
+    window.location.href = "/auth";
   };
 
   const renderIcon = (iconName: any | undefined) => {
@@ -270,9 +282,7 @@ export default function AppSidebar({
                   <span className="truncate text-xs">{user.email}</span>
                 </div>
                 <LogOut
-                  onClick={async () => {
-
-                  }}
+                  onClick={handleLogout}
                   className="ml-auto size-4"
                 />
               </SidebarMenuButton>

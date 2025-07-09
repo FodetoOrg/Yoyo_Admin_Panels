@@ -12,17 +12,16 @@ interface Props {
 const PricingScreen = ({ cities, hotels, roomTypes, coupons }: Props) => {
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-6">
         <Heading
           title="Dynamic Pricing Management"
-          description="Adjust room prices dynamically based on cities, hotels, room types, and promotional coupons"
+          description="Adjust room prices dynamically based on cities, hotels, and room types"
         />
         
         <PricingForm
           cities={cities}
           hotels={hotels}
           roomTypes={roomTypes}
-          coupons={coupons}
         />
       </div>
     </PageContainer>

@@ -35,28 +35,14 @@ if (couponId && couponId !== "new") {
 }
 
 // Mock data for dropdowns
-const mockCities = [
-  { id: "city_001", name: "New York" },
-  { id: "city_002", name: "Los Angeles" },
-];
-
-const mockHotels = [
-  { id: "htl_001", name: "Grand Plaza Hotel" },
-  { id: "htl_002", name: "Seaside Resort" },
-];
-
-const mockRoomTypes = [
-  { id: "rt_001", name: "Standard Room" },
-  { id: "rt_002", name: "Deluxe Room" },
-];
 ---
 
 <DashboardLayout title="Coupon Management">
   <CouponForm 
     couponData={couponData}
-    cities={mockCities}
-    hotels={mockHotels}
-    roomTypes={mockRoomTypes}
+    cities={[]}
+    hotels={[]}
+    roomTypes={[]}
     client:load 
   />
 </DashboardLayout>
