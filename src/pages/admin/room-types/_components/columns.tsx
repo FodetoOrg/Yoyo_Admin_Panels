@@ -70,22 +70,6 @@ export const columns: ColumnDef<RoomType>[] = [
     cell: ({ row }) => row.getValue("description") || "—",
   },
   {
-    accessorKey: "basePrice",
-    header: "Base Price",
-    cell: ({ row }) => {
-      const price = parseFloat(row.getValue("basePrice"));
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }).format(price);
-    },
-  },
-  {
-    accessorKey: "maxOccupancy",
-    header: "Max Occupancy",
-    cell: ({ row }) => `${row.getValue("maxOccupancy")} guests`,
-  },
-  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {

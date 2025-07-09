@@ -7,9 +7,6 @@ interface RoomTypeData {
   id?: string;
   name: string;
   description: string;
-  basePrice: number;
-  maxOccupancy: number;
-  amenities: string[];
   status: string;
 }
 
@@ -39,9 +36,6 @@ const RoomTypeForm = ({ roomTypeData }: Props) => {
         id: roomTypeData.id,
         name: roomTypeData.name,
         description: roomTypeData.description,
-        basePrice: roomTypeData.basePrice,
-        maxOccupancy: roomTypeData.maxOccupancy,
-        amenities: roomTypeData.amenities || [],
         status: roomTypeData.status,
       },
       fields: [idField, ...formConfig.fields],

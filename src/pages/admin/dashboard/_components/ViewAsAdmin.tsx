@@ -64,13 +64,16 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
     return null;
   }
 
-  return (
-    <div className="flex items-center gap-4">
-      {isViewingAs ? (
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            Viewing as: {selectedHotelName || hotels.find(h => h.id === selectedHotel)?.name}
-          </Badge>
+  if (isViewingAs) {
+    return (
+      <div className="w-full bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Eye className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">
+              Viewing as Hotel Admin: {selectedHotelName || hotels.find(h => h.id === selectedHotel)?.name}
+            </span>
+          </div>
           <Button
             variant="outline"
             size="sm"
@@ -81,33 +84,34 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
             Exit View
           </Button>
         </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Select value={selectedHotel} onValueChange={setSelectedHotel}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Select hotel to view as..." />
-            </SelectTrigger>
-            <SelectContent>
-              {hotels.map((hotel) => (
-                <SelectItem key={hotel.id} value={hotel.id}>
-                  {hotel.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleViewAsHotel}
-            disabled={!selectedHotel}
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            View As
-          </Button>
-        </div>
-      )}
-    </div>
-  );
+      </div>
+    );
+  }
 };
 
+  return (
+    <div className="flex items-center gap-2">
+      <Select value={selectedHotel} onValueChange={setSelectedHotel}>
+        <SelectTrigger className="w-[200px]">
+          <SelectValue placeholder="Select hotel to view as..." />
+        </SelectTrigger>
+        <SelectContent>
+          {hotels.map((hotel) => (
+            <SelectItem key={hotel.id} value={hotel.id}>
+              {hotel.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleViewAsHotel}
+        disabled={!selectedHotel}
+      >
+        <Eye className="h-4 w-4 mr-1" />
+        View As
+      </Button>
+    </div>
+  );
 export default ViewAsAdmin;
