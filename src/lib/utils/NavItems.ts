@@ -15,7 +15,6 @@ export interface NavItem {
     badge?: string; // New property for showing badges
     show?: boolean;
   }
-  
 
   export const navItems: NavItem[] = [
     {
@@ -59,15 +58,6 @@ export interface NavItem {
       show: true,
     },
     {
-      title: "Coupons",
-      url: "/admin/coupons",
-      icon: Percent,
-      isActive: false,
-      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
-      show: true,
-    },
-   
-    {
       title: "Bookings",
       url: "/admin/bookings",
       icon: Calendar,
@@ -83,6 +73,14 @@ export interface NavItem {
       allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
+  {
+    title: "Payments",
+    url: "/admin/payments",
+    icon: CreditCard,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
+  },
     {
       title: "Rooms",
       url: "/admin/rooms",
@@ -91,6 +89,14 @@ export interface NavItem {
       allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
+  {
+    title: "Coupons",
+    url: "/admin/coupons",
+    icon: Percent,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN],
+    show: true,
+  },
     {
       title: "Revenue Management",
       url: "/admin/revenue",
@@ -105,14 +111,6 @@ export interface NavItem {
       icon: DollarSign,
       isActive: false,
       allowedRoles: [UserRole.SUPER_ADMIN],
-      show: true,
-    },
-    {
-      title: "Payments",
-      url: "/admin/payments",
-      icon: CreditCard,
-      isActive: false,
-      allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
       show: true,
     },
     
