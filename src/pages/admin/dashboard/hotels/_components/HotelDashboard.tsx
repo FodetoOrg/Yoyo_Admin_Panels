@@ -35,14 +35,17 @@ const HotelDashboard = ({ selectedHotel, hotels }: HotelDashboardProps) => {
   ];
 
   const selectedHotelData = hotels.find(hotel => hotel.id === selectedHotel);
+  
+  console.log('selectedHotel:', selectedHotel);
+  console.log('selectedHotelData:', selectedHotelData);
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col gap-6">
       {selectedHotelData && (
         <Card>
           <CardHeader>
             <CardTitle>
-              {selectedHotelData.name} - {selectedHotelData.city}
+              {selectedHotelData.name} - {selectedHotelData.city || 'Unknown City'}
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -50,7 +53,7 @@ const HotelDashboard = ({ selectedHotel, hotels }: HotelDashboardProps) => {
               <StatsCard title="Total Rooms" value="95" />
               <StatsCard title="Current Occupancy" value="82%" />
               <StatsCard title="Monthly Revenue" value="$28,400" />
-              <StatsCard title="Rating" value={selectedHotelData.rating.toString()} />
+              <StatsCard title="Rating" value={selectedHotelData.rating?.toString() || "N/A"} />
             </div>
           </CardContent>
         </Card>

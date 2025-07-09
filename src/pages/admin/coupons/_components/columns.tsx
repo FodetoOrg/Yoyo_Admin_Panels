@@ -176,6 +176,9 @@ export const columns: ColumnDef<Coupon>[] = [
             <a href={`/admin/coupons/${coupon.id}`}>
               <DropdownMenuItem>Edit Coupon</DropdownMenuItem>
             </a>
+            <a href={`/admin/coupons/${coupon.id}/mapping`}>
+              <DropdownMenuItem>Manage Mapping</DropdownMenuItem>
+            </a>
             <DropdownMenuItem>Deactivate</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
