@@ -87,7 +87,7 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
       </div>
     );
   }
-};
+
 
   return (
     <div className="flex items-center gap-2">
@@ -114,4 +114,5 @@ const ViewAsAdmin = ({ hotels, currentUser }: ViewAsAdminProps) => {
       </Button>
     </div>
   );
+}
 export default ViewAsAdmin;
