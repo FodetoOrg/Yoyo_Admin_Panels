@@ -1,8 +1,9 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
-import { mockInvoices } from "../../../lib/mock-data";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -10,10 +11,18 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
   return Astro.redirect('/admin/dashboard');
 }
 
-// Use mock data - replace with actual API call
-const invoices = mockInvoices;
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+// Fetch invoices from API
+const invoicesResponse: ApiResponse<any> = await serverApiService.get(
+  `${ROUTES.GET_INVOICES_ROUTE}${effectiveHotelId ? `?hotelId=${effectiveHotelId}` : ''}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const invoices = invoicesResponse.success ? invoicesResponse.data.invoices : [];
 ---
 
 <DashboardLayout title="Invoices">
   <Screen invoices={invoices} client:load />
-</DashboardLayout>

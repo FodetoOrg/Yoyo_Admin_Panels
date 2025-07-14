@@ -17,6 +17,7 @@ interface CouponMappingFormProps {
     hotels: string[];
     roomTypes: string[];
   };
+  onSubmit: (mappingData: any) => Promise<{ success: boolean; message?: string }>;
 }
 
 const CouponMappingForm = ({ 
@@ -25,11 +26,14 @@ const CouponMappingForm = ({
   cities, 
   hotels, 
   roomTypes, 
-  existingMappings 
+  existingMappings,
+  onSubmit
 }: CouponMappingFormProps) => {
   const [selectedCities, setSelectedCities] = useState<string[]>(existingMappings?.cities || []);
   const [selectedHotels, setSelectedHotels] = useState<string[]>(existingMappings?.hotels || []);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>(existingMappings?.roomTypes || []);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Auto-select hotels when cities are selected
   useEffect(() => {
@@ -74,18 +78,28 @@ const CouponMappingForm = ({
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
     
     const mappingData = {
-      couponId,
-      cities: selectedCities,
-      hotels: selectedHotels,
-      roomTypes: selectedRoomTypes,
+      cityIds: selectedCities,
+      hotelIds: selectedHotels,
+      roomTypeIds: selectedRoomTypes,
     };
 
-    console.log("Coupon mapping data:", mappingData);
-    // API call to save coupon mappings
+    try {
+      const result = await onSubmit(mappingData);
+      if (!result.success) {
+        setError(result.message || "Failed to update mappings");
+      }
+    } catch (error) {
+      setError("An unexpected error occurred");
+      console.error("Error submitting coupon mappings:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const getCityName = (cityId: string) => {
@@ -243,12 +257,18 @@ const CouponMappingForm = ({
           </CardContent>
         </Card>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline" onClick={() => window.history.back()}>
             Cancel
           </Button>
-          <Button type="submit">
-            Save Mapping
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Saving..." : "Save Mapping"}
           </Button>
         </div>
       </form>

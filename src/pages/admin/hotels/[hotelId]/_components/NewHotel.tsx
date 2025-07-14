@@ -1,6 +1,8 @@
 import PageContainer from "@/components/PageContainer";
 import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 import * as z from "zod";
 
 interface HotelData {
@@ -36,9 +38,6 @@ interface Props {
 }
 
 const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
-  console.log("hotelData is ", hotelData);
-  console.log("hotelUsers is ", hotelUsers);
-  console.log("cities is ", cities);
   const getFormConfig = () => {
     const hotelUsersField = {
       name: "ownerId",
@@ -108,10 +107,41 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
       fields: [idField, hotelUsersField, cityField, ...formConfig.fields],
     };
   };
+  
+  // Update the onSubmit function in the form config to use the actual API
+  const updatedFormConfig = {
+    ...getFormConfig(),
+    onSubmit: async (values: any, isUpdate: boolean) => {
+      try {
+        // Format mapCoordinates
+        let mapCoordinates = values.mapCoordinates;
+        if (values.latitude && values.longitude) {
+          mapCoordinates = `${values.latitude},${values.longitude}`;
+        }
+        
+        const formattedValues = {
+          ...values,
+          mapCoordinates
+        };
+        
+        if (isUpdate) {
+          return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), formattedValues);
+        } else {
+          return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, formattedValues);
+        }
+      } catch (error) {
+        console.error("Error saving hotel:", error);
+        return { 
+          success: false, 
+          message: "An error occurred while saving the hotel. Please try again." 
+        };
+      }
+    }
+  };
 
   return (
     <PageContainer>
-      <DynamicForm config={getFormConfig()} />
+      <DynamicForm config={updatedFormConfig} />
     </PageContainer>
   );
 };

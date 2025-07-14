@@ -130,7 +130,7 @@ export const apiService = {
       return response.data;
     } catch (error: any) {
       handleApiError(error);
-      return error.response.data;
+      return error.response?.data || { success: false, message: "Network error" };
     }
   },
 
@@ -144,7 +144,7 @@ export const apiService = {
       return response.data;
     } catch (error: any) {
       handleApiError(error);
-      return error.response.data;
+      return error.response?.data || { success: false, message: "Network error" };
     }
   },
 
@@ -158,7 +158,7 @@ export const apiService = {
       return response.data;
     } catch (error: any) {
       handleApiError(error);
-      return error.response.data;
+      return error.response?.data || { success: false, message: "Network error" };
     }
   },
 
@@ -168,7 +168,7 @@ export const apiService = {
       return response.data;
     } catch (error: any) {
       handleApiError(error);
-      return error.response.data;
+      return error.response?.data || { success: false, message: "Network error" };
     }
   },
 
@@ -182,7 +182,7 @@ export const apiService = {
       return response.data;
     } catch (error: any) {
       handleApiError(error);
-      return error.response.data;
+      return error.response?.data || { success: false, message: "Network error" };
     }
   },
 };

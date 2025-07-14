@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -9,31 +11,34 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
   return Astro.redirect('/admin/dashboard');
 }
 
-// Mock data - replace with actual API calls
-const mockCities = [
-  { id: "city_001", name: "New York" },
-  { id: "city_002", name: "Los Angeles" },
-  { id: "city_003", name: "Chicago" },
-];
+// Fetch cities, hotels, and room types for pricing adjustments
+const citiesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
 
-const mockHotels = [
-  { id: "htl_001", name: "Grand Plaza Hotel", cityId: "city_001" },
-  { id: "htl_002", name: "Seaside Resort", cityId: "city_002" },
-  { id: "htl_003", name: "Mountain View Lodge", cityId: "city_003" },
-];
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
 
-const mockRoomTypes = [
-  { id: "rt_001", name: "Standard Room" },
-  { id: "rt_002", name: "Deluxe Room" },
-  { id: "rt_003", name: "Suite" },
-];
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const cities = citiesResponse.success ? citiesResponse.data : [];
+const hotels = hotelsResponse.success ? hotelsResponse.data : [];
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
 ---
 
 <DashboardLayout title="Dynamic Pricing">
   <Screen 
-    cities={mockCities}
-    hotels={mockHotels}
-    roomTypes={mockRoomTypes}
+    cities={cities}
+    hotels={hotels}
+    roomTypes={roomTypes}
     client:load 
   />
-</DashboardLayout>

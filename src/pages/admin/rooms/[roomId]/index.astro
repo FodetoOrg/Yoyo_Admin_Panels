@@ -1,19 +1,52 @@
 ---
 import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
 import RoomForm from "./_components/RoomForm";
-import { mockRooms, mockHotels } from "../../../../lib/mock-data";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const { roomId } = Astro.params;
 
-let roomData: any = null;
-if (roomId && roomId !== "new") {
-  // Mock API call - replace with actual API call
-  roomData = mockRooms.find(room => room.id === roomId);
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
 }
 
-const hotels = mockHotels.map(hotel => ({ id: hotel.id, name: hotel.name }));
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+let roomData: any = null;
+if (roomId && roomId !== "new") {
+  // For a specific room, we need to know which hotel it belongs to
+  // This would typically come from the URL or a query parameter
+  // For now, we'll use the effective hotel ID if available
+  if (effectiveHotelId) {
+    const roomResponse: ApiResponse<any> = await serverApiService.get(
+      `${ROUTES.GET_HOTEL_ROOMS_ROUTE(effectiveHotelId)}/${roomId}`,
+      Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+      Astro.cookies
+    );
+    roomData = roomResponse.success ? roomResponse.data : null;
+  } else {
+    // For super admin, we'd need to know which hotel the room belongs to
+    // This would typically be handled by the API or a different endpoint
+    // For now, we'll use a placeholder
+    roomData = null;
+  }
+}
+
+// Fetch hotels for dropdown
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hotels = hotelsResponse.success 
+  ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+  : [];
 ---
 
 <DashboardLayout title="Room Management">
   <RoomForm roomData={roomData} hotels={hotels} client:load />
-</DashboardLayout>

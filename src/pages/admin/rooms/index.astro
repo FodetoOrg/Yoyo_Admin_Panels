@@ -1,8 +1,9 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
-import { mockRooms, mockHotels } from "../../../lib/mock-data";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -10,11 +11,43 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
   return Astro.redirect('/admin/dashboard');
 }
 
-// Use mock data - replace with actual API call
-const rooms = mockRooms;
-const hotels = mockHotels.map(hotel => ({ id: hotel.id, name: hotel.name }));
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+// Fetch hotels
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hotels = hotelsResponse.success 
+  ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+  : [];
+
+// Fetch rooms - if hotel admin, only fetch their hotel's rooms
+let rooms: any[] = [];
+if (effectiveHotelId) {
+  const roomsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_HOTEL_ROOMS_ROUTE(effectiveHotelId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  rooms = roomsResponse.success ? roomsResponse.data : [];
+} else {
+  // For super admin, we'd need to fetch rooms from all hotels
+  // This would typically be a separate API endpoint, but for now we'll use mock data
+  // or fetch from each hotel individually
+  if (hotels.length > 0) {
+    const firstHotelRoomsResponse: ApiResponse<any> = await serverApiService.get(
+      ROUTES.GET_HOTEL_ROOMS_ROUTE(hotels[0].id),
+      Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+      Astro.cookies
+    );
+    rooms = firstHotelRoomsResponse.success ? firstHotelRoomsResponse.data : [];
+  }
+}
 ---
 
 <DashboardLayout title="Rooms">
   <Screen rooms={rooms} hotels={hotels} client:load />
-</DashboardLayout>

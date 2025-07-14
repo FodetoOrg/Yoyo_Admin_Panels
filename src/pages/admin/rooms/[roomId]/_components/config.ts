@@ -165,14 +165,26 @@ const formConfig: FormConfig = {
   columns: 2,
   onsuccess: "/admin/rooms",
   onSubmit: async (values, isUpdate) => {
-    console.log("Room form values:", values);
-    
-    if (isUpdate) {
-      // return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(values.hotelId, values.id), values);
-      return { success: true, message: "Room updated successfully" };
-    } else {
-      // return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(values.hotelId), values);
-      return { success: true, message: "Room created successfully" };
+    try {
+      // Format values to match API expectations
+      const formattedValues = {
+        ...values,
+        maxGuests: values.capacity,
+        roomType: values.type,
+        available: values.status === "available"
+      };
+      
+      if (isUpdate) {
+        return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(values.hotelId, values.id), formattedValues);
+      } else {
+        return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(values.hotelId), formattedValues);
+      }
+    } catch (error) {
+      console.error("Error saving room:", error);
+      return { 
+        success: false, 
+        message: "An error occurred while saving the room. Please try again." 
+      };
     }
   },
 };

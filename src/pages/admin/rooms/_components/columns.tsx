@@ -17,26 +17,29 @@ import { Badge } from "@/components/ui/badge";
 export interface Room {
   id: string;
   hotelId: string;
-  roomNumber: string;
+  roomNumber?: string;
   name: string;
   type: string;
   description: string;
   capacity: number;
-  bedType: string;
-  size: number;
+  bedType?: string;
+  size?: number;
   pricePerNight: number;
   pricePerHour?: number;
-  isHourlyBooking: boolean;
-  isDailyBooking: boolean;
-  amenities: string[];
-  images: string[];
-  status: "available" | "occupied" | "maintenance" | "out_of_order";
-  floor: number;
-  createdAt: Date;
-  updatedAt: Date;
+  isHourlyBooking?: boolean;
+  isDailyBooking?: boolean;
+  amenities?: string[];
+  images?: string[];
+  status?: "available" | "occupied" | "maintenance" | "out_of_order";
+  floor?: number;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+  maxGuests?: number;
+  roomType?: string;
+  available?: boolean;
 }
 
-export const columns: ColumnDef<Room>[] = [
+export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, status: string) => void): ColumnDef<Room>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -61,6 +64,7 @@ export const columns: ColumnDef<Room>[] = [
   },
   {
     accessorKey: "roomNumber",
+    accessorFn: (row) => row.roomNumber || "N/A",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -103,16 +107,19 @@ export const columns: ColumnDef<Room>[] = [
   },
   {
     accessorKey: "capacity",
+    accessorFn: (row) => row.capacity || row.maxGuests || 0,
     header: "Capacity",
     cell: ({ row }) => `${row.getValue("capacity")} guests`,
   },
   {
     accessorKey: "bedType",
+    accessorFn: (row) => row.bedType || "N/A",
     header: "Bed Type",
     cell: ({ row }) => row.getValue("bedType"),
   },
   {
     accessorKey: "size",
+    accessorFn: (row) => row.size || 0,
     header: "Size",
     cell: ({ row }) => `${row.getValue("size")} sq ft`,
   },
@@ -141,6 +148,7 @@ export const columns: ColumnDef<Room>[] = [
   },
   {
     accessorKey: "status",
+    accessorFn: (row) => row.status || (row.available ? "available" : "occupied"),
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
@@ -172,6 +180,7 @@ export const columns: ColumnDef<Room>[] = [
   },
   {
     accessorKey: "floor",
+    accessorFn: (row) => row.floor || 1,
     header: "Floor",
     cell: ({ row }) => `Floor ${row.getValue("floor")}`,
   },
@@ -179,12 +188,6 @@ export const columns: ColumnDef<Room>[] = [
     id: "actions",
     cell: ({ row }) => {
       const room = row.original;
-
-      const handleStatusChange = (newStatus: string) => {
-        // Mock API call to update room status
-        console.log(`Updating room ${room.id} status to ${newStatus}`);
-        // In real app, make API call here
-      };
 
       return (
         <DropdownMenu>
@@ -217,15 +220,16 @@ export const columns: ColumnDef<Room>[] = [
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Change Status</DropdownMenuLabel>
             <DropdownMenuItem onClick={() => handleStatusChange("available")}>
+            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "available")}>
               Mark Available
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStatusChange("occupied")}>
+            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "occupied")}>
               Mark Occupied
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStatusChange("maintenance")}>
+            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "maintenance")}>
               Mark Maintenance
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStatusChange("out_of_order")}>
+            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "out_of_order")}>
               Mark Out of Order
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -237,3 +241,7 @@ export const columns: ColumnDef<Room>[] = [
 
 export const filterFields = ["status", "type", "floor"];
 export const datePickers = ["createdAt"];
+      )
+    }
+  }
+]

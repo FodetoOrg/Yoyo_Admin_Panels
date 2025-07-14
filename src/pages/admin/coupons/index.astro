@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -9,51 +11,16 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
   return Astro.redirect('/admin/dashboard');
 }
 
-// Mock data - replace with actual API call
-const mockCoupons = [
-  {
-    id: "cp_001",
-    code: "SUMMER25",
-    description: "25% off summer bookings",
-    discountType: "percentage",
-    discountValue: 25,
-    maxDiscountAmount: 100,
-    minOrderAmount: 200,
-    validFrom: new Date("2024-06-01"),
-    validTo: new Date("2024-08-31"),
-    usageLimit: 100,
-    usedCount: 45,
-    priceIncreasePercentage: 5,
-    applicableTo: {
-      cities: ["city_001", "city_002"],
-      hotels: ["htl_001"],
-      roomTypes: ["rt_001", "rt_002"]
-    },
-    status: "active",
-    createdAt: new Date("2024-05-15"),
-  },
-  {
-    id: "cp_002",
-    code: "WELCOME50",
-    description: "$50 off your first booking",
-    discountType: "fixed",
-    discountValue: 50,
-    minOrderAmount: 150,
-    validFrom: new Date("2024-01-01"),
-    validTo: new Date("2024-12-31"),
-    usageLimit: 500,
-    usedCount: 320,
-    applicableTo: {
-      cities: [],
-      hotels: [],
-      roomTypes: []
-    },
-    status: "active",
-    createdAt: new Date("2024-01-01"),
-  },
-];
+// Fetch coupons from API
+const couponsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_COUPONS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const coupons = couponsResponse.success ? couponsResponse.data.coupons : [];
 ---
 
 <DashboardLayout title="Coupons">
-  <Screen coupons={mockCoupons} client:load />
+  <Screen coupons={coupons} client:load />
 </DashboardLayout>

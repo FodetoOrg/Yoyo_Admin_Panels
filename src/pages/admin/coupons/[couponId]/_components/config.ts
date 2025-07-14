@@ -132,13 +132,29 @@ const formConfig: FormConfig = {
   onsuccess: "/admin/coupons",
   onSubmit: async (values, isUpdate) => {
     console.log("Coupon form values:", values);
+
+    // Format dates to ISO string if they're not already
+    if (values.validFrom && !values.validFrom.includes('T')) {
+      values.validFrom = new Date(values.validFrom).toISOString();
+    }
+    if (values.validTo && !values.validTo.includes('T')) {
+      values.validTo = new Date(values.validTo).toISOString();
+    }
     
     if (isUpdate) {
-      // return await apiService.put(`/api/coupons/${values.id}`, values);
-      return { success: true, message: "Coupon updated successfully" };
+      return await apiService.put(ROUTES.UPDATE_COUPON_ROUTE(values.id), values);
     } else {
-      // return await apiService.post("/api/coupons", values);
-      return { success: true, message: "Coupon created successfully" };
+      // Prepare mappings object as required by API
+      const mappings = {
+        cityIds: [],
+        hotelIds: [],
+        roomTypeIds: []
+      };
+      
+      return await apiService.post(ROUTES.CREATE_COUPON_ROUTE, {
+        ...values,
+        mappings
+      });
     }
   },
 };
