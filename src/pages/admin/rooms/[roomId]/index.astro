@@ -5,55 +5,56 @@ import { UserRole } from "@/lib/utils/auth";
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
-const { roomId,hotelId } = Astro.params;
+const { roomId } = Astro.params;
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
-console.log('effectiveHotelId user ',currentUser)
 if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
   return Astro.redirect('/admin/dashboard');
 }
 
-
-
 let roomData: any = null;
 if (roomId && roomId !== "new") {
-  // For a specific room, we need to know which hotel it belongs to
-  // This would typically come from the URL or a query parameter
-  // For now, we'll use the effective hotel ID if available
-  if (hotelId) {
-    const roomResponse: ApiResponse<any> = await serverApiService.get(
-      `${ROUTES.GET_HOTEL_ROOMS_ROUTE(hotelId)}/${roomId}`,
-      Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-      Astro.cookies
-    );
-    roomData = roomResponse.success ? roomResponse.data : null;
-  } else {
-    // For super admin, we'd need to know which hotel the room belongs to
-    // This would typically be handled by the API or a different endpoint
-    // For now, we'll use a placeholder
-    roomData = null;
-  }
+  // Fetch specific room data
+  const roomResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ROOM_BY_ID_ROUTE(roomId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  roomData = roomResponse.success ? roomResponse.data.room : null;
 }
 
-// Fetch hotels for dropdown
-const hotelsResponse: ApiResponse<any> = await serverApiService.get(
-  ROUTES.GET_ALL_HOTELS_ROUTE,
+// Fetch hotels for dropdown (only for super admin)
+let hotels: any[] = [];
+if (currentUser.role === UserRole.SUPER_ADMIN) {
+  const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_HOTELS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  hotels = hotelsResponse.success 
+    ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+    : [];
+}
+
+// Fetch room types
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
 
-const roomTypes :ApiResponse<any> = await serverApiService.get(
-  ROUTES.GET_ALL_ROOM_TYPES,
-  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-  Astro.cookies
-)
-
-const hotels = hotelsResponse.success 
-  ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+const roomTypes = roomTypesResponse.success 
+  ? roomTypesResponse.data.map((rt: any) => ({ id: rt.id, name: rt.name }))
   : [];
 ---
 
 <DashboardLayout title="Room Management">
-  <RoomForm roomData={roomData} hotels={hotels} isSuperAdmin={currentUser.role===UserRole.SUPER_ADMIN?true:false} effectiveHotelId={hotelId} client:load />
+  <RoomForm 
+    roomData={roomData} 
+    hotels={hotels} 
+    roomTypes={roomTypes}
+    currentUser={currentUser}
+    client:load 
+  />
 </DashboardLayout>

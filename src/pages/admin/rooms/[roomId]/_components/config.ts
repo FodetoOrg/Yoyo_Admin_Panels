@@ -1,6 +1,6 @@
 import type { FormConfig } from "@/lib/types";
 import { apiService } from "@/lib/utils/api";
-import { ROOM_AMENITIES_OPTIONS, ROOM_TYPES, ROUTES } from "@/lib/utils/constants";
+import { ROOM_AMENITIES_OPTIONS, ROUTES } from "@/lib/utils/constants";
 import { z } from "zod";
 
 const formConfig: FormConfig = {
@@ -29,13 +29,11 @@ const formConfig: FormConfig = {
       order: 2,
     },
     {
-      name: "type",
+      name: "roomTypeId",
       type: "select",
-      validation: z.string().min(1, {
-        message: "Room type is required.",
-      }),
+      validation: z.string().optional(),
       label: "Room Type",
-      options: ROOM_TYPES,
+      options: [], // Will be populated dynamically
       space: 1,
       isSearchable: true,
       order: 3,
@@ -121,11 +119,11 @@ const formConfig: FormConfig = {
     {
       name: "isHourlyBooking",
       type: "select",
-      validation: z.string(),
+      validation: z.boolean(),
       label: "Allow Hourly Booking",
       options: [
-        { label: "Active", value: 'Active' },
-        { label: "InActive", value: 'InActive' },
+        { label: "Yes", value: true },
+        { label: "No", value: false },
       ],
       space: 1,
       order: 11,
@@ -133,11 +131,11 @@ const formConfig: FormConfig = {
     {
       name: "isDailyBooking",
       type: "select",
-      validation: z.string(),
+      validation: z.boolean(),
       label: "Allow Daily Booking",
       options: [
-        { label: "Active", value: 'Active' },
-        { label: "InActive", value: 'InActive' },
+        { label: "Yes", value: true },
+        { label: "No", value: false },
       ],
       space: 1,
       order: 12,
@@ -166,23 +164,20 @@ const formConfig: FormConfig = {
   onsuccess: "/admin/rooms",
   onSubmit: async (values: any, isUpdate: boolean) => {
     try {
-      const hotelId = values.hotelId  ;
+      console.log('Room form values:', values);
 
-      console.log('hotelId is ',hotelId)
-      console.log('values are ',values)
-      console.log('update is ',isUpdate)
-
-      if (!hotelId) {
-        return {
-          success: false,
-          message: "Hotel ID is required. Please select a hotel or use 'View as Admin' feature."
-        };
+      // Convert string boolean values to actual booleans
+      if (typeof values.isHourlyBooking === 'string') {
+        values.isHourlyBooking = values.isHourlyBooking === 'true';
+      }
+      if (typeof values.isDailyBooking === 'string') {
+        values.isDailyBooking = values.isDailyBooking === 'true';
       }
 
       if (isUpdate) {
-        return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(hotelId, values.id), values);
+        return await apiService.put(ROUTES.UPDATE_ROOM_BY_ID_ROUTE(values.id), values);
       } else {
-        return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(hotelId), values);
+        return await apiService.post(ROUTES.CREATE_ROOM_DIRECT_ROUTE, values);
       }
     } catch (error) {
       console.error("Error saving room:", error);

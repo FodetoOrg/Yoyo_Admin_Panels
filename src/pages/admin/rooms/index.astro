@@ -14,40 +14,55 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
 // Get effective hotel ID for filtering
 const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
 
-// Fetch hotels
-const hotelsResponse: ApiResponse<any> = await serverApiService.get(
-  ROUTES.GET_ALL_HOTELS_ROUTE,
+// Fetch hotels for super admin
+let hotels: any[] = [];
+if (currentUser.role === UserRole.SUPER_ADMIN) {
+  const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_HOTELS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  hotels = hotelsResponse.success 
+    ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+    : [];
+}
+
+// Fetch rooms based on user role
+let rooms: any[] = [];
+if (effectiveHotelId) {
+  // Hotel admin - fetch rooms for their hotel
+  const roomsResponse: ApiResponse<any> = await serverApiService.get(
+    `${ROUTES.GET_ROOMS_BY_HOTEL_ROUTE}?hotelId=${effectiveHotelId}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  rooms = roomsResponse.success ? roomsResponse.data.rooms : [];
+} else {
+  // Super admin - fetch all rooms
+  const roomsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_ROOMS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  rooms = roomsResponse.success ? roomsResponse.data.rooms : [];
+}
+
+// Fetch room types for filtering
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
 
-const hotels = hotelsResponse.success 
-  ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
-  : [];
-
-// Fetch rooms - if hotel admin, only fetch their hotel's rooms
-let rooms: any[] = [];
-if (effectiveHotelId) {
-  const roomsResponse: ApiResponse<any> = await serverApiService.get(
-    ROUTES.GET_HOTEL_ROOMS_ROUTE(effectiveHotelId),
-    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-    Astro.cookies
-  );
-  rooms = roomsResponse.success ? roomsResponse.data : [];
-} else {
-  // For super admin, we'd need to fetch rooms from all hotels
-  // This would typically be a separate API endpoint, but for now we'll use mock data
-  // or fetch from each hotel individually
-  if (hotels.length > 0) {
-    const firstHotelRoomsResponse: ApiResponse<any> = await serverApiService.get(
-      ROUTES.GET_HOTEL_ROOMS_ROUTE(hotels[0].id),
-      Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-      Astro.cookies
-    );
-    rooms = firstHotelRoomsResponse.success ? firstHotelRoomsResponse.data : [];
-  }
-}
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
 ---
 
 <DashboardLayout title="Rooms">
-  <Screen rooms={rooms} hotels={hotels} client:load />
+  <Screen 
+    rooms={rooms} 
+    hotels={hotels} 
+    roomTypes={roomTypes}
+    currentUser={currentUser}
+    client:load 
+  />
+</DashboardLayout>
