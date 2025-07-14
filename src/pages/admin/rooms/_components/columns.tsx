@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, Eye, Edit, Trash2, ToggleLeft, ToggleRight, Clock, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -19,9 +22,10 @@ export interface Room {
   hotelId: string;
   roomNumber?: string;
   name: string;
-  type: string;
-  description: string;
+  type?: string;
+  description?: string;
   capacity: number;
+  maxGuests?: number;
   bedType?: string;
   size?: number;
   pricePerNight: number;
@@ -29,17 +33,24 @@ export interface Room {
   isHourlyBooking?: boolean;
   isDailyBooking?: boolean;
   amenities?: string[];
-  images?: string[];
+  images?: Array<{ id: string; url: string; isPrimary: boolean }>;
   status?: "available" | "occupied" | "maintenance" | "out_of_order";
   floor?: number;
+  roomTypeId?: string;
+  roomType?: { id: string; name: string; description?: string };
+  hotel?: { id: string; name: string; city: string; address: string };
   createdAt?: Date | string;
   updatedAt?: Date | string;
-  maxGuests?: number;
-  roomType?: string;
-  available?: boolean;
+  hotelName?: string;
+  roomTypeName?: string;
 }
 
-export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, status: string) => void): ColumnDef<Room>[] => [
+export const getColumns = (
+  onStatusChange?: (roomId: string, status: string) => void,
+  onBookingAvailabilityChange?: (roomId: string, type: 'hourly' | 'daily', value: boolean) => void,
+  onDeleteRoom?: (roomId: string) => void,
+  isSuperAdmin?: boolean
+): ColumnDef<Room>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -93,11 +104,20 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
       <div className="font-medium">{row.getValue("name")}</div>
     ),
   },
+  ...(isSuperAdmin ? [{
+    accessorKey: "hotelName",
+    accessorFn: (row: Room) => row.hotel?.name || row.hotelName || "Unknown",
+    header: "Hotel",
+    cell: ({ row }: { row: any }) => (
+      <div className="font-medium">{row.getValue("hotelName")}</div>
+    ),
+  }] : []),
   {
-    accessorKey: "type",
+    accessorKey: "roomTypeName",
+    accessorFn: (row) => row.roomType?.name || row.roomTypeName || row.type || "N/A",
     header: "Type",
     cell: ({ row }) => {
-      const type = row.getValue("type") as string;
+      const type = row.getValue("roomTypeName") as string;
       return (
         <Badge variant="outline" className="capitalize">
           {type.replace("_", " ")}
@@ -110,18 +130,6 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
     accessorFn: (row) => row.capacity || row.maxGuests || 0,
     header: "Capacity",
     cell: ({ row }) => `${row.getValue("capacity")} guests`,
-  },
-  {
-    accessorKey: "bedType",
-    accessorFn: (row) => row.bedType || "N/A",
-    header: "Bed Type",
-    cell: ({ row }) => row.getValue("bedType"),
-  },
-  {
-    accessorKey: "size",
-    accessorFn: (row) => row.size || 0,
-    header: "Size",
-    cell: ({ row }) => `${row.getValue("size")} sq ft`,
   },
   {
     accessorKey: "pricePerNight",
@@ -148,7 +156,7 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
   },
   {
     accessorKey: "status",
-    accessorFn: (row) => row.status || (row.available ? "available" : "occupied"),
+    accessorFn: (row) => row.status || "available",
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status") as string;
@@ -179,6 +187,32 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
     },
   },
   {
+    accessorKey: "bookingOptions",
+    header: "Booking Options",
+    cell: ({ row }) => {
+      const room = row.original;
+      return (
+        <div className="flex gap-1">
+          {room.isHourlyBooking && (
+            <Badge variant="outline" className="text-xs">
+              <Clock className="w-3 h-3 mr-1" />
+              Hourly
+            </Badge>
+          )}
+          {room.isDailyBooking && (
+            <Badge variant="outline" className="text-xs">
+              <Calendar className="w-3 h-3 mr-1" />
+              Daily
+            </Badge>
+          )}
+          {!room.isHourlyBooking && !room.isDailyBooking && (
+            <span className="text-muted-foreground text-xs">None</span>
+          )}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: "floor",
     accessorFn: (row) => row.floor || 1,
     header: "Floor",
@@ -197,7 +231,7 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(room.id)}
@@ -205,34 +239,103 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
               Copy Room ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
+            
             <a href={`/admin/rooms/${room.id}`}>
               <DropdownMenuItem>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
             </a>
+            
             <a href={`/admin/rooms/${room.id}/edit`}>
               <DropdownMenuItem>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Room
               </DropdownMenuItem>
             </a>
+            
             <DropdownMenuSeparator />
-            <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => {
-              // handleStatusChange("available")
-            }}/>
-            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "available")}>
-              Mark Available
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "occupied")}>
-              Mark Occupied
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "maintenance")}>
-              Mark Maintenance
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "out_of_order")}>
-              Mark Out of Order
+            
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <ToggleLeft className="mr-2 h-4 w-4" />
+                Change Status
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange && onStatusChange(room.id, "available")}
+                  className="text-green-600"
+                >
+                  Mark Available
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange && onStatusChange(room.id, "occupied")}
+                  className="text-blue-600"
+                >
+                  Mark Occupied
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange && onStatusChange(room.id, "maintenance")}
+                  className="text-yellow-600"
+                >
+                  Mark Maintenance
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onStatusChange && onStatusChange(room.id, "out_of_order")}
+                  className="text-red-600"
+                >
+                  Mark Out of Order
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger>
+                <Clock className="mr-2 h-4 w-4" />
+                Booking Options
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem 
+                  onClick={() => onBookingAvailabilityChange && onBookingAvailabilityChange(room.id, 'hourly', !room.isHourlyBooking)}
+                >
+                  {room.isHourlyBooking ? (
+                    <>
+                      <ToggleRight className="mr-2 h-4 w-4 text-green-500" />
+                      Disable Hourly
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft className="mr-2 h-4 w-4 text-gray-400" />
+                      Enable Hourly
+                    </>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={() => onBookingAvailabilityChange && onBookingAvailabilityChange(room.id, 'daily', !room.isDailyBooking)}
+                >
+                  {room.isDailyBooking ? (
+                    <>
+                      <ToggleRight className="mr-2 h-4 w-4 text-green-500" />
+                      Disable Daily
+                    </>
+                  ) : (
+                    <>
+                      <ToggleLeft className="mr-2 h-4 w-4 text-gray-400" />
+                      Enable Daily
+                    </>
+                  )}
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+
+            <DropdownMenuSeparator />
+            
+            <DropdownMenuItem 
+              onClick={() => onDeleteRoom && onDeleteRoom(room.id)}
+              className="text-red-600"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Room
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -241,6 +344,5 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
   },
 ];
 
-export const filterFields = ["status", "type", "floor"];
+export const filterFields = ["status", "roomTypeName", "floor", "hotelName"];
 export const datePickers = ["createdAt"];
-    

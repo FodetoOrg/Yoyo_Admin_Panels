@@ -1,7 +1,7 @@
 import PageContainer from "@/components/PageContainer";
 import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
-import { getCurrentUser, getEffectiveHotelId, isSuperAdmin } from "@/lib/utils/auth";
+import { UserRole } from "@/lib/utils/auth";
 import { apiService } from "@/lib/utils/api";
 import { ROUTES } from "@/lib/utils/constants";
 import * as z from "zod";
@@ -11,33 +11,33 @@ interface RoomData {
   hotelId: string;
   roomNumber: string;
   name: string;
-  type: string;
-  description: string;
+  type?: string;
+  description?: string;
   capacity: number;
-  bedType: string;
-  size: number;
+  bedType?: string;
+  size?: number;
   pricePerNight: number;
   pricePerHour?: number;
-  isHourlyBooking: boolean;
-  isDailyBooking: boolean;
-  amenities: string[];
-  images: string[];
-  status: string;
-  floor: number;
+  isHourlyBooking?: boolean;
+  isDailyBooking?: boolean;
+  amenities?: string[];
+  images?: Array<{ id: string; url: string; isPrimary: boolean }>;
+  status?: string;
+  floor?: number;
+  roomTypeId?: string;
+  roomType?: { id: string; name: string };
 }
 
 interface Props {
   roomData?: RoomData | null;
   hotels: Array<{ id: string; name: string }>;
-  isSuperAdmin: boolean,
-  effectiveHotelId: string
-
+  roomTypes: Array<{ id: string; name: string }>;
+  currentUser: any;
 }
 
-const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }: Props) => {
-
-
-
+const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
+  const isSuperAdmin = currentUser.role === UserRole.SUPER_ADMIN;
+  const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
 
   const getFormConfig = () => {
     // Hotel selection field (only for super admin when not viewing as hotel admin)
@@ -76,21 +76,24 @@ const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }
 
     let fields = [...formConfig.fields];
 
+    // Update room type field with actual room types
+    const roomTypeFieldIndex = fields.findIndex(f => f.name === 'roomTypeId');
+    if (roomTypeFieldIndex !== -1) {
+      fields[roomTypeFieldIndex] = {
+        ...fields[roomTypeFieldIndex],
+        options: roomTypes.map(rt => ({
+          label: rt.name,
+          value: rt.id,
+        })),
+      };
+    }
+
     // Add hotel field if super admin and no effective hotel
-    if (isSuperAdmin) {
+    if (isSuperAdmin && !effectiveHotelId) {
       fields = [hotelField, ...fields];
     }
 
     // Add status field if editing existing room
-    if (!roomData) {
-      fields = [...fields, statusField];
-      return {
-        ...formConfig,
-        title: roomData ? "Edit Room" : "Add Room",
-        fields,
-      };
-    }
-
     if (roomData) {
       fields = [...fields, statusField];
 
@@ -113,7 +116,7 @@ const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }
       hotelId: roomData.hotelId,
       roomNumber: roomData.roomNumber,
       name: roomData.name,
-      type: roomData.type,
+      roomTypeId: roomData.roomTypeId,
       description: roomData.description,
       capacity: roomData.capacity,
       bedType: roomData.bedType,
@@ -124,9 +127,16 @@ const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }
       isHourlyBooking: roomData.isHourlyBooking,
       isDailyBooking: roomData.isDailyBooking,
       amenities: roomData.amenities || [],
-      images: roomData.images || [],
+      images: roomData.images?.map(img => img.url) || [],
       status: roomData.status,
-    } : (effectiveHotelId ? { hotelId: effectiveHotelId } : {});
+    } : (effectiveHotelId ? { 
+      hotelId: effectiveHotelId,
+      isHourlyBooking: true,
+      isDailyBooking: true,
+    } : {
+      isHourlyBooking: true,
+      isDailyBooking: true,
+    });
 
     return {
       ...formConfig,
@@ -136,15 +146,9 @@ const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }
     };
   };
 
-  // Update the onSubmit function in the form config to use the actual API
-  const updatedFormConfig = {
-    ...getFormConfig(),
-
-  };
-
   return (
     <PageContainer>
-      <DynamicForm config={updatedFormConfig} />
+      <DynamicForm config={getFormConfig()} />
     </PageContainer>
   );
 };
