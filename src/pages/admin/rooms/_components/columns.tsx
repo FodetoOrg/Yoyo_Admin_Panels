@@ -241,3 +241,7 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
 
 export const filterFields = ["status", "type", "floor"];
 export const datePickers = ["createdAt"];
+      )
+    }
+  }
+]
