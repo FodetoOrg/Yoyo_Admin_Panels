@@ -121,11 +121,11 @@ const formConfig: FormConfig = {
     {
       name: "isHourlyBooking",
       type: "select",
-      validation: z.boolean(),
+      validation: z.string(),
       label: "Allow Hourly Booking",
       options: [
-        { label: "Yes", value: true },
-        { label: "No", value: false },
+        { label: "Active", value: 'Active' },
+        { label: "InActive", value: 'InActive' },
       ],
       space: 1,
       order: 11,
@@ -133,11 +133,11 @@ const formConfig: FormConfig = {
     {
       name: "isDailyBooking",
       type: "select",
-      validation: z.boolean(),
+      validation: z.string(),
       label: "Allow Daily Booking",
       options: [
-        { label: "Yes", value: true },
-        { label: "No", value: false },
+        { label: "Active", value: 'Active' },
+        { label: "InActive", value: 'InActive' },
       ],
       space: 1,
       order: 12,
@@ -164,29 +164,34 @@ const formConfig: FormConfig = {
   ],
   columns: 2,
   onsuccess: "/admin/rooms",
-  onSubmit: async (values, isUpdate) => {
+  onSubmit: async (values: any, isUpdate: boolean) => {
     try {
-      // Format values to match API expectations
-      const formattedValues = {
-        ...values,
-        maxGuests: values.capacity,
-        roomType: values.type,
-        available: values.status === "available"
-      };
-      
+      const hotelId = values.hotelId  ;
+
+      console.log('hotelId is ',hotelId)
+      console.log('values are ',values)
+      console.log('update is ',isUpdate)
+
+      if (!hotelId) {
+        return {
+          success: false,
+          message: "Hotel ID is required. Please select a hotel or use 'View as Admin' feature."
+        };
+      }
+
       if (isUpdate) {
-        return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(values.hotelId, values.id), formattedValues);
+        return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(hotelId, values.id), values);
       } else {
-        return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(values.hotelId), formattedValues);
+        return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(hotelId), values);
       }
     } catch (error) {
       console.error("Error saving room:", error);
-      return { 
-        success: false, 
-        message: "An error occurred while saving the room. Please try again." 
+      return {
+        success: false,
+        message: "An error occurred while saving the room. Please try again."
       };
     }
-  },
+  }
 };
 
 export default formConfig;

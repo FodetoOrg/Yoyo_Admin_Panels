@@ -113,27 +113,33 @@ const formConfig: FormConfig = {
     },
   ],
   columns: 2,
-  onSubmit: async (values, isUpdate) => {
-    let mapCoordinates =
-      values.latitude && values.longitude
-        ? `${values.latitude},${values.longitude}`
-        : null;
+  onSubmit: async (values: any, isUpdate: boolean) => {
+    try {
+      console.log('values are ',values)
+      // Format mapCoordinates
+      let mapCoordinates = values.mapCoordinates;
+      if (values.latitude && values.longitude) {
+        mapCoordinates = `${values.latitude},${values.longitude}`;
+      }
 
-    values = {
-      ...values,
-      mapCoordinates,
-    };
+      const formattedValues = {
+        ...values,
+        mapCoordinates
+      };
 
-    if (isUpdate) {
-      // return await actions.updateHotel({
-      //   ...values,
-      // });
-      console.log("values", values);
-      // return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), values);
-    } else {
-      return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, values);
+      if (isUpdate) {
+        return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), formattedValues);
+      } else {
+        return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, formattedValues);
+      }
+    } catch (error) {
+      console.error("Error saving hotel:", error);
+      return {
+        success: false,
+        message: "An error occurred while saving the hotel. Please try again."
+      };
     }
-  },
+  }
 };
 
 export default formConfig;

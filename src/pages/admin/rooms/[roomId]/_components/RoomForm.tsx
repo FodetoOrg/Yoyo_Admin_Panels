@@ -29,12 +29,15 @@ interface RoomData {
 interface Props {
   roomData?: RoomData | null;
   hotels: Array<{ id: string; name: string }>;
+  isSuperAdmin: boolean,
+  effectiveHotelId: string
+
 }
 
-const RoomForm = ({ roomData, hotels }: Props) => {
-  const currentUser = getCurrentUser();
-  const effectiveHotelId = getEffectiveHotelId(currentUser);
-  const isSuper = isSuperAdmin(currentUser);
+const RoomForm = ({ roomData, hotels, isSuperAdmin, effectiveHotelId,roomTypes }: Props) => {
+
+
+
 
   const getFormConfig = () => {
     // Hotel selection field (only for super admin when not viewing as hotel admin)
@@ -72,16 +75,25 @@ const RoomForm = ({ roomData, hotels }: Props) => {
     };
 
     let fields = [...formConfig.fields];
-    
+
     // Add hotel field if super admin and no effective hotel
-    if (isSuper && !effectiveHotelId) {
+    if (isSuperAdmin) {
       fields = [hotelField, ...fields];
     }
 
     // Add status field if editing existing room
+    if (!roomData) {
+      fields = [...fields, statusField];
+      return {
+        ...formConfig,
+        title: roomData ? "Edit Room" : "Add Room",
+        fields,
+      };
+    }
+
     if (roomData) {
       fields = [...fields, statusField];
-      
+
       // Add ID field for editing
       const idField = {
         name: "id",
@@ -123,34 +135,11 @@ const RoomForm = ({ roomData, hotels }: Props) => {
       defaultValues,
     };
   };
-  
+
   // Update the onSubmit function in the form config to use the actual API
   const updatedFormConfig = {
     ...getFormConfig(),
-    onSubmit: async (values: any, isUpdate: boolean) => {
-      try {
-        const hotelId = values.hotelId || effectiveHotelId;
-        
-        if (!hotelId) {
-          return { 
-            success: false, 
-            message: "Hotel ID is required. Please select a hotel or use 'View as Admin' feature." 
-          };
-        }
-        
-        if (isUpdate) {
-          return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(hotelId, values.id), values);
-        } else {
-          return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(hotelId), values);
-        }
-      } catch (error) {
-        console.error("Error saving room:", error);
-        return { 
-          success: false, 
-          message: "An error occurred while saving the room. Please try again." 
-        };
-      }
-    }
+
   };
 
   return (

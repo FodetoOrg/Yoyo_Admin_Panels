@@ -4,8 +4,6 @@ import { formatBytes } from "./utils";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils/utils";
-import { apiService } from "@/lib/utils/api";
-import { ROUTES } from "@/lib/utils/constants";
 
 interface FileState {
   file: File | null;
@@ -38,6 +36,8 @@ export const FileUploader = ({
 }: FileUploaderProps) => {
   const maxSize = field.maxFileSize || 1024 * 1024 * 2; // 2MB default per file
   const maxFiles = field.maxFiles || 1;
+
+  console.log('files are ',files)
 
   const compressImage = (file: File): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -145,43 +145,22 @@ export const FileUploader = ({
         })
     );
 
-    try {
-      if (validFiles.length > 0) {
-        // Convert files to base64
-        const base64Files = await Promise.all(
-          validFiles.map(async (file) => {
-            const base64 = await convertToBase64(file);
-            return {
-              data: base64,
-              filename: file.name
-            };
-          })
-        );
-        
-        // Upload to server
-        const response = await apiService.post(ROUTES.UPLOAD_IMAGES_BASE64_ROUTE, {
-          images: base64Files
-        });
-        
-        if (response.success) {
-          // Create file states from server response
-          const newFileStates = response.data.images.map((image: any) => ({
-            file: null,
-            preview: image.url,
-            name: image.filename,
-            size: image.size,
-            isExisting: true,
-            base64: image.url
-          }));
+    if (validFiles.length > 0) {
+      const newFileStates = await Promise.all(
+        validFiles.map(async (file) => {
+          const base64 = await convertToBase64(file);
+          return {
+            file,
+            preview: URL.createObjectURL(file),
+            name: file.name,
+            size: file.size,
+            isExisting: false,
+            base64,
+          };
+        })
+      );
 
-          onFileChange(field.name, newFileStates);
-        } else {
-          alert("Failed to upload images: " + (response.message || "Unknown error"));
-        }
-      }
-    } catch (error) {
-      console.error("Error uploading files:", error);
-      alert("Error uploading files. Please try again.");
+      onFileChange(field.name, newFileStates);
     }
   };
 

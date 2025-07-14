@@ -57,6 +57,7 @@ if (hotelId && hotelId !== "new" && hotelResponse && !hotelResponse.success) {
   );
 }
 
+console.log('hotelUsersResponse ',hotelUsersResponse)
 // Handle hotelUsers fetch failure
 if (!hotelUsersResponse.success || !citiesResponse.success) {
   return redirectToNotFound(

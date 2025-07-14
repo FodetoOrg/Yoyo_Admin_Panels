@@ -219,7 +219,9 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
             </a>
             <DropdownMenuSeparator />
             <DropdownMenuLabel>Change Status</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => handleStatusChange("available")}>
+            <DropdownMenuItem onClick={() => {
+              // handleStatusChange("available")
+            }}/>
             <DropdownMenuItem onClick={() => onStatusChange && onStatusChange(room.id, room.hotelId, "available")}>
               Mark Available
             </DropdownMenuItem>
@@ -241,7 +243,4 @@ export const getColumns = (onStatusChange?: (roomId: string, hotelId: string, st
 
 export const filterFields = ["status", "type", "floor"];
 export const datePickers = ["createdAt"];
-      )
-    }
-  }
-]
+    

@@ -111,32 +111,8 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
   // Update the onSubmit function in the form config to use the actual API
   const updatedFormConfig = {
     ...getFormConfig(),
-    onSubmit: async (values: any, isUpdate: boolean) => {
-      try {
-        // Format mapCoordinates
-        let mapCoordinates = values.mapCoordinates;
-        if (values.latitude && values.longitude) {
-          mapCoordinates = `${values.latitude},${values.longitude}`;
-        }
-        
-        const formattedValues = {
-          ...values,
-          mapCoordinates
-        };
-        
-        if (isUpdate) {
-          return await apiService.put(ROUTES.GET_HOTEL_ROUTE(values.id), formattedValues);
-        } else {
-          return await apiService.post(ROUTES.CREATE_HOTEL_ROUTE, formattedValues);
-        }
-      } catch (error) {
-        console.error("Error saving hotel:", error);
-        return { 
-          success: false, 
-          message: "An error occurred while saving the hotel. Please try again." 
-        };
-      }
-    }
+    
+    
   };
 
   return (

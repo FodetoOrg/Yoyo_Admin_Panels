@@ -74,16 +74,21 @@ export const columns: ColumnDef<Category>[] = [
     cell: ({ row }) => row.getValue("description") || "—",
   },
   {
-    accessorKey: "active",
+    accessorKey: "status",
     header: "Active",
     cell: ({ row }) => {
       return (
         <Badge
           variant={
-            row.getValue("active") === "Active" ? "success" : "destructive"
+            row.getValue("status") === "active" ? "outline" : "destructive"
+          }
+          className={
+            row.getValue("status") === "active"
+              ? "bg-green-500 text-white"
+              : "bg-red-500 text-white"
           }
         >
-          {row.getValue("active")}
+          {row.getValue("status") === "active" ? "Active" : "Inactive"}
         </Badge>
       );
     },
