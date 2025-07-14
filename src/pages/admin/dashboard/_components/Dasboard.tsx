@@ -77,6 +77,9 @@ const dataBar = [
     sales: 150,
     revenue: 1500,
     profit: 750,
+  }
+];
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
