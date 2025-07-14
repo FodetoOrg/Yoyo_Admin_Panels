@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
 import CouponForm from "./_components/CouponForm";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -13,36 +15,45 @@ const { couponId } = Astro.params;
 
 let couponData: any = null;
 if (couponId && couponId !== "new") {
-  // Mock API call - replace with actual API call
-  const mockCoupons = [
-    {
-      id: "cp_001",
-      code: "SUMMER25",
-      description: "25% off summer bookings",
-      discountType: "percentage",
-      discountValue: 25,
-      maxDiscountAmount: 100,
-      minOrderAmount: 200,
-      validFrom: "2024-06-01T00:00",
-      validTo: "2024-08-31T23:59",
-      usageLimit: 100,
-      priceIncreasePercentage: 5,
-      status: "active",
-    },
-  ];
+  // Fetch coupon data from API
+  const couponResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_COUPON_ROUTE(couponId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
   
-  couponData = mockCoupons.find(c => c.id === couponId);
+  couponData = couponResponse.success ? couponResponse.data : null;
 }
 
-// Mock data for dropdowns
+// Fetch cities, hotels, and room types for mappings
+const citiesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const cities = citiesResponse.success ? citiesResponse.data : [];
+const hotels = hotelsResponse.success ? hotelsResponse.data : [];
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
 ---
 
 <DashboardLayout title="Coupon Management">
   <CouponForm 
     couponData={couponData}
-    cities={[]}
-    hotels={[]}
-    roomTypes={[]}
+    cities={cities}
+    hotels={hotels}
+    roomTypes={roomTypes}
     client:load 
   />
-</DashboardLayout>

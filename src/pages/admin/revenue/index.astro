@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -9,51 +11,16 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
   return Astro.redirect('/admin/dashboard');
 }
 
-// Mock data - replace with actual API call
-const mockRevenueRecords = [
-  {
-    id: "rev_001",
-    hotelId: "htl_001",
-    hotelName: "Grand Plaza Hotel",
-    period: "January 2024",
-    totalRevenue: 50000,
-    commissionRate: 15,
-    commissionAmount: 7500,
-    payableAmount: 42500,
-    status: "pending",
-    dueDate: new Date("2024-02-15"),
-    createdAt: new Date("2024-02-01"),
-  },
-  {
-    id: "rev_002",
-    hotelId: "htl_002",
-    hotelName: "Seaside Resort",
-    period: "January 2024",
-    totalRevenue: 75000,
-    commissionRate: 12,
-    commissionAmount: 9000,
-    payableAmount: 66000,
-    status: "paid",
-    dueDate: new Date("2024-02-15"),
-    paidDate: new Date("2024-02-10"),
-    createdAt: new Date("2024-02-01"),
-  },
-  {
-    id: "rev_003",
-    hotelId: "htl_001",
-    hotelName: "Grand Plaza Hotel",
-    period: "December 2023",
-    totalRevenue: 45000,
-    commissionRate: 15,
-    commissionAmount: 6750,
-    payableAmount: 38250,
-    status: "overdue",
-    dueDate: new Date("2024-01-15"),
-    createdAt: new Date("2024-01-01"),
-  },
-];
+// Fetch revenue records from API
+const revenueResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_REVENUE_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const revenueRecords = revenueResponse.success ? revenueResponse.data.records : [];
 ---
 
 <DashboardLayout title="Revenue Management">
-  <Screen revenueRecords={mockRevenueRecords} client:load />
+  <Screen revenueRecords={revenueRecords} client:load />
 </DashboardLayout>

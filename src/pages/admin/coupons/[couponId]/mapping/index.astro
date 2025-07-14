@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
 import MappingScreen from "./_components/MappingScreen";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -15,48 +17,57 @@ if (!couponId || couponId === "new") {
   return Astro.redirect('/admin/coupons');
 }
 
-// Mock data - replace with actual API calls
-const mockCoupon = {
-  id: couponId,
-  code: "SUMMER25",
-  description: "25% off summer bookings"
-};
+// Fetch coupon data
+const couponResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_COUPON_ROUTE(couponId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
 
-const mockCities = [
-  { id: "city_001", name: "New York" },
-  { id: "city_002", name: "Los Angeles" },
-  { id: "city_003", name: "Chicago" },
-];
+if (!couponResponse.success) {
+  return Astro.redirect('/admin/coupons');
+}
 
-const mockHotels = [
-  { id: "htl_001", name: "Grand Plaza Hotel", cityId: "city_001" },
-  { id: "htl_002", name: "Seaside Resort", cityId: "city_002" },
-  { id: "htl_003", name: "Mountain View Lodge", cityId: "city_003" },
-  { id: "htl_004", name: "Downtown Suites", cityId: "city_001" },
-];
+const coupon = couponResponse.data;
 
-const mockRoomTypes = [
-  { id: "rt_001", name: "Standard Room" },
-  { id: "rt_002", name: "Deluxe Room" },
-  { id: "rt_003", name: "Suite" },
-];
+// Fetch cities, hotels, and room types for mappings
+const citiesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_CITIES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
 
-// Mock existing mappings
-const mockExistingMappings = {
-  cities: ["city_001"],
-  hotels: ["htl_001", "htl_004"],
-  roomTypes: ["rt_001", "rt_002"]
+const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ALL_HOTELS_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const cities = citiesResponse.success ? citiesResponse.data : [];
+const hotels = hotelsResponse.success ? hotelsResponse.data : [];
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
+
+// Extract existing mappings from coupon data
+const existingMappings = {
+  cities: coupon.mappings?.cities?.map((city: any) => city.id) || [],
+  hotels: coupon.mappings?.hotels?.map((hotel: any) => hotel.id) || [],
+  roomTypes: coupon.mappings?.roomTypes?.map((roomType: any) => roomType.id) || []
 };
 ---
 
 <DashboardLayout title="Coupon Mapping">
   <MappingScreen 
     couponId={couponId}
-    couponCode={mockCoupon.code}
-    cities={mockCities}
-    hotels={mockHotels}
-    roomTypes={mockRoomTypes}
-    existingMappings={mockExistingMappings}
+    couponCode={coupon.code}
+    cities={cities}
+    hotels={hotels}
+    roomTypes={roomTypes}
+    existingMappings={existingMappings}
     client:load 
   />
-</DashboardLayout>

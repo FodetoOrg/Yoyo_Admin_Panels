@@ -4,7 +4,9 @@ import { Heading } from "@/components/Heading";
 import { getCurrentUser, getEffectiveHotelId, isSuperAdmin } from "@/lib/utils/auth";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { columns, datePickers, filterFields, type Room } from "./columns";
+import { getColumns, datePickers, filterFields, type Room } from "./columns";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 
 interface Props {
   rooms: Room[];
@@ -15,11 +17,36 @@ const RoomsScreen = ({ rooms = [], hotels = [] }: Props) => {
   const currentUser = getCurrentUser();
   const effectiveHotelId = getEffectiveHotelId(currentUser);
   const isSuper = isSuperAdmin(currentUser);
+  const [loading, setLoading] = useState(false);
   
   // Filter rooms based on user role
   const filteredRooms = effectiveHotelId 
     ? rooms.filter(room => room.hotelId === effectiveHotelId)
     : rooms;
+
+  // Function to handle room status changes
+  const handleStatusChange = async (roomId: string, hotelId: string, newStatus: string) => {
+    if (!roomId || !hotelId) return;
+    
+    setLoading(true);
+    try {
+      const response = await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(hotelId, roomId), {
+        status: newStatus
+      });
+      
+      if (response.success) {
+        // Refresh the page to show updated data
+        window.location.reload();
+      } else {
+        alert(response.message || "Failed to update room status");
+      }
+    } catch (error) {
+      console.error("Error updating room status:", error);
+      alert("An error occurred while updating room status");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getHotelName = (hotelId: string) => {
     const hotel = hotels.find(h => h.id === hotelId);
@@ -57,11 +84,12 @@ const RoomsScreen = ({ rooms = [], hotels = [] }: Props) => {
         )}
 
         <DataTable
-          columns={columns}
+          columns={getColumns(handleStatusChange)}
           filterFields={filterFields}
           data={filteredRooms}
           datePickers={datePickers}
           hiddenColumns={[]}
+          isLoading={loading}
         />
       </div>
     </PageContainer>

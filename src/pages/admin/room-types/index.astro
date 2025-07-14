@@ -2,6 +2,8 @@
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -9,35 +11,16 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
   return Astro.redirect('/admin/dashboard');
 }
 
-// Mock data - replace with actual API call
-const mockRoomTypes = [
-  {
-    id: "rt_001",
-    name: "Standard Room",
-    description: "Basic room with essential amenities",
-    status: "active",
-    createdAt: new Date("2023-01-15"),
-    updatedAt: new Date("2023-06-20"),
-  },
-  {
-    id: "rt_002", 
-    name: "Deluxe Room",
-    description: "Spacious room with premium amenities",
-    status: "active",
-    createdAt: new Date("2023-02-10"),
-    updatedAt: new Date("2023-06-25"),
-  },
-  {
-    id: "rt_003",
-    name: "Suite",
-    description: "Luxury suite with separate living area",
-    status: "active",
-    createdAt: new Date("2023-03-05"),
-    updatedAt: new Date("2023-07-01"),
-  },
-];
+// Fetch room types from API
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_TYPES_ROUTE,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
 ---
 
 <DashboardLayout title="Room Types">
-  <Screen roomTypes={mockRoomTypes} client:load />
+  <Screen roomTypes={roomTypes} client:load />
 </DashboardLayout>

@@ -17,19 +17,24 @@ import { Badge } from "@/components/ui/badge";
 export interface RevenueRecord {
   id: string;
   hotelId: string;
-  hotelName: string;
   period: string;
   totalRevenue: number;
   commissionRate: number;
   commissionAmount: number;
   payableAmount: number;
   status: "pending" | "paid" | "overdue";
-  dueDate: Date;
-  paidDate?: Date;
-  createdAt: Date;
+  dueDate: Date | string;
+  paidDate?: Date | string;
+  createdAt: Date | string;
+  hotel: {
+    id: string;
+    name: string;
+    city: string;
+    commissionRate: number;
+  };
 }
 
-export const columns: ColumnDef<RevenueRecord>[] = [
+export const columns = (onMarkAsPaid?: (id: string) => void): ColumnDef<RevenueRecord>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -54,6 +59,7 @@ export const columns: ColumnDef<RevenueRecord>[] = [
   },
   {
     accessorKey: "hotelName",
+    accessorFn: (row) => row.hotel?.name || "Unknown",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -162,12 +168,6 @@ export const columns: ColumnDef<RevenueRecord>[] = [
         console.log(`Marking ${record.id} as paid`);
         // API call to mark as paid
       };
-
-      const handleInitiatePayment = () => {
-        console.log(`Initiating payment for ${record.id}`);
-        // API call to initiate payment
-      };
-
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -186,11 +186,11 @@ export const columns: ColumnDef<RevenueRecord>[] = [
             <DropdownMenuSeparator />
             {record.status === "pending" && (
               <>
-                <DropdownMenuItem onClick={handleInitiatePayment}>
+                <DropdownMenuItem onClick={() => window.open(`/admin/revenue/${record.id}/pay`, '_blank')}>
                   <DollarSign className="mr-2 h-4 w-4" />
                   Initiate Payment
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleMarkAsPaid}>
+                <DropdownMenuItem onClick={() => onMarkAsPaid && onMarkAsPaid(record.id)}>
                   <Check className="mr-2 h-4 w-4" />
                   Mark as Paid
                 </DropdownMenuItem>

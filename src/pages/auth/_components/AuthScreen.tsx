@@ -81,9 +81,9 @@ const AuthScreen = () => {
       const response: ApiResponse<{
         accessToken: string;
         refreshToken: string;
-        user: any
+        user: any;
       }> = await apiService.post(ROUTES.LOGIN_ROUTE, {
-        idToken,
+        idToken: idToken,
       });
 
       if (!response.success) {
@@ -93,13 +93,8 @@ const AuthScreen = () => {
       setCookie(CONSTANTS.ACCESS_TOKEN_KEY, response.data.accessToken);
       setCookie(CONSTANTS.REFRESH_TOKEN_KEY, response.data.refreshToken);
       setCookie(CONSTANTS.USER, JSON.stringify(response.data.user))
-
-      console.log("response", response);
-
-      // Handle successful login
-      console.log("Successfully logged in");
+      
       window.location.href = "/";
-      // TODO: Redirect to dashboard or home page
     } catch (error) {
       console.error("Error verifying OTP:", error);
       setError("Invalid OTP. Please try again.");

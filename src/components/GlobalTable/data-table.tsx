@@ -23,6 +23,7 @@ import {
 import React from "react";
 import { DataTablePagination } from "./DataTablePagination";
 import { TableToolbar } from "./TableToolbar";
+import { Loader2 } from "lucide-react";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -30,6 +31,8 @@ interface DataTableProps<TData, TValue> {
   filterFields: string[];
   datePickers?: string[];
   hiddenColumns?: string[];
+  isLoading?: boolean;
+  onMarkAsPaid?: (id: string) => void;
 }
 
 export function DataTable<TData, TValue>({
@@ -38,6 +41,8 @@ export function DataTable<TData, TValue>({
   filterFields,
   datePickers = [],
   hiddenColumns = [],
+  isLoading = false,
+  onMarkAsPaid,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [rowSelection, setRowSelection] = React.useState({});
@@ -49,10 +54,18 @@ export function DataTable<TData, TValue>({
     initialVisibility[col] = false;
   });
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>(initialVisibility);
+  
+  // If columns is a function that takes onMarkAsPaid, call it with the prop
+  const processedColumns = React.useMemo(() => {
+    if (typeof columns === 'function' && onMarkAsPaid) {
+      return columns(onMarkAsPaid);
+    }
+    return columns;
+  }, [columns, onMarkAsPaid]);
 
   const table = useReactTable({
     data,
-    columns,
+    columns: processedColumns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onSortingChange: setSorting,
@@ -77,6 +90,12 @@ export function DataTable<TData, TValue>({
         datePickers={datePickers}
       />
       <div className="rounded-md border">
+        {isLoading && (
+          <div className="flex justify-center items-center p-4">
+            <Loader2 className="h-6 w-6 animate-spin text-primary" />
+            <span className="ml-2">Loading data...</span>
+          </div>
+        )}
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

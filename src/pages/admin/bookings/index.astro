@@ -1,8 +1,9 @@
 ---
 import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
-import { mockBookings } from "../../../lib/mock-data";
 import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
@@ -10,10 +11,32 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
   return Astro.redirect('/admin/dashboard');
 }
 
-// Mock API call - replace with actual API call
-const bookings = mockBookings;
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+// Fetch bookings from API
+let bookings: any[] = [];
+
+if (effectiveHotelId) {
+  // If hotel admin, fetch bookings for specific hotel
+  const bookingsResponse: ApiResponse<any> = await serverApiService.get(
+    `/api/v1/bookings/hotel/${effectiveHotelId}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  bookings = bookingsResponse.success ? bookingsResponse.data.bookings : [];
+} else {
+  // For super admin, fetch all bookings
+  // This would typically be a separate API endpoint
+  // For now, we'll use mock data or fetch from a general endpoint
+  const bookingsResponse: ApiResponse<any> = await serverApiService.get(
+    "/api/v1/bookings/",
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  bookings = bookingsResponse.success ? bookingsResponse.data.bookings : [];
+}
 ---
 
 <DashboardLayout title="Bookings">
   <Screen bookings={bookings} client:load />
-</DashboardLayout>

@@ -4,6 +4,9 @@ import { BarGraph } from "@/components/Graphs/BarGraph";
 import PieGraph from "@/components/Graphs/PieGraph";
 import StatsCard from "@/components/StatsCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect, useState } from "react";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 
 interface HotelDashboardProps {
   selectedHotel?: string;
@@ -17,30 +20,63 @@ interface HotelDashboardProps {
 }
 
 const HotelDashboard = ({ selectedHotel, hotels }: HotelDashboardProps) => {
-  // Mock data for hotel-specific analytics
-  const hotelData = [
-    { month: "Jan", bookings: 28, revenue: 8500, occupancy: 65 },
-    { month: "Feb", bookings: 32, revenue: 9200, occupancy: 72 },
-    { month: "Mar", bookings: 29, revenue: 8800, occupancy: 68 },
-    { month: "Apr", bookings: 35, revenue: 10500, occupancy: 78 },
-    { month: "May", bookings: 31, revenue: 9800, occupancy: 74 },
-    { month: "Jun", bookings: 38, revenue: 11200, occupancy: 82 },
-  ];
+  const [hotelAnalytics, setHotelAnalytics] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const roomTypeDistribution = [
-    { name: "Standard Rooms", value: 45 },
-    { name: "Deluxe Rooms", value: 30 },
-    { name: "Suites", value: 15 },
-    { name: "Presidential", value: 5 },
-  ];
+  useEffect(() => {
+    const fetchHotelAnalytics = async () => {
+      if (!selectedHotel) return;
+      
+      setLoading(true);
+      try {
+        const response = await apiService.get(
+          ROUTES.GET_DASHBOARD_ANALYTICS_ROUTE('hotel', selectedHotel)
+        );
+        
+        if (response.success) {
+          setHotelAnalytics(response.data);
+        } else {
+          setError(response.message || "Failed to load hotel analytics");
+        }
+      } catch (err) {
+        console.error("Error fetching hotel analytics:", err);
+        setError("An error occurred while fetching hotel analytics");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchHotelAnalytics();
+  }, [selectedHotel]);
 
   const selectedHotelData = hotels.find(hotel => hotel.id === selectedHotel);
+
+  // Fallback data for charts if API data is not available
+  const hotelData = hotelAnalytics?.timeSeriesData || [
+    { month: "Jan", bookings: 0, revenue: 0, occupancy: 0 },
+    { month: "Feb", bookings: 0, revenue: 0, occupancy: 0 },
+    { month: "Mar", bookings: 0, revenue: 0, occupancy: 0 }
+  ];
   
-  console.log('selectedHotel:', selectedHotel);
-  console.log('selectedHotelData:', selectedHotelData);
+  const roomTypeDistribution = hotelAnalytics?.roomTypeDistribution || [
+    { name: "No Data", value: 100 }
+  ];
 
   return (
     <div className="flex flex-col gap-6">
+      {loading && (
+        <div className="text-center py-4">
+          <p className="text-gray-500">Loading hotel analytics...</p>
+        </div>
+      )}
+      
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          {error}
+        </div>
+      )}
+      
       {selectedHotelData && (
         <Card>
           <CardHeader>
@@ -50,10 +86,22 @@ const HotelDashboard = ({ selectedHotel, hotels }: HotelDashboardProps) => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatsCard title="Total Rooms" value="95" />
-              <StatsCard title="Current Occupancy" value="82%" />
-              <StatsCard title="Monthly Revenue" value="$28,400" />
-              <StatsCard title="Rating" value={selectedHotelData.rating?.toString() || "N/A"} />
+              <StatsCard 
+                title="Total Rooms" 
+                value={loading ? "..." : (hotelAnalytics?.overview?.totalRooms || "0").toString()} 
+              />
+              <StatsCard 
+                title="Current Occupancy" 
+                value={loading ? "..." : `${hotelAnalytics?.overview?.occupancyRate || 0}%`} 
+              />
+              <StatsCard 
+                title="Monthly Revenue" 
+                value={loading ? "..." : `$${(hotelAnalytics?.overview?.monthlyRevenue || 0).toLocaleString()}`} 
+              />
+              <StatsCard 
+                title="Rating" 
+                value={selectedHotelData.rating?.toString() || "N/A"} 
+              />
             </div>
           </CardContent>
         </Card>

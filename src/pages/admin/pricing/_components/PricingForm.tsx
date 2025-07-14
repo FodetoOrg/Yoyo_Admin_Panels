@@ -13,6 +13,8 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 
 interface PricingFormProps {
   cities: Array<{ id: string; name: string }>;
@@ -27,10 +29,13 @@ const PricingForm = ({ cities, hotels, roomTypes }: PricingFormProps) => {
   const [priceAdjustment, setPriceAdjustment] = useState({
     type: "percentage", // percentage or fixed
     value: 0,
-    reason: "",
+    reason: ""
   });
   const [effectiveDate, setEffectiveDate] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
 
   const filteredHotels = selectedCities.length > 0 
     ? hotels.filter(hotel => selectedCities.includes(hotel.cityId))
@@ -63,20 +68,44 @@ const PricingForm = ({ cities, hotels, roomTypes }: PricingFormProps) => {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
     
     const pricingData = {
       cities: selectedCities,
       hotels: selectedHotels,
       roomTypes: selectedRoomTypes,
-      priceAdjustment,
-      effectiveDate,
-      expiryDate,
+      adjustmentType: priceAdjustment.type,
+      adjustmentValue: priceAdjustment.value,
+      reason: priceAdjustment.reason,
+      effectiveDate: new Date(effectiveDate).toISOString(),
+      expiryDate: expiryDate ? new Date(expiryDate).toISOString() : undefined,
     };
 
-    console.log("Pricing adjustment data:", pricingData);
-    // API call to apply pricing changes
+    try {
+      const response = await apiService.post(ROUTES.CREATE_PRICE_ADJUSTMENT_ROUTE, pricingData);
+      
+      if (response.success) {
+        setSuccess("Price adjustment created successfully");
+        // Reset form
+        setSelectedCities([]);
+        setSelectedHotels([]);
+        setSelectedRoomTypes([]);
+        setPriceAdjustment({ type: "percentage", value: 0, reason: "" });
+        setEffectiveDate("");
+        setExpiryDate("");
+      } else {
+        setError(response.message || "Failed to create price adjustment");
+      }
+    } catch (error) {
+      console.error("Error creating price adjustment:", error);
+      setError("An unexpected error occurred");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -294,12 +323,24 @@ const PricingForm = ({ cities, hotels, roomTypes }: PricingFormProps) => {
           </CardContent>
         </Card>
 
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            {error}
+          </div>
+        )}
+
+        {success && (
+          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
+            {success}
+          </div>
+        )}
+
         <div className="flex justify-end gap-4">
           <Button type="button" variant="outline">
             Preview Changes
           </Button>
-          <Button type="submit">
-            Apply Pricing Changes
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? "Applying Changes..." : "Apply Pricing Changes"}
           </Button>
         </div>
       </form>

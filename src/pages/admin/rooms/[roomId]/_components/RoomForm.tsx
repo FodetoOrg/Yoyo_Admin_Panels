@@ -2,6 +2,8 @@ import PageContainer from "@/components/PageContainer";
 import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
 import { getCurrentUser, getEffectiveHotelId, isSuperAdmin } from "@/lib/utils/auth";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 import * as z from "zod";
 
 interface RoomData {
@@ -121,10 +123,39 @@ const RoomForm = ({ roomData, hotels }: Props) => {
       defaultValues,
     };
   };
+  
+  // Update the onSubmit function in the form config to use the actual API
+  const updatedFormConfig = {
+    ...getFormConfig(),
+    onSubmit: async (values: any, isUpdate: boolean) => {
+      try {
+        const hotelId = values.hotelId || effectiveHotelId;
+        
+        if (!hotelId) {
+          return { 
+            success: false, 
+            message: "Hotel ID is required. Please select a hotel or use 'View as Admin' feature." 
+          };
+        }
+        
+        if (isUpdate) {
+          return await apiService.put(ROUTES.UPDATE_ROOM_ROUTE(hotelId, values.id), values);
+        } else {
+          return await apiService.post(ROUTES.CREATE_ROOM_ROUTE(hotelId), values);
+        }
+      } catch (error) {
+        console.error("Error saving room:", error);
+        return { 
+          success: false, 
+          message: "An error occurred while saving the room. Please try again." 
+        };
+      }
+    }
+  };
 
   return (
     <PageContainer>
-      <DynamicForm config={getFormConfig()} />
+      <DynamicForm config={updatedFormConfig} />
     </PageContainer>
   );
 };

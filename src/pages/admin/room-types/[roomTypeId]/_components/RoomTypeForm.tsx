@@ -1,6 +1,8 @@
 import PageContainer from "@/components/PageContainer";
 import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
+import { apiService } from "@/lib/utils/api";
+import { ROUTES } from "@/lib/utils/constants";
 import * as z from "zod";
 
 interface RoomTypeData {
@@ -41,10 +43,30 @@ const RoomTypeForm = ({ roomTypeData }: Props) => {
       fields: [idField, ...formConfig.fields],
     };
   };
+  
+  // Update the onSubmit function in the form config to use the actual API
+  const updatedFormConfig = {
+    ...getFormConfig(),
+    onSubmit: async (values: any, isUpdate: boolean) => {
+      try {
+        if (isUpdate) {
+          return await apiService.put(ROUTES.UPDATE_ROOM_TYPE_ROUTE(values.id), values);
+        } else {
+          return await apiService.post(ROUTES.CREATE_ROOM_TYPE_ROUTE, values);
+        }
+      } catch (error) {
+        console.error("Error saving room type:", error);
+        return { 
+          success: false, 
+          message: "An error occurred while saving the room type. Please try again." 
+        };
+      }
+    }
+  };
 
   return (
     <PageContainer>
-      <DynamicForm config={getFormConfig()} />
+      <DynamicForm config={updatedFormConfig} />
     </PageContainer>
   );
 };
