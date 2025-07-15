@@ -129,7 +129,7 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
       amenities: roomData.amenities || [],
       images: roomData.images?.map(img => img.url) || [],
       status: roomData.status,
-    } : (effectiveHotelId ? { 
+    } : (effectiveHotelId ? {
       hotelId: effectiveHotelId,
       isHourlyBooking: true,
       isDailyBooking: true,
@@ -138,12 +138,17 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
       isDailyBooking: true,
     });
 
-    return {
+    return roomData ? {
       ...formConfig,
       title: roomData ? "Edit Room" : "Add Room",
       fields,
       defaultValues,
-    };
+    } : {
+      ...formConfig,
+      title: roomData ? "Edit Room" : "Add Room",
+      fields,
+
+    }
   };
 
   return (
