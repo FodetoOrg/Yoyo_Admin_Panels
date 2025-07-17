@@ -26,7 +26,7 @@ interface Payment {
   transactionDate: Date;
 }
 
-export const columns: ColumnDef<Payment>[] = [
+export const columns = [
   {
     id: "select",
     header: ({ table }) => (
@@ -51,13 +51,13 @@ export const columns: ColumnDef<Payment>[] = [
   },
   {
     accessorKey: "id",
-    header: "Transaction ID",
+    header: "Payment ID",
     cell: ({ row }) => (
       <div className="font-mono text-sm">{row.getValue("id")}</div>
     ),
   },
   {
-    accessorKey: "userName",
+    accessorKey: "user.name",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -68,7 +68,7 @@ export const columns: ColumnDef<Payment>[] = [
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("userName")}</div>
+      <div className="font-medium">{row.getValue("user.name")}</div>
     ),
   },
   {
@@ -91,9 +91,9 @@ export const columns: ColumnDef<Payment>[] = [
     },
   },
   {
-    accessorKey: "paymentMethod",
+    accessorKey: "paymentMode",
     header: "Payment Method",
-    cell: ({ row }) => row.getValue("paymentMethod"),
+    cell: ({ row }) => row.getValue("paymentMode"),
   },
   {
     accessorKey: "status",

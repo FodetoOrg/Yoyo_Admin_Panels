@@ -13,6 +13,11 @@ const { pathname } = Astro.url;
 
 // User is already authenticated by middleware
 const currentUser = Astro.locals.user;
+
+const allowedItems = navItems.filter(item =>
+  item.allowedRoles?.includes(currentUser.role)
+);
+
 ---
 
 <!doctype html>
@@ -39,7 +44,7 @@ const currentUser = Astro.locals.user;
     <DashboardSidebar
       client:load
       pathname={pathname}
-      navItems={navItems}
+      navItems={allowedItems}
       user={currentUser}
     >
       <slot />

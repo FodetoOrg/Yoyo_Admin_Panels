@@ -36,7 +36,10 @@ if (effectiveHotelId) {
   );
   bookings = bookingsResponse.success ? bookingsResponse.data.bookings : [];
 }
+
+console.log('bookings are ',bookings)
 ---
 
 <DashboardLayout title="Bookings">
   <Screen bookings={bookings} client:load />
+  </DashboardLayout>

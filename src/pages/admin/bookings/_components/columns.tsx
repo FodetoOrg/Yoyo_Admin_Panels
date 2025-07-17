@@ -46,7 +46,7 @@ export const columns: ColumnDef<Booking>[] = [
     ),
   },
   {
-    accessorKey: "userName",
+    accessorKey: "user.phone",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -56,25 +56,25 @@ export const columns: ColumnDef<Booking>[] = [
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("userName")}</div>
-    ),
+    // cell: ({ row }) => (
+    //   <div className="font-medium">{row.getValue("userName")}</div>
+    // ),
   },
   {
-    accessorKey: "hotelName",
+    accessorKey: "hotel.name",
     header: "Hotel",
-    cell: ({ row }) => row.getValue("hotelName"),
+    // cell: ({ row }) => row.getValue("hotelName"),
   },
   {
-    accessorKey: "roomName",
+    accessorKey: "room.name",
     header: "Room",
-    cell: ({ row }) => row.getValue("roomName"),
+    // cell: ({ row }) => row.getValue("room.name"),
   },
   {
-    accessorKey: "checkIn",
+    accessorKey: "checkInDate",
     header: "Check In",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("checkIn"));
+      const date = new Date(row.getValue("checkInDate"));
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -83,10 +83,10 @@ export const columns: ColumnDef<Booking>[] = [
     },
   },
   {
-    accessorKey: "checkOut",
+    accessorKey: "checkOutDate",
     header: "Check Out",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("checkOut"));
+      const date = new Date(row.getValue("checkOutDate"));
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",
@@ -95,9 +95,9 @@ export const columns: ColumnDef<Booking>[] = [
     },
   },
   {
-    accessorKey: "guests",
+    accessorKey: "guestCount",
     header: "Guests",
-    cell: ({ row }) => row.getValue("guests"),
+    cell: ({ row }) => row.getValue("guestCount"),
   },
   {
     accessorKey: "totalAmount",
@@ -169,10 +169,10 @@ export const columns: ColumnDef<Booking>[] = [
     },
   },
   {
-    accessorKey: "createdAt",
-    header: "Created At",
+    accessorKey: "bookingDate",
+    header: "Booked On",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
+      const date = new Date(row.getValue("bookingDate"));
       return date.toLocaleDateString("en-US", {
         year: "numeric",
         month: "short",

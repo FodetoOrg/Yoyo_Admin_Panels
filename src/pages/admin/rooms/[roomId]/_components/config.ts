@@ -119,11 +119,11 @@ const formConfig: FormConfig = {
     {
       name: "isHourlyBooking",
       type: "select",
-      validation: z.boolean(),
+      validation: z.string(),
       label: "Allow Hourly Booking",
       options: [
-        { label: "Yes", value: true },
-        { label: "No", value: false },
+        { label: "Yes", value: "true" },
+        { label: "No", value: "false" },
       ],
       space: 1,
       order: 11,
@@ -131,11 +131,11 @@ const formConfig: FormConfig = {
     {
       name: "isDailyBooking",
       type: "select",
-      validation: z.boolean(),
+      validation: z.string(),
       label: "Allow Daily Booking",
       options: [
-        { label: "Yes", value: true },
-        { label: "No", value: false },
+        { label: "Yes", value: 'true' },
+        { label: "No", value: 'false' },
       ],
       space: 1,
       order: 12,

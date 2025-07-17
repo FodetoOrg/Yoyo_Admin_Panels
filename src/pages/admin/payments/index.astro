@@ -16,12 +16,16 @@ const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser
 
 // Fetch payments from API
 const paymentsResponse: ApiResponse<any> = await serverApiService.get(
-  `/api/v1/payments/history${effectiveHotelId ? `?hotelId=${effectiveHotelId}` : ''}`,
+  `/api/v1/payments/history${effectiveHotelId ? `/${effectiveHotelId}` : ''}`,
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
 
-const payments = paymentsResponse.success ? paymentsResponse.data : [];
+
+const payments = paymentsResponse.success ? paymentsResponse.data.payments : [];
+
+console.log(payments)
+
 ---
 
 <DashboardLayout title="Payments">

@@ -120,9 +120,7 @@ const RoomsScreen = ({ rooms = [], hotels = [], roomTypes = [], currentUser }: P
         <div className="flex justify-between items-center">
           <Heading
             title="Rooms Management"
-            description={effectiveHotelId 
-              ? `Manage rooms for ${getHotelName(effectiveHotelId)}` 
-              : "Manage hotel rooms and availability"
+            description={ "Manage hotel rooms and availability"
             }
           />
           <Button>
@@ -136,7 +134,7 @@ const RoomsScreen = ({ rooms = [], hotels = [], roomTypes = [], currentUser }: P
         </div>
         
         {/* User context info */}
-        <div className="flex items-center gap-4">
+        {/* <div className="flex items-center gap-4">
           <Badge variant="outline">
             {currentUser.role === UserRole.SUPER_ADMIN ? "Super Admin" : "Hotel Admin"}
           </Badge>
@@ -148,7 +146,7 @@ const RoomsScreen = ({ rooms = [], hotels = [], roomTypes = [], currentUser }: P
           <Badge variant="outline">
             Total Rooms: {enhancedRooms.length}
           </Badge>
-        </div>
+        </div> */}
 
         {/* Hotel selector for super admin */}
         {isSuper && !effectiveHotelId && (

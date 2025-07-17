@@ -14,10 +14,13 @@ import {
   PhoneAuthProvider,
   signInWithCredential,
 } from "@/lib/utils/firebase";
-import { signInWithPhoneNumber, signOut } from "firebase/auth";
+import { signInWithPhoneNumber } from "firebase/auth";
 import { Loader2 } from "lucide-react";
 import { apiService, setCookie, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const ROLES = ["hotel", "superAdmin"] as const;
+type RoleType = typeof ROLES[number];
 
 const AuthScreen = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -26,6 +29,7 @@ const AuthScreen = () => {
   const [loading, setLoading] = useState(false);
   const [verificationId, setVerificationId] = useState("");
   const [error, setError] = useState("");
+  const [selectedRole, setSelectedRole] = useState<RoleType>("hotel");
 
   const isValidPhoneNumber = (number: string) => {
     return number.length === 10 && /^\d+$/.test(number);
@@ -45,7 +49,7 @@ const AuthScreen = () => {
 
     try {
       setLoading(true);
-      const formattedPhone = `+91${phoneNumber}`; // Adding India country code
+      const formattedPhone = `+91${phoneNumber}`;
       const recaptchaVerifier = setupRecaptcha(formattedPhone);
 
       const confirmationResult = await signInWithPhoneNumber(
@@ -57,6 +61,7 @@ const AuthScreen = () => {
       setShowOtpInput(true);
     } catch (error) {
       console.error("Error sending OTP:", error);
+      
       setError("Failed to send OTP. Please try again.");
     } finally {
       setLoading(false);
@@ -68,32 +73,28 @@ const AuthScreen = () => {
       setLoading(true);
       const credential = PhoneAuthProvider.credential(verificationId, otp);
       const result = await signInWithCredential(auth, credential);
-
-      // Get the ID token
       const idToken = await result.user.getIdToken();
 
-      console.log('idToken ', idToken)
-      // setCookie
-
-
-      // Send token to backend
-      // const response = await apiService.login(idToken)
       const response: ApiResponse<{
         accessToken: string;
         refreshToken: string;
         user: any;
       }> = await apiService.post(ROUTES.LOGIN_ROUTE, {
         idToken: idToken,
+        role: selectedRole,
       });
 
+
+      console.log('response ',response)
       if (!response.success) {
-        setError(response.error || "Failed to login");
+        setError(response.message || "Failed to login");
         return;
       }
+
       setCookie(CONSTANTS.ACCESS_TOKEN_KEY, response.data.accessToken);
       setCookie(CONSTANTS.REFRESH_TOKEN_KEY, response.data.refreshToken);
-      setCookie(CONSTANTS.USER, JSON.stringify(response.data.user))
-      
+      setCookie(CONSTANTS.USER, JSON.stringify(response.data.user));
+
       window.location.href = "/";
     } catch (error) {
       console.error("Error verifying OTP:", error);
@@ -118,22 +119,36 @@ const AuthScreen = () => {
           <div className="flex flex-col gap-4">
             {!showOtpInput ? (
               <>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    {/* <span className="text-sm font-medium">+91</span> */}
-                    <Input
-                      type="tel"
-                      placeholder="Phone number"
-                      value={phoneNumber}
-                      onChange={handlePhoneChange}
-                      maxLength={10}
-                      className={error ? "border-red-500" : ""}
-                    />
-                  </div>
-                  {error && <p className="text-sm text-red-500">{error}</p>}
+                {/* Role Selector */}
+                <div className="flex justify-between bg-gray-200 rounded-lg p-1">
+                  {ROLES.map((role) => (
+                    <button
+                      key={role}
+                      className={`w-full text-sm font-medium px-2 py-1 rounded-md transition ${
+                        selectedRole === role
+                          ? "bg-white shadow text-black"
+                          : "text-gray-500"
+                      }`}
+                      onClick={() => setSelectedRole(role)}
+                    >
+                      {role === "superAdmin" ? "Super Admin" : "Hotel"}
+                    </button>
+                  ))}
                 </div>
+
+                {/* Phone Number Input */}
+                <Input
+                  type="tel"
+                  placeholder="Phone number"
+                  value={phoneNumber}
+                  onChange={handlePhoneChange}
+                  maxLength={10}
+                  className={error ? "border-red-500" : ""}
+                />
+                {error && <p className="text-sm text-red-500">{error}</p>}
+
                 <Button
-                  className="w-full "
+                  className="w-full"
                   onClick={handleSendOtp}
                   disabled={
                     loading ||
@@ -161,6 +176,7 @@ const AuthScreen = () => {
                   className={error ? "border-red-500" : ""}
                 />
                 {error && <p className="text-sm text-red-500">{error}</p>}
+
                 <Button
                   className="w-full"
                   onClick={handleVerifyOtp}
