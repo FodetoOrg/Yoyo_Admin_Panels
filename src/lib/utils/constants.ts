@@ -58,7 +58,7 @@ export const ROUTES = {
   DELETE_IMAGE_ROUTE: "/api/v1/upload/images",
   GET_DASHBOARD_ANALYTICS_ROUTE: (type: string, hotelId?: string) => 
     `/api/v1/analytics/dashboard?type=${type}${hotelId ? `&hotelId=${hotelId}` : ''}`,
-  GET_CITY_ANALYTICS_ROUTE: (cityId: string) => `/api/v1/analytics/cities/${cityId}`,
+  GET_CITY_ANALYTICS_ROUTE: (cityId: string) => `/api/v1/analytics/dashboard/cities/${cityId}`,
   GET_REVENUE_ANALYTICS_ROUTE: "/api/v1/analytics/revenue",
   GET_ALL_ROOM_TYPES : '/api/v1/room-types'
 };

@@ -105,13 +105,13 @@ export interface NavItem {
       allowedRoles: [UserRole.SUPER_ADMIN],
       show: true,
     },
-    {
-      title: "Dynamic Pricing",
-      url: "/admin/pricing",
-      icon: DollarSign,
-      isActive: false,
-      allowedRoles: [UserRole.SUPER_ADMIN],
-      show: true,
-    },
+    // {
+    //   title: "Dynamic Pricing",
+    //   url: "/admin/pricing",
+    //   icon: DollarSign,
+    //   isActive: false,
+    //   allowedRoles: [UserRole.SUPER_ADMIN],
+    //   show: true,
+    // },
     
   ];

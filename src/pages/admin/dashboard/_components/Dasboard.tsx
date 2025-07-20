@@ -86,6 +86,8 @@ const dataBar = [
         const response = await apiService.get(
           ROUTES.GET_DASHBOARD_ANALYTICS_ROUTE('super')
         );
+
+        console.log('response anlyticas is ',response)
         
         if (response.success) {
           setDashboardData(response.data);
