@@ -6,16 +6,16 @@ import { RecaptchaVerifier } from "firebase/auth";
 // https://firebase.google.com/docs/web/setup#available-libraries
 
 
+
 const firebaseConfig = {
-  apiKey: "AIzaSyDTJwFGLiNYCZPNO72paRPCzo68UDbKViI",
-  authDomain: "hotel-e2a0d.firebaseapp.com",
-  projectId: "hotel-e2a0d",
-  storageBucket: "hotel-e2a0d.firebasestorage.app",
-  messagingSenderId: "51498589116",
-  appId: "1:51498589116:web:c17581bd23d2ae7fc7e9b9"
+  apiKey: "AIzaSyCmLGvYlVI_uCh5kkBGy6Ra74Ep6Fc5Om0",
+  authDomain: "myapp-bba24.firebaseapp.com",
+  projectId: "myapp-bba24",
+  storageBucket: "myapp-bba24.firebasestorage.app",
+  messagingSenderId: "555333996320",
+  appId: "1:555333996320:web:60ed60c43f277cf0dd9145",
+  measurementId: "G-HDGNCNQYXK"
 };
-
-
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
@@ -26,14 +26,33 @@ const auth = getAuth(app);
 // connectAuthEmulator(auth, "http://localhost:9099");
 
 // Setup reCAPTCHA verifier
-const setupRecaptcha = (phoneNumber: string) => {
-  const recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-    'size': 'invisible',
-    'callback': () => {
-      // reCAPTCHA solved, allow signInWithPhoneNumber.
+const setupRecaptcha = (containerId = 'recaptcha-container') => {
+  try {
+    // Clear any existing reCAPTCHA
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
     }
-  });
-  return recaptchaVerifier;
+
+    const recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      'size': 'invisible',
+      'callback': () => {
+        console.log('reCAPTCHA solved');
+      },
+      'expired-callback': () => {
+        console.log('reCAPTCHA expired');
+      },
+      'error-callback': (error) => {
+        console.error('reCAPTCHA error:', error);
+      }
+    });
+
+    // Store globally to prevent multiple instances
+    window.recaptchaVerifier = recaptchaVerifier;
+    return recaptchaVerifier;
+  } catch (error) {
+    console.error('Error setting up reCAPTCHA:', error);
+    throw error;
+  }
 };
 
 export { auth, setupRecaptcha, PhoneAuthProvider, signInWithCredential };

@@ -113,6 +113,7 @@ const formConfig: FormConfig = {
     },
   ],
   columns: 2,
+  onsuccess:'/admin/hotels',
   onSubmit: async (values: any, isUpdate: boolean) => {
     try {
       console.log('values are ',values)

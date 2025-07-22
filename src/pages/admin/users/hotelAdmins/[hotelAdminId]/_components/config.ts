@@ -53,6 +53,7 @@ const formConfig: FormConfig = {
      
     }
   },
+  onsuccess: '/admin/users/hotelAdmins'
 };
 
 export default formConfig;

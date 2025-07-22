@@ -85,7 +85,7 @@ export const columns = (onMarkAsPaid?: (id: string) => void): ColumnDef<RevenueR
       const amount = parseFloat(row.getValue("totalRevenue"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(amount);
     },
   },
@@ -101,7 +101,7 @@ export const columns = (onMarkAsPaid?: (id: string) => void): ColumnDef<RevenueR
       const amount = parseFloat(row.getValue("commissionAmount"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(amount);
     },
   },
@@ -114,7 +114,7 @@ export const columns = (onMarkAsPaid?: (id: string) => void): ColumnDef<RevenueR
         <div className="font-semibold">
           {new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
+            currency: "INR",
           }).format(amount)}
         </div>
       );

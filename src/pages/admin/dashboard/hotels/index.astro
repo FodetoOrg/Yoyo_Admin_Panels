@@ -35,9 +35,7 @@ console.log('selectedHotelId:', selectedHotelId);
       <HotelSelector 
         hotels={hotels}
         selectedHotel={selectedHotelId}
-        onHotelChange={(hotelId) => {
-          window.location.href = `/admin/dashboard/hotels?hotelId=${hotelId}`;
-        }}
+        
         client:load
       />
     </div>

@@ -9,8 +9,8 @@ import { Plus } from "lucide-react";
 const { pageTitle } = Astro.props;
 
 const { pathname } = Astro.url;
-const roles = ["customers", "hotelAdmins", "staff"];
-
+// const roles = ["customers", "hotelAdmins", "staff"];
+const roles = ["customers", "hotelAdmins"];
 const currentTab =
   pathname === "/admin/users/customers"
     ? "customers"

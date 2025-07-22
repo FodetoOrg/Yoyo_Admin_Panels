@@ -17,14 +17,16 @@ interface HotelSelectorProps {
     status: string;
   }>;
   selectedHotel: string;
-  onHotelChange: (hotelId: string) => void;
+
 }
 
-const HotelSelector = ({ hotels, selectedHotel, onHotelChange }: HotelSelectorProps) => {
+const HotelSelector = ({ hotels, selectedHotel }: HotelSelectorProps) => {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium">Select Hotel:</span>
-      <Select value={selectedHotel} onValueChange={onHotelChange}>
+      <Select value={selectedHotel} onValueChange={(value)=>{
+        window.location.href = `/admin/dashboard/hotels?hotelId=${value}`;
+      }}>
         <SelectTrigger className="w-[300px]">
           <SelectValue placeholder="Choose a hotel..." />
         </SelectTrigger>

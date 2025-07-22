@@ -30,9 +30,7 @@ const selectedCityId = Astro.url.searchParams.get("cityId") || (cities.length > 
       <CitySelector 
         cities={cities}
         selectedCity={selectedCityId}
-        onCityChange={(cityId) => {
-          window.location.href = `/admin/dashboard/cities?cityId=${cityId}`;
-        }}
+        
         client:load
       />
     </div>

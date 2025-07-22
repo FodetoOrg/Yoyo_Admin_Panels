@@ -138,7 +138,7 @@ export const getColumns = (
       const price = parseFloat(row.getValue("pricePerNight"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(price);
     },
   },
@@ -150,7 +150,7 @@ export const getColumns = (
       if (!price) return "—";
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(price);
     },
   },

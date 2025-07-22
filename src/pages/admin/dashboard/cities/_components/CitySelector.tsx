@@ -14,14 +14,19 @@ interface CitySelectorProps {
     state: string;
   }>;
   selectedCity: string;
-  onCityChange: (cityId: string) => void;
+  // onCityChange: (cityId: string) => void;
 }
 
-const CitySelector = ({ cities, selectedCity, onCityChange }: CitySelectorProps) => {
+const CitySelector = ({ cities, selectedCity }: CitySelectorProps) => {
   return (
     <div className="flex items-center gap-2">
       <span className="text-sm font-medium">Select City:</span>
-      <Select value={selectedCity} onValueChange={onCityChange}>
+      <Select value={selectedCity} onValueChange={(value) => {
+
+        window.location.href = `/admin/dashboard/cities?cityId=${value}`;
+      }
+      }
+      >
         <SelectTrigger className="w-[250px]">
           <SelectValue placeholder="Choose a city..." />
         </SelectTrigger>

@@ -47,7 +47,7 @@ const Header = ({
           }}
         />
       </div>
-      <ViewAsAdmin hotels={hotels} currentUser={currentUser} />
+      {/* <ViewAsAdmin hotels={hotels} currentUser={currentUser} /> */}
     </div>
   );
 };

@@ -72,7 +72,7 @@ export const columns: ColumnDef<Invoice>[] = [
       const amount = parseFloat(row.getValue("amount"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(amount);
     },
   },
@@ -83,7 +83,7 @@ export const columns: ColumnDef<Invoice>[] = [
       const tax = parseFloat(row.getValue("tax"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
       }).format(tax);
     },
   },
@@ -96,7 +96,7 @@ export const columns: ColumnDef<Invoice>[] = [
         <div className="font-semibold">
           {new Intl.NumberFormat("en-US", {
             style: "currency",
-            currency: "USD",
+            currency: "INR",
           }).format(total)}
         </div>
       );

@@ -34,6 +34,7 @@ const AuthScreen = () => {
   const isValidPhoneNumber = (number: string) => {
     return number.length === 10 && /^\d+$/.test(number);
   };
+  
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -50,7 +51,7 @@ const AuthScreen = () => {
     try {
       setLoading(true);
       const formattedPhone = `+91${phoneNumber}`;
-      const recaptchaVerifier = setupRecaptcha(formattedPhone);
+      const recaptchaVerifier = setupRecaptcha();
 
       const confirmationResult = await signInWithPhoneNumber(
         auth,

@@ -106,7 +106,18 @@ export const columns: ColumnDef<Booking>[] = [
       const amount = parseFloat(row.getValue("totalAmount"));
       return new Intl.NumberFormat("en-US", {
         style: "currency",
-        currency: "USD",
+        currency: "INR",
+      }).format(amount);
+    },
+  },
+  {
+    accessorKey: "commissionAmount",
+    header: "Amount",
+    cell: ({ row }) => {
+      const amount = parseFloat(row.getValue("commissionAmount"));
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "INR",
       }).format(amount);
     },
   },
