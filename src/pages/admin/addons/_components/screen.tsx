@@ -31,14 +31,14 @@ const AddonsScreen = ({ addons = [] }: Props) => {
               : "Manage all hotel addons and services"
             }
           />
-          <Button>
+          {/* <Button>
             <a
               href="/admin/addons/new"
               className="text-xs md:text-sm flex items-center"
             >
               <Plus className="mr-2 h-4 w-4 text-white" /> Add Addon
             </a>
-          </Button>
+          </Button> */}
         </div>
         <DataTable
           columns={columns}

@@ -60,7 +60,7 @@ export const ROUTES = {
     `/api/v1/analytics/dashboard?type=${type}${hotelId ? `&hotelId=${hotelId}` : ''}`,
   GET_CITY_ANALYTICS_ROUTE: (cityId: string) => `/api/v1/analytics/dashboard/cities/${cityId}`,
   GET_REVENUE_ANALYTICS_ROUTE: "/api/v1/analytics/revenue",
-  GET_ALL_ROOM_TYPES : '/api/v1/room-types'
+  GET_ALL_ROOM_TYPES : '/api/v1/room-types',
   // Addons routes
   GET_HOTEL_ADDONS_ROUTE: (hotelId: string) => `/api/v1/addons/hotels/${hotelId}/addons`,
   CREATE_HOTEL_ADDON_ROUTE: (hotelId: string) => `/api/v1/addons/hotels/${hotelId}/addons`,

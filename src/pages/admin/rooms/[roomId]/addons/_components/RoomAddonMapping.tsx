@@ -17,14 +17,21 @@ interface RoomAddonMappingProps {
     id: string;
     name: string;
     description?: string;
+    image?: string;
     price: number;
     status: string;
   }>;
   currentAddons: Array<{
     id: string;
-    name: string;
-    description?: string;
-    price: number;
+    addonId: string;
+    addon: {
+      id: string;
+      name: string;
+      description?: string;
+      image?: string;
+      price: number;
+      status: string;
+    };
   }>;
 }
 
@@ -36,9 +43,30 @@ const RoomAddonMapping = ({
   availableAddons, 
   currentAddons 
 }: RoomAddonMappingProps) => {
-  const [selectedAddons, setSelectedAddons] = useState<string[]>(
-    currentAddons.map(addon => addon.id)
-  );
+  // Combine all addons (available + currently mapped)
+  const allAddons = React.useMemo(() => {
+    // Create a map to avoid duplicates
+    const addonMap = new Map();
+    
+    // Add available addons
+    availableAddons.forEach(addon => {
+      addonMap.set(addon.id, addon);
+    });
+    
+    // Add currently mapped addons (in case some aren't in availableAddons)
+    currentAddons.forEach(mapping => {
+      if (!addonMap.has(mapping.addon.id)) {
+        addonMap.set(mapping.addon.id, mapping.addon);
+      }
+    });
+    
+    return Array.from(addonMap.values());
+  }, [availableAddons, currentAddons]);
+
+  // Extract currently mapped addon IDs
+  const currentAddonIds = currentAddons.map(mapping => mapping.addon.id);
+  
+  const [selectedAddons, setSelectedAddons] = useState<string[]>(currentAddonIds);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -78,19 +106,18 @@ const RoomAddonMapping = ({
     }
   };
 
-  const getAddonName = (addonId: string) => {
-    const addon = availableAddons.find(a => a.id === addonId);
-    return addon?.name || "Unknown Addon";
-  };
-
   const getAddonPrice = (addonId: string) => {
-    const addon = availableAddons.find(a => a.id === addonId);
+    const addon = allAddons.find(a => a.id === addonId);
     return addon?.price || 0;
   };
 
   const totalPrice = selectedAddons.reduce((total, addonId) => {
     return total + getAddonPrice(addonId);
   }, 0);
+
+  const isCurrentlyMapped = (addonId: string) => {
+    return currentAddonIds.includes(addonId);
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -104,24 +131,24 @@ const RoomAddonMapping = ({
       </Card>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-        {/* Available Addons Grid */}
+        {/* All Addons Grid */}
         <Card>
           <CardHeader>
-            <CardTitle>Available Addons</CardTitle>
+            <CardTitle>All Addons ({allAddons.length})</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Select addons to map to this room
+              Select/deselect addons to map to this room. Currently mapped addons are pre-selected.
             </p>
           </CardHeader>
           <CardContent>
-            {availableAddons.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {availableAddons.map((addon) => (
+            {allAddons.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {allAddons.map((addon) => (
                   <div 
                     key={addon.id} 
-                    className={`p-4 border rounded-lg transition-colors ${
+                    className={`p-4  border rounded-lg transition-all duration-200 ${
                       selectedAddons.includes(addon.id) 
-                        ? 'border-blue-500 bg-blue-50' 
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-blue-500 bg-blue-50 shadow-md' 
+                        : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                     }`}
                   >
                     <div className="flex items-start gap-3">
@@ -131,20 +158,42 @@ const RoomAddonMapping = ({
                         onCheckedChange={(checked) => handleAddonChange(addon.id, !!checked)}
                         className="mt-1"
                       />
-                      <div className="flex-1">
-                        <Label 
-                          htmlFor={`addon-${addon.id}`} 
-                          className="font-medium cursor-pointer"
-                        >
-                          {addon.name}
-                        </Label>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <Label 
+                            htmlFor={`addon-${addon.id}`} 
+                            className="font-medium cursor-pointer text-sm leading-tight"
+                          >
+                            {addon.name}
+                          </Label>
+                          {isCurrentlyMapped(addon.id) && (
+                            <Badge variant="secondary" className="text-xs shrink-0">
+                              Currently Mapped
+                            </Badge>
+                          )}
+                        </div>
+                        
+                        {addon.image && (
+                          <div className="mb-2">
+                            <img 
+                              src={addon.image} 
+                              alt={addon.name}
+                              className="w-full h-40 object-cover rounded-md"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          </div>
+                        )}
+                        
                         {addon.description && (
-                          <p className="text-sm text-muted-foreground mt-1">
+                          <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
                             {addon.description}
                           </p>
                         )}
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="font-semibold text-green-600">
+                        
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-green-600 text-sm">
                             ₹{addon.price.toLocaleString()}
                           </span>
                           <Badge 
@@ -182,17 +231,22 @@ const RoomAddonMapping = ({
           <CardContent>
             <div className="flex flex-col gap-4">
               <div>
-                <h4 className="font-medium mb-2">Selected Addons ({selectedAddons.length})</h4>
+                <h4 className="font-medium mb-2">
+                  Selected Addons ({selectedAddons.length})
+                </h4>
                 <div className="flex flex-wrap gap-2">
                   {selectedAddons.length > 0 ? (
-                    selectedAddons.map(addonId => (
-                      <Badge key={addonId} variant="outline" className="flex items-center gap-1">
-                        {getAddonName(addonId)}
-                        <span className="text-green-600 font-medium">
-                          ₹{getAddonPrice(addonId)}
-                        </span>
-                      </Badge>
-                    ))
+                    selectedAddons.map(addonId => {
+                      const addon = allAddons.find(a => a.id === addonId);
+                      return addon ? (
+                        <Badge key={addonId} variant="outline" className="flex items-center gap-1">
+                          {addon.name}
+                          <span className="text-green-600 font-medium">
+                            ₹{addon.price.toLocaleString()}
+                          </span>
+                        </Badge>
+                      ) : null;
+                    })
                   ) : (
                     <span className="text-sm text-muted-foreground">No addons selected</span>
                   )}

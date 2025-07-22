@@ -50,8 +50,10 @@ const availableAddonsResponse: ApiResponse<any> = await serverApiService.get(
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
+console.log(' availableAddonsResponse ',availableAddonsResponse)
+const availableAddons = availableAddonsResponse.success ? availableAddonsResponse.data : [];
 
-const availableAddons = availableAddonsResponse.success ? availableAddonsResponse.data.addons : [];
+console.log('availableAddons ',availableAddons)
 
 // Fetch current room addons
 const currentAddonsResponse: ApiResponse<any> = await serverApiService.get(
@@ -59,8 +61,9 @@ const currentAddonsResponse: ApiResponse<any> = await serverApiService.get(
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
+console.log('currentAddonsResponse ',JSON.stringify(currentAddonsResponse))
 
-const currentAddons = currentAddonsResponse.success ? currentAddonsResponse.data.addons : [];
+const currentAddons = currentAddonsResponse.success ? currentAddonsResponse.data : [];
 ---
 
 <DashboardLayout title="Room Addon Mapping">
