@@ -36,10 +36,12 @@ const allowedItems = navItems.filter(item =>
       rel="stylesheet"
     />
     <ClientRouter />
-  
   </head>
   <body>
- 
+    <!-- Loading Progress Bar -->
+    <div id="loading-bar" class="loading-bar">
+      <div class="loading-progress"></div>
+    </div>
    
     <DashboardSidebar
       client:load
@@ -50,8 +52,113 @@ const allowedItems = navItems.filter(item =>
       <slot />
     </DashboardSidebar>
     <!-- <Toaster client:load /> -->
+
+    <script>
+      // Loading bar functionality
+      class LoadingBar {
+        constructor() {
+          this.bar = document.getElementById('loading-bar');
+          this.progress = this.bar?.querySelector('.loading-progress');
+          this.isLoading = false;
+          this.currentProgress = 0;
+          this.progressInterval = null;
+          
+          this.init();
+        }
+
+        init() {
+          // Listen for Astro's view transition events
+          document.addEventListener('astro:before-preparation', () => {
+            this.start();
+          });
+
+          document.addEventListener('astro:after-swap', () => {
+            this.complete();
+          });
+
+          // Fallback for regular navigation
+          document.addEventListener('beforeunload', () => {
+            this.start();
+          });
+
+          // Listen for link clicks
+          document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
+            if (link && link.href && link.href !== window.location.href) {
+              // Only show loader for internal links
+              const isInternal = link.hostname === window.location.hostname;
+              if (isInternal && !link.hasAttribute('download')) {
+                this.start();
+              }
+            }
+          });
+        }
+
+        start() {
+          if (this.isLoading) return;
+          
+          this.isLoading = true;
+          this.currentProgress = 0;
+          
+          if (this.bar) {
+            this.bar.classList.add('active');
+            this.updateProgress(10);
+            
+            // Simulate progress
+            this.progressInterval = setInterval(() => {
+              if (this.currentProgress < 90) {
+                const increment = Math.random() * 30;
+                this.currentProgress = Math.min(90, this.currentProgress + increment);
+                this.updateProgress(this.currentProgress);
+              }
+            }, 200);
+          }
+        }
+
+        updateProgress(percent) {
+          if (this.progress) {
+            this.progress.style.width = `${percent}%`;
+          }
+        }
+
+        complete() {
+          if (!this.isLoading) return;
+          
+          if (this.progressInterval) {
+            clearInterval(this.progressInterval);
+            this.progressInterval = null;
+          }
+          
+          this.updateProgress(100);
+          
+          setTimeout(() => {
+            if (this.bar) {
+              this.bar.classList.remove('active');
+              this.currentProgress = 0;
+              this.updateProgress(0);
+              this.isLoading = false;
+            }
+          }, 200);
+        }
+      }
+
+      // Initialize loading bar when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+          new LoadingBar();
+        });
+      } else {
+        new LoadingBar();
+      }
+
+      // Re-initialize after view transitions
+      document.addEventListener('astro:after-swap', () => {
+        new LoadingBar();
+      });
+    </script>
   </body>
 </html>
+
 <style is:global>
   :root {
     --accent: 136, 58, 234;
@@ -64,14 +171,16 @@ const allowedItems = navItems.filter(item =>
       white 60%
     );
   }
+  
   html {
     font-family: "Outfit", serif;
   }
+  
   * {
     margin: 0;
-
     box-sizing: border-box;
   }
+  
   code {
     font-family:
       Menlo,
@@ -82,5 +191,53 @@ const allowedItems = navItems.filter(item =>
       Bitstream Vera Sans Mono,
       Courier New,
       monospace;
+  }
+
+  /* Loading Bar Styles */
+  .loading-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  .loading-bar.active {
+    opacity: 1;
+  }
+
+  .loading-progress {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, 
+      rgb(var(--accent)), 
+      rgb(var(--accent-light)), 
+      rgb(var(--accent))
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1s ease-in-out infinite;
+    transition: width 0.2s ease;
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 10px rgba(var(--accent), 0.5);
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -200% 0;
+    }
+    100% {
+      background-position: 200% 0;
+    }
+  }
+
+  /* Optional: Add a subtle glow effect */
+  .loading-bar.active .loading-progress {
+    box-shadow: 
+      0 0 10px rgba(var(--accent), 0.6),
+      0 0 20px rgba(var(--accent), 0.3);
   }
 </style>
