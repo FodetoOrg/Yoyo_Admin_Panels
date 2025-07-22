@@ -90,6 +90,14 @@ export interface NavItem {
       show: true,
     },
   {
+    title: "Addons",
+    url: "/admin/addons",
+    icon: Tag,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
+  },
+  {
     title: "Coupons",
     url: "/admin/coupons",
     icon: Percent,

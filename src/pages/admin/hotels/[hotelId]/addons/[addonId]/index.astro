@@ -1,0 +1,52 @@
+---
+import DashboardLayout from "../../../../../../layouts/DashboardLayout.astro";
+import HotelAddonForm from "./_components/HotelAddonForm";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const { hotelId, addonId } = Astro.params;
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+if (!hotelId) {
+  return Astro.redirect('/admin/hotels');
+}
+
+// Fetch hotel data
+const hotelResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_HOTEL_ROUTE(hotelId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!hotelResponse.success) {
+  return Astro.redirect('/admin/hotels');
+}
+
+const hotel = hotelResponse.data.hotel;
+
+// Fetch addon data if editing
+let addonData: any = null;
+if (addonId && addonId !== "new") {
+  const addonResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ADDON_ROUTE(hotelId, addonId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  addonData = addonResponse.success ? addonResponse.data.addon : null;
+}
+---
+
+<DashboardLayout title="Hotel Addon Management">
+  <HotelAddonForm 
+    addonData={addonData} 
+    hotelId={hotelId}
+    hotelName={hotel.name}
+    client:load 
+  />
+</DashboardLayout>

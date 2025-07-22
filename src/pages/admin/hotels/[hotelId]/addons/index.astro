@@ -1,0 +1,50 @@
+---
+import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
+import HotelAddonsScreen from "./_components/HotelAddonsScreen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const { hotelId } = Astro.params;
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+if (!hotelId) {
+  return Astro.redirect('/admin/hotels');
+}
+
+// Fetch hotel data
+const hotelResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_HOTEL_ROUTE(hotelId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!hotelResponse.success) {
+  return Astro.redirect('/admin/hotels');
+}
+
+const hotel = hotelResponse.data.hotel;
+
+// Fetch addons for this hotel
+const addonsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_HOTEL_ADDONS_ROUTE(hotelId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const addons = addonsResponse.success ? addonsResponse.data.addons : [];
+---
+
+<DashboardLayout title="Hotel Addons">
+  <HotelAddonsScreen 
+    addons={addons} 
+    hotelId={hotelId}
+    hotelName={hotel.name}
+    client:load 
+  />
+</DashboardLayout>

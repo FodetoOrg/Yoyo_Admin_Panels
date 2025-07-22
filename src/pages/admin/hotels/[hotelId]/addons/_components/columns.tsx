@@ -1,12 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import {
-  MoreHorizontal,
-  ArrowUpDown,
-  CheckCircle2,
-  XCircle,
-} from "lucide-react";
+import { MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -19,18 +14,19 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 
-
-// Define Category type based on your categories table structure
-export type Category = {
+export interface Addon {
   id: string;
   name: string;
   description?: string;
-  active: boolean;
-  createdAt: string;
-  updatedAt: string;
-};
+  price: number;
+  image?: string;
+  status: "active" | "inactive";
+  hotelId: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
 
-export const columns: ColumnDef<Category>[] = [
+export const columns: ColumnDef<Addon>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -74,21 +70,31 @@ export const columns: ColumnDef<Category>[] = [
     cell: ({ row }) => row.getValue("description") || "—",
   },
   {
-    accessorKey: "status",
-    header: "Active",
+    accessorKey: "price",
+    header: "Price",
     cell: ({ row }) => {
+      const price = parseFloat(row.getValue("price"));
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "INR",
+      }).format(price);
+    },
+  },
+  {
+    accessorKey: "status",
+    header: "Status",
+    cell: ({ row }) => {
+      const status = row.getValue("status") as string;
       return (
         <Badge
-          variant={
-            row.getValue("status") === "active" ? "outline" : "destructive"
-          }
+          variant={status === "active" ? "default" : "secondary"}
           className={
-            row.getValue("status") === "active"
+            status === "active"
               ? "bg-green-500 text-white"
-              : "bg-red-500 text-white"
+              : "bg-gray-500 text-white"
           }
         >
-          {row.getValue("status") === "active" ? "Active" : "Inactive"}
+          {status.charAt(0).toUpperCase() + status.slice(1)}
         </Badge>
       );
     },
@@ -106,27 +112,9 @@ export const columns: ColumnDef<Category>[] = [
     },
   },
   {
-    accessorKey: "updatedAt",
-    header: "Updated At",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("updatedAt"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
-    filterFn: (row, id, filterValue) => {
-      if (!filterValue || filterValue.length !== 2) return true;
-      const [start, end] = filterValue;
-      const rowDate = new Date(row.getValue(id));
-      return rowDate >= start && rowDate <= end;
-    },
-  },
-  {
     id: "actions",
     cell: ({ row }) => {
-      const category = row.original;
+      const addon = row.original;
 
       return (
         <DropdownMenu>
@@ -139,26 +127,14 @@ export const columns: ColumnDef<Category>[] = [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(category.name)}
+              onClick={() => navigator.clipboard.writeText(addon.id)}
             >
-              Copy Category
+              Copy Addon ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <a href={`/admin/hotels/${category.id}`}>
-              <DropdownMenuItem>Edit Category</DropdownMenuItem>
+            <a href={`/admin/hotels/${addon.hotelId}/addons/${addon.id}`}>
+              <DropdownMenuItem>Edit Addon</DropdownMenuItem>
             </a>
-            <a href={`/admin/hotels/${category.id}/addons`}>
-              <DropdownMenuItem>Manage Addons</DropdownMenuItem>
-            </a>
-            {/* <GlobalDeleteModal
-              row={row.original}
-              onDelete={async () => {
-                // need to implement delete function
-              }}
-              // Optional: Customize messages
-              title="Delete Record"
-              description={`Are you sure you want to delete ${row.original.name}?`}
-            /> */}
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -166,7 +142,5 @@ export const columns: ColumnDef<Category>[] = [
   },
 ];
 
-// Specify which fields to allow filtering
-export const filterFields = ["name", "active"];
-
+export const filterFields = ["name", "status"];
 export const datePickers = ["createdAt"];
