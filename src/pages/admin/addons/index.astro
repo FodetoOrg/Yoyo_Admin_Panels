@@ -1,0 +1,61 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+// Fetch addons from API
+let addons: any[] = [];
+
+if (effectiveHotelId) {
+  // Hotel admin - fetch addons for their hotel
+  const addonsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_HOTEL_ADDONS_ROUTE(effectiveHotelId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  addons = addonsResponse.success ? addonsResponse.data.addons : [];
+} else {
+  // Super admin - fetch all addons from all hotels
+  const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_ALL_HOTELS_ROUTE,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  
+  if (hotelsResponse.success) {
+    const hotels = hotelsResponse.data;
+    const addonPromises = hotels.map((hotel: any) => 
+      serverApiService.get(
+        ROUTES.GET_HOTEL_ADDONS_ROUTE(hotel.id),
+        Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+        Astro.cookies
+      )
+    );
+    
+    const addonResponses = await Promise.all(addonPromises);
+    addons = addonResponses
+      .filter(response => response.success)
+      .flatMap((response, index) => 
+        response.data.addons?.map((addon: any) => ({
+          ...addon,
+          hotel: hotels[index]
+        })) || []
+      );
+  }
+}
+---
+
+<DashboardLayout title="Addons">
+  <Screen addons={addons} client:load />
+</DashboardLayout>

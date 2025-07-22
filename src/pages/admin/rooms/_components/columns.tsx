@@ -2,6 +2,7 @@
 
 import type { ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, ArrowUpDown, Eye, Edit, Trash2, ToggleLeft, ToggleRight, Clock, Calendar } from "lucide-react";
+import { Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -250,6 +251,13 @@ export const getColumns = (
             <a href={`/admin/rooms/${room.id}/edit`}>
               <DropdownMenuItem>
                 <Edit className="mr-2 h-4 w-4" />
+            
+            <a href={`/admin/rooms/${room.id}/addons`}>
+              <DropdownMenuItem>
+                <Tag className="mr-2 h-4 w-4" />
+                Map Addons
+              </DropdownMenuItem>
+            </a>
                 Edit Room
               </DropdownMenuItem>
             </a>

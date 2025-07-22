@@ -1,0 +1,76 @@
+---
+import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
+import RoomAddonMapping from "./_components/RoomAddonMapping";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const { roomId } = Astro.params;
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+if (!roomId) {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Fetch room data
+const roomResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_BY_ID_ROUTE(roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!roomResponse.success) {
+  return Astro.redirect('/admin/rooms');
+}
+
+const room = roomResponse.data.room;
+const hotelId = room.hotelId;
+
+// Fetch hotel data
+const hotelResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_HOTEL_ROUTE(hotelId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!hotelResponse.success) {
+  return Astro.redirect('/admin/rooms');
+}
+
+const hotel = hotelResponse.data.hotel;
+
+// Fetch available addons for this hotel
+const availableAddonsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_AVAILABLE_ADDONS_ROUTE(hotelId, roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const availableAddons = availableAddonsResponse.success ? availableAddonsResponse.data.addons : [];
+
+// Fetch current room addons
+const currentAddonsResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_ADDONS_ROUTE(roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const currentAddons = currentAddonsResponse.success ? currentAddonsResponse.data.addons : [];
+---
+
+<DashboardLayout title="Room Addon Mapping">
+  <RoomAddonMapping 
+    roomId={roomId}
+    roomName={room.name}
+    hotelId={hotelId}
+    hotelName={hotel.name}
+    availableAddons={availableAddons}
+    currentAddons={currentAddons}
+    client:load 
+  />
+</DashboardLayout>
