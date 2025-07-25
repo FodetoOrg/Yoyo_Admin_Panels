@@ -1,0 +1,64 @@
+
+---
+import DashboardLayout from "../../../../../../layouts/DashboardLayout.astro";
+import HourlyStayForm from "./_components/HourlyStayForm";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const { roomId, hourlyStayId } = Astro.params;
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+if (!roomId) {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Fetch room data to verify access
+const roomResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_BY_ID_ROUTE(roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomData = roomResponse.success ? roomResponse.data.room : null;
+
+if (!roomData) {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Check if hotel admin has access to this room
+if (currentUser.role === UserRole.HOTEL_ADMIN && roomData.hotelId !== currentUser.hotelId) {
+  return Astro.redirect('/admin/rooms');
+}
+
+let hourlyStayData: any = null;
+if (hourlyStayId && hourlyStayId !== "new") {
+  // Fetch specific hourly stay data
+  const hourlyStaysResponse: ApiResponse<any> = await serverApiService.get(
+    ROUTES.GET_HOURLY_STAYS_BY_ROOM_ROUTE(roomId),
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+  
+  if (hourlyStaysResponse.success) {
+    hourlyStayData = hourlyStaysResponse.data.find((stay: any) => stay.id === hourlyStayId);
+  }
+}
+
+const pageTitle = hourlyStayId === "new" ? "Add Hourly Stay Package" : "Edit Hourly Stay Package";
+---
+
+<DashboardLayout title={pageTitle}>
+  <HourlyStayForm 
+    roomId={roomId}
+    roomData={roomData}
+    hourlyStayData={hourlyStayData}
+    currentUser={currentUser}
+    client:load 
+  />
+</DashboardLayout>

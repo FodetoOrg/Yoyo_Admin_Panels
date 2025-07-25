@@ -1,0 +1,57 @@
+
+---
+import DashboardLayout from "../../../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+const { roomId } = Astro.params;
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+if (!roomId || roomId === "new") {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Fetch room data to verify access and show room info
+const roomResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_ROOM_BY_ID_ROUTE(roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomData = roomResponse.success ? roomResponse.data.room : null;
+
+if (!roomData) {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Check if hotel admin has access to this room
+if (currentUser.role === UserRole.HOTEL_ADMIN && roomData.hotelId !== currentUser.hotelId) {
+  return Astro.redirect('/admin/rooms');
+}
+
+// Fetch hourly stays for this room
+const hourlyStaysResponse: ApiResponse<any> = await serverApiService.get(
+  ROUTES.GET_HOURLY_STAYS_BY_ROOM_ROUTE(roomId),
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const hourlyStays = hourlyStaysResponse.success ? hourlyStaysResponse.data : [];
+---
+
+<DashboardLayout title={`Hourly Stays - ${roomData.name}`}>
+  <Screen 
+    roomId={roomId}
+    roomData={roomData}
+    hourlyStays={hourlyStays}
+    currentUser={currentUser}
+    client:load 
+  />
+</DashboardLayout>

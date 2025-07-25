@@ -70,7 +70,15 @@ export const ROUTES = {
   GET_ROOM_ADDONS_ROUTE: (roomId: string) => `/api/v1/addons/rooms/${roomId}/addons`,
   UPDATE_ROOM_ADDONS_ROUTE: (hotelId: string, roomId: string) => `/api/v1/addons/hotels/${hotelId}/rooms/${roomId}/addons`,
   GET_AVAILABLE_ADDONS_ROUTE: (hotelId: string, roomId: string) => `/api/v1/addons/hotels/${hotelId}/rooms/${roomId}/available-addons`,
-};
+  // Hourly Stays Routes
+  CREATE_HOURLY_STAY_ROUTE: "/api/v1/hourlyStays/hourly-stays",
+  GET_HOURLY_STAYS_BY_ROOM_ROUTE: (roomId: string) => `/api/v1/hourlyStays/rooms/${roomId}/hourly-stays`,
+  GET_HOURLY_STAYS_BY_HOTEL_ROUTE: (hotelId: string) => `/api/v1/hourlyStays/hotels/${hotelId}/hourly-stays`,
+  UPDATE_HOURLY_STAY_ROUTE: (id: string) => `/api/v1/hourlyStays/hourly-stays/${id}`,
+  DELETE_HOURLY_STAY_ROUTE: (id: string) => `/api/v1/hourlyStays/hourly-stays/${id}`,
+
+  // Add other route constants as needed
+} as const;
 
 export const STATES_OPTIONS = [
   { label: "Andhra Pradesh", value: "AP" },
