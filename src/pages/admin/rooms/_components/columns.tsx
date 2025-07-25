@@ -240,18 +240,18 @@ export const getColumns = (
               Copy Room ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            
+
             <a href={`/admin/rooms/${room.id}`}>
               <DropdownMenuItem>
                 <Eye className="mr-2 h-4 w-4" />
                 View Details
               </DropdownMenuItem>
             </a>
-            
+
             <a href={`/admin/rooms/${room.id}/edit`}>
               <DropdownMenuItem>
                 <Edit className="mr-2 h-4 w-4" />
-            
+
             <a href={`/admin/rooms/${room.id}/addons`}>
               <DropdownMenuItem>
                 <Tag className="mr-2 h-4 w-4" />
@@ -261,9 +261,15 @@ export const getColumns = (
                 Edit Room
               </DropdownMenuItem>
             </a>
-            
+            <DropdownMenuItem 
+              onClick={() => window.location.href = `/admin/rooms/${room.id}/hourly-stays`}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              Hourly Stays
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuSub>
               <DropdownMenuSubTrigger>
                 <ToggleLeft className="mr-2 h-4 w-4" />
@@ -337,7 +343,7 @@ export const getColumns = (
             </DropdownMenuSub>
 
             <DropdownMenuSeparator />
-            
+
             <DropdownMenuItem 
               onClick={() => onDeleteRoom && onDeleteRoom(room.id)}
               className="text-red-600"
