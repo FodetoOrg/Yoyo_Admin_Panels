@@ -1,7 +1,7 @@
 
 import React from "react";
-import { PageContainer } from "@/components/PageContainer";
-import { DynamicForm } from "@/components/GloabalForm/DynamicForm";
+import PageContainer from "@/components/PageContainer";
+import  DynamicForm  from "@/components/GloabalForm/DynamicForm";
 import { getFormConfig } from "./config";
 
 interface HourlyStayData {

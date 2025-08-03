@@ -1,6 +1,6 @@
 
 import React, { useState } from "react";
-import { PageContainer } from "@/components/PageContainer";
+import  PageContainer  from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -88,7 +88,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
     <PageContainer>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Hourly Stay Packages</h1>
             <p className="text-muted-foreground">
@@ -105,7 +105,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-4 hidden">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Packages</CardTitle>

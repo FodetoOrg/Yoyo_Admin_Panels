@@ -1,0 +1,26 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Fetch room types from API
+const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
+  '/api/v1/room-types?type=active',
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
+---
+
+<DashboardLayout title="Room Types">
+  <Screen roomTypes={roomTypes} client:load />
+</DashboardLayout>

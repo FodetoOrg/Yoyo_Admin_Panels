@@ -155,38 +155,38 @@ export const getColumns = (
       }).format(price);
     },
   },
-  {
-    accessorKey: "status",
-    accessorFn: (row) => row.status || "available",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-      return (
-        <Badge
-          variant={
-            status === "available"
-              ? "default"
-              : status === "occupied"
-              ? "secondary"
-              : status === "maintenance"
-              ? "outline"
-              : "destructive"
-          }
-          className={
-            status === "available"
-              ? "bg-green-500 text-white"
-              : status === "occupied"
-              ? "bg-blue-500 text-white"
-              : status === "maintenance"
-              ? "bg-yellow-500 text-white"
-              : "bg-red-500 text-white"
-          }
-        >
-          {status.replace("_", " ").toUpperCase()}
-        </Badge>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "status",
+  //   accessorFn: (row) => row.status || "available",
+  //   header: "Status",
+  //   cell: ({ row }) => {
+  //     const status = row.getValue("status") as string;
+  //     return (
+  //       <Badge
+  //         variant={
+  //           status === "available"
+  //             ? "default"
+  //             : status === "occupied"
+  //             ? "secondary"
+  //             : status === "maintenance"
+  //             ? "outline"
+  //             : "destructive"
+  //         }
+  //         className={
+  //           status === "available"
+  //             ? "bg-green-500 text-white"
+  //             : status === "occupied"
+  //             ? "bg-blue-500 text-white"
+  //             : status === "maintenance"
+  //             ? "bg-yellow-500 text-white"
+  //             : "bg-red-500 text-white"
+  //         }
+  //       >
+  //         {status.replace("_", " ").toUpperCase()}
+  //       </Badge>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "bookingOptions",
     header: "Booking Options",
@@ -248,7 +248,7 @@ export const getColumns = (
               </DropdownMenuItem>
             </a>
 
-            <a href={`/admin/rooms/${room.id}/edit`}>
+            <a href={`/admin/rooms/${room.id}`}>
               <DropdownMenuItem>
                 <Edit className="mr-2 h-4 w-4" />
 

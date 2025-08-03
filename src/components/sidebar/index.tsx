@@ -42,24 +42,20 @@ import { deleteCookie, CONSTANTS } from "@/lib/utils/api";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Icons } from "./Icons";
 
-
-
-// Define user roles
-// export type UserRole = "admin" | "employee" | "manager" | "store" | "customer";
-
 // Enhanced NavItem interface with role-based access
 export interface NavItem {
   title: string;
   url: string;
   disabled?: boolean;
   external?: boolean;
-  icon?: any; // Updated to use IconKeys type
+  icon?: LucideIcon | React.ComponentType<any>; // Fixed icon type
   label?: string;
   description?: string;
   isActive?: boolean;
   items?: NavItem[];
   allowedRoles?: UserRole[];
   badge?: string;
+  show?: boolean;
 }
 
 const company = {
@@ -67,14 +63,6 @@ const company = {
   logo: GalleryVerticalEnd,
   plan: "Enterprise",
 };
-
-// Mock current user
-// const user: User = {
-//   name: "John Doe",
-//   email: "john@acme.com",
-//   avatar: "https://avatars.githubusercontent.com/u/68379183?s=64&v=4",
-//   role: 'admin'
-// };
 
 interface AppSidebarProps {
   children: React.ReactNode;
@@ -92,14 +80,32 @@ export default function AppSidebar({
   const [mounted, setMounted] = useState(false);
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
+  const [openCollapsibles, setOpenCollapsibles] = useState<string[]>([]);
+
   const currentUser = user;
   const effectiveRole = getEffectiveRole(currentUser);
+
+  // Function to check if current path matches any item in the navigation
+  const isPathActive = (item: NavItem): boolean => {
+    if (pathname === item.url) return true;
+    if (item.items) {
+      return item.items.some(subItem => pathname === subItem.url);
+    }
+    return false;
+  };
+
+  // Function to determine if a collapsible should be open based on current path
+  const shouldBeOpen = (item: NavItem): boolean => {
+    if (item.items) {
+      return item.items.some(subItem => pathname === subItem.url);
+    }
+    return false;
+  };
 
   useEffect(() => {
     // Filter navigation items based on effective role
     const filtered = navItems.filter((item) => {
       if (!item.show) return false;
-
 
       // For hotel admins (including super admin viewing as hotel admin) 
       if (effectiveRole === UserRole.HOTEL_ADMIN) {
@@ -113,8 +119,18 @@ export default function AppSidebar({
 
       return true;
     });
+
+    // Set initial open state based on current path
+    const initialOpenItems: string[] = [];
+    filtered.forEach(item => {
+      if (shouldBeOpen(item)) {
+        initialOpenItems.push(item.title);
+      }
+    });
+
     setFilteredNavItems(filtered);
-  }, [navItems, effectiveRole]);
+    setOpenCollapsibles(initialOpenItems);
+  }, [navItems, effectiveRole, pathname]);
 
   useEffect(() => {
     setMounted(true);
@@ -129,34 +145,42 @@ export default function AppSidebar({
     deleteCookie(CONSTANTS.ACCESS_TOKEN_KEY);
     deleteCookie(CONSTANTS.REFRESH_TOKEN_KEY);
     deleteCookie(CONSTANTS.USER);
-    
+
     // Clear localStorage
     localStorage.removeItem("viewAsHotel");
     localStorage.removeItem("viewAsHotelName");
     localStorage.removeItem("currentUser");
-    
+
     // Redirect to auth page
     window.location.href = "/auth";
   };
 
-  const renderIcon = (iconName: any | undefined) => {
-    if (!iconName) return null;
+  const renderIcon = (IconComponent: any | undefined) => {
+    if (!IconComponent) return null;
 
-    // Check if it's a valid React component (function)
-    if (typeof iconName === 'function') {
-      const IconComponent = iconName;
-      return <IconComponent className="size-4" />;
+    // Check if it's a valid React component (Lucide icon)
+    if (typeof IconComponent === 'function') {
+      return <IconComponent className="w-5 h-5" />;
     }
 
-    // If it's an object, it might be a Lucide React icon
-    if (typeof iconName === 'object' && iconName.$$typeof) {
-      // This is likely a React element, not a component
-      return React.cloneElement(iconName, { className: "size-4" });
+    // If it's already a React element
+    if (React.isValidElement(IconComponent)) {
+      return React.cloneElement(IconComponent, { className: "w-5 h-5" });
     }
 
     // Log warning for debugging
-    console.warn('Invalid icon type received:', typeof iconName, iconName);
+    console.warn('Invalid icon type received:', typeof IconComponent, IconComponent);
     return null;
+  };
+
+  const handleCollapsibleChange = (itemTitle: string, isOpen: boolean) => {
+    setOpenCollapsibles(prev => {
+      if (isOpen) {
+        return [...prev, itemTitle];
+      } else {
+        return prev.filter(title => title !== itemTitle);
+      }
+    });
   };
 
   return (
@@ -164,14 +188,14 @@ export default function AppSidebar({
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex gap-2 py-2 text-sidebar-accent-foreground">
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-              <company.logo className="size-4" />
+            <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
+              <company.logo className="w-6 h-6" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-semibold">{company.name}</span>
+              <span className="truncate font-semibold text-base">{company.name}</span>
               <span className="truncate text-xs flex items-center gap-2">
                 {company.plan}
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-2 text-xs">
                   {user?.role}
                 </Badge>
               </span>
@@ -181,57 +205,67 @@ export default function AppSidebar({
 
         <SidebarContent className="overflow-x-hidden">
           <SidebarGroup>
-            <SidebarGroupLabel>Overview</SidebarGroupLabel>
             <SidebarMenu>
               {filteredNavItems.map((item) => {
-                return item?.items && item?.items?.length > 0 ? (
+                const hasSubItems = item?.items && item?.items?.length > 0;
+                const isItemActive = isPathActive(item);
+                const hasActiveChild = hasSubItems && item.items?.some(subItem => pathname === subItem.url);
+                const isCollapsibleOpen = openCollapsibles.includes(item.title);
+
+                return hasSubItems ? (
                   <Collapsible
                     key={item.title}
                     asChild
-                    defaultOpen={item.isActive}
+                    open={isCollapsibleOpen}
+                    onOpenChange={(isOpen) => handleCollapsibleChange(item.title, isOpen)}
                     className="group/collapsible"
                   >
                     <SidebarMenuItem>
                       <CollapsibleTrigger asChild>
                         <SidebarMenuButton
                           tooltip={item.title}
-                          isActive={pathname === item.url}
+                          isActive={false} // Don't highlight parent when child is active
                           disabled={item.disabled}
+                          className={`text-sm h-11 hover:bg-gray-100`}
+                          
                         >
                           {renderIcon(item.icon)}
-                          <span>{item.title}</span>
+                          <span className="font-medium">{item.title}</span>
                           {item.badge && (
-                            <Badge variant="outline" className="ml-auto">
+                            <Badge variant="outline" className="ml-auto mr-2 text-xs">
                               {item.badge}
                             </Badge>
                           )}
-                          <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRight className="ml-auto w-4 h-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
                         <SidebarMenuSub>
-                          {item.items?.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                isActive={pathname === subItem.url}
-                                disabled={subItem.disabled}
-                              >
-                                <a href={subItem.url}>
-                                  {renderIcon(subItem.icon)}
-                                  <span>{subItem.title}</span>
-                                  {subItem.badge && (
-                                    <Badge
-                                      variant="outline"
-                                      className="ml-auto"
-                                    >
-                                      {subItem.badge}
-                                    </Badge>
-                                  )}
-                                </a>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
+                          {item.items?.map((subItem) => {
+                            const isSubItemActive = pathname === subItem.url;
+                            return (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  isActive={isSubItemActive}
+                                  className={`text-sm h-9 ml-4 ${isSubItemActive
+                                    ? 'bg-black text-white hover:bg-black hover:text-white'
+                                    : 'hover:bg-gray-100'
+                                    }`}
+                                    style={isSubItemActive?{
+                                      backgroundColor:"gray",
+                                      color:'white'
+                                    }:{}}
+                                >
+                                  <a href={subItem.url}>
+                                    {renderIcon(subItem.icon)}
+                                    <span className="font-medium">{subItem.title}</span>
+                                   
+                                  </a>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            );
+                          })}
                         </SidebarMenuSub>
                       </CollapsibleContent>
                     </SidebarMenuItem>
@@ -243,12 +277,21 @@ export default function AppSidebar({
                       tooltip={item.title}
                       isActive={pathname === item.url}
                       disabled={item.disabled}
+                     
+                      className={`text-sm h-11 ${pathname === item.url
+                        ? 'bg-black text-white hover:bg-black hover:text-white'
+                        : 'hover:bg-gray-100'
+                        }`}
+                        style={pathname === item.url?{
+                          backgroundColor:"black",
+                          color:'white'
+                        }:{}}
                     >
                       <a href={item.url}>
                         {renderIcon(item.icon)}
-                        <span>{item.title}</span>
+                        <span className="font-medium">{item.title}</span>
                         {item.badge && (
-                          <Badge variant="outline" className="ml-auto">
+                          <Badge variant="outline" className="ml-auto text-xs">
                             {item.badge}
                           </Badge>
                         )}
@@ -283,7 +326,7 @@ export default function AppSidebar({
                 </div>
                 <LogOut
                   onClick={handleLogout}
-                  className="ml-auto size-4"
+                  className="ml-auto w-5 h-5 cursor-pointer hover:text-red-500 transition-colors"
                 />
               </SidebarMenuButton>
             </SidebarMenuItem>

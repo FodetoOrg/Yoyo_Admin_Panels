@@ -6,21 +6,32 @@ import { serverApiService, type ApiResponse } from "@/lib/utils/api";
 import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const { addonId } = Astro.params;
+const url = Astro.url;
+const hotelId = url.searchParams.get('hotelId');
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
+console.log('currentUser  addons',currentUser)
 if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
   return Astro.redirect('/admin/dashboard');
 }
 
 // Parse addon ID to get hotel and addon IDs
 let addonData: any = null;
-let hotelId: string | null = null;
+
 
 if (addonId && addonId !== "new") {
-  // For editing, we need to extract hotelId from the addon data
-  // This might require a different API endpoint or passing hotelId in the URL
-  // For now, we'll handle this in the form component
+ 
+  const addOnResponse : ApiResponse<any> = await serverApiService.get(
+    `/api/v1/addons/hotels/${currentUser.hotelId}/addons/${addonId}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+
+  console.log('addOnResponse ',addOnResponse)
+  if(addOnResponse.success){
+   addonData = addOnResponse.data.addon
+  }
 }
 
 // Fetch hotels for dropdown (only for super admin)
@@ -43,5 +54,6 @@ if (currentUser.role === UserRole.SUPER_ADMIN) {
     hotels={hotels} 
     currentUser={currentUser}
     client:load 
+
   />
 </DashboardLayout>

@@ -1,23 +1,8 @@
+import { AreaGraph } from "@/components/Graphs/AreaGraph";
+import { BarGraph } from "@/components/Graphs/BarGraph";
+import PieGraph from "@/components/Graphs/PieGraph";
+import { apiService } from "@/lib/utils/api";
 import React, { useEffect, useState } from "react";
-
-// Mock components for demonstration
-const AreaGraph = ({ data, xAxisKey, colors }) => (
-  <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
-    <span className="text-gray-500">Area Graph: {data.length} data points</span>
-  </div>
-);
-
-const BarGraph = ({ data, xAxisKey, colors }) => (
-  <div className="h-64 bg-gray-100 rounded flex items-center justify-center">
-    <span className="text-gray-500">Bar Graph: {data.length} data points</span>
-  </div>
-);
-
-const PieGraph = ({ data, className, labelText }) => (
-  <div className={`bg-gray-100 rounded flex items-center justify-center ${className}`}>
-    <span className="text-gray-500">Pie Chart: {labelText}</span>
-  </div>
-);
 
 const StatsCard = ({ title, value }) => (
   <div className="bg-white p-4 rounded-lg border shadow-sm">
@@ -48,90 +33,9 @@ const CardContent = ({ children }) => (
   </div>
 );
 
-// Mock API service
-const apiService = {
-  get: async (url) => {
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Return the provided sample data
-    return {
-      success: true,
-      data: {
-        overview: {
-          hotelName: "Charand Plaza",
-          city: "Pallikarnai",
-          totalRooms: 1,
-          availableRooms: 1,
-          occupiedRooms: 0,
-          occupancyRate: 0,
-          totalPaidRevenue: 0,
-          needToPayRevenue: 2350,
-          totalRevenue: 2350,
-          currentMonthRevenue: 0,
-          lastMonthRevenue: 0,
-          totalPaidCommission: 0,
-          pendingCommission: 235,
-          totalCommission: 235,
-          totalBookings: 3,
-          revenueGrowth: 0
-        },
-        bookingDistribution: {
-          confirmed: 1,
-          cancelled: 2,
-          pending: 0
-        },
-        timeSeriesData: [
-          { month: "Feb", year: 2025, bookings: 0, revenue: 0, occupancy: 89 },
-          { month: "Mar", year: 2025, bookings: 0, revenue: 0, occupancy: 73 },
-          { month: "Apr", year: 2025, bookings: 0, revenue: 0, occupancy: 86 },
-          { month: "May", year: 2025, bookings: 0, revenue: 0, occupancy: 82 },
-          { month: "Jun", year: 2025, bookings: 0, revenue: 0, occupancy: 84 },
-          { month: "Jul", year: 2025, bookings: 3, revenue: 7150, occupancy: 87 }
-        ],
-        roomTypeDistribution: [
-          { name: "Room 1", count: 3, revenue: 7150 }
-        ],
-        topRooms: [],
-        recentBookings: [
-          {
-            id: "1a99c501-fad5-4b7d-b570-be298662c263",
-            checkInDate: "2025-07-22T05:54:38.000Z",
-            checkOutDate: "2025-07-24T05:54:38.000Z",
-            totalAmount: 2350,
-            status: "confirmed",
-            paymentStatus: "pending",
-            room: { name: "Room 1", number: "101" },
-            user: { name: null, phone: "+919150299458" }
-          },
-          {
-            id: "6b2da74f-3a19-4bc3-b8d6-22e63b4caa83",
-            checkInDate: "2025-07-21T11:05:55.000Z",
-            checkOutDate: "2025-07-23T11:05:55.000Z",
-            totalAmount: 2400,
-            status: "cancelled",
-            paymentStatus: "pending",
-            room: { name: "Room 1", number: "101" },
-            user: { name: null, phone: "+919182611781" }
-          },
-          {
-            id: "eca48cf0-9a7f-44e6-853a-2be568f56d6d",
-            checkInDate: "2025-07-21T11:10:17.000Z",
-            checkOutDate: "2025-07-23T11:10:17.000Z",
-            totalAmount: 2400,
-            status: "cancelled",
-            paymentStatus: "pending",
-            room: { name: "Room 1", number: "101" },
-            user: { name: null, phone: "+919010351681" }
-          }
-        ]
-      }
-    };
-  }
-};
 
 const ROUTES = {
-  GET_DASHBOARD_ANALYTICS_ROUTE: (type, id) => `/api/dashboard/${type}/${id}`
+  GET_DASHBOARD_ANALYTICS_ROUTE: (type, id) => `/api/v1/analytics/dashboard?type=hotel&hotelId=${id}`
 };
 
 interface HotelDashboardProps {
@@ -215,13 +119,13 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
   const mockHotels = [
     { id: "hotel-1", name: "Charand Plaza", city: "Pallikarnai", rating: 4.5, status: "active" }
   ];
-  
+
   const actualHotels = hotels.length > 0 ? hotels : mockHotels;
 
   useEffect(() => {
     const fetchHotelAnalytics = async () => {
       if (!selectedHotel) return;
-      
+
       setLoading(true);
       setError(null);
       try {
@@ -241,7 +145,7 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
         setLoading(false);
       }
     };
-    
+
     fetchHotelAnalytics();
   }, [selectedHotel]);
 
@@ -254,8 +158,8 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
     revenue: item.revenue / 100, // Convert to reasonable scale for demo
     occupancy: item.occupancy
   })) || [
-    { month: "No Data", bookings: 0, revenue: 0, occupancy: 0 }
-  ];
+      { month: "No Data", bookings: 0, revenue: 0, occupancy: 0 }
+    ];
 
   // Transform room type distribution for pie chart
   const transformedRoomTypeData = hotelAnalytics?.roomTypeDistribution?.map(item => ({
@@ -263,8 +167,8 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
     value: item.count,
     revenue: item.revenue
   })) || [
-    { name: "No Data", value: 100, revenue: 0 }
-  ];
+      { name: "No Data", value: 100, revenue: 0 }
+    ];
 
   // Transform booking distribution for additional chart
   const bookingDistributionData = hotelAnalytics?.bookingDistribution ? [
@@ -290,78 +194,76 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
           <p className="text-gray-500">Loading hotel analytics...</p>
         </div>
       )}
-      
+
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           {error}
         </div>
       )}
-      
+
       {/* Hotel Overview Card */}
       {(hotelAnalytics?.overview || selectedHotelData) && (
-        <Card>
+        <Card >
           <CardHeader>
             <CardTitle>
               {hotelAnalytics?.overview?.hotelName || selectedHotelData?.name} - {hotelAnalytics?.overview?.city || selectedHotelData?.city || 'Unknown City'}
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <StatsCard 
-                title="Total Rooms" 
-                value={loading ? "..." : (hotelAnalytics?.overview?.totalRooms || "0").toString()} 
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ">
+              <StatsCard
+                title="Total Rooms"
+                value={loading ? "..." : (hotelAnalytics?.overview?.totalRooms || "0").toString()}
               />
-              <StatsCard 
-                title="Current Occupancy" 
-                value={loading ? "..." : `${hotelAnalytics?.overview?.occupancyRate || 0}%`} 
+              <StatsCard
+                title="Current Occupancy"
+                value={loading ? "..." : `${hotelAnalytics?.overview?.occupancyRate || 0}%`}
               />
-              <StatsCard 
-                title="Total Revenue" 
-                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalRevenue || 0).toLocaleString()}`} 
+              <StatsCard
+                title="Total Revenue"
+                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalRevenue || 0).toLocaleString()}`}
               />
-              <StatsCard 
-                title="Rating" 
-                value={selectedHotelData?.rating?.toString() || "N/A"} 
+              <StatsCard
+                title="Rating"
+                value={selectedHotelData?.rating?.toString() || "N/A"}
               />
-            </div>
-            
-            {/* Additional stats row - Updated to use actual API response fields */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-              <StatsCard 
-                title="Available Rooms" 
-                value={loading ? "..." : (hotelAnalytics?.overview?.availableRooms || "0").toString()} 
-              />
-              <StatsCard 
-                title="Occupied Rooms" 
-                value={loading ? "..." : (hotelAnalytics?.overview?.occupiedRooms || "0").toString()} 
-              />
-              <StatsCard 
-                title="Total Bookings" 
-                value={loading ? "..." : (hotelAnalytics?.overview?.totalBookings || "0").toString()} 
-              />
-              <StatsCard 
-                title="Pending Revenue" 
-                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.needToPayRevenue || 0).toLocaleString()}`} 
-              />
-            </div>
 
-            {/* Commission stats row */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mt-4">
-              <StatsCard 
-                title="Paid Revenue" 
-                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalPaidRevenue || 0).toLocaleString()}`} 
+
+
+              <StatsCard
+                title="Available Rooms"
+                value={loading ? "..." : (hotelAnalytics?.overview?.availableRooms || "0").toString()}
               />
-              <StatsCard 
-                title="Total Commission" 
-                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalCommission || 0).toLocaleString()}`} 
+              <StatsCard
+                title="Occupied Rooms"
+                value={loading ? "..." : (hotelAnalytics?.overview?.occupiedRooms || "0").toString()}
               />
-              <StatsCard 
-                title="Pending Commission" 
-                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.pendingCommission || 0).toLocaleString()}`} 
+              <StatsCard
+                title="Total Bookings"
+                value={loading ? "..." : (hotelAnalytics?.overview?.totalBookings || "0").toString()}
               />
-              <StatsCard 
-                title="Revenue Growth" 
-                value={loading ? "..." : `${(hotelAnalytics?.overview?.revenueGrowth || 0).toFixed(1)}%`} 
+              <StatsCard
+                title="Pending Revenue"
+                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.needToPayRevenue || 0).toLocaleString()}`}
+              />
+
+
+
+              <StatsCard
+                title="Paid Revenue"
+                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalPaidRevenue || 0).toLocaleString()}`}
+              />
+              <StatsCard
+                title="Total Commission"
+                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.totalCommission || 0).toLocaleString()}`}
+              />
+              <StatsCard
+                title="Pending Commission"
+                value={loading ? "..." : `₹${(hotelAnalytics?.overview?.pendingCommission || 0).toLocaleString()}`}
+              />
+              <StatsCard
+                title="Revenue Growth"
+                value={loading ? "..." : `${(hotelAnalytics?.overview?.revenueGrowth || 0).toFixed(1)}%`}
               />
             </div>
           </CardContent>
@@ -499,22 +401,20 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
                         ₹{booking.totalAmount.toLocaleString()}
                       </td>
                       <td className="p-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          booking.status === 'confirmed' 
-                            ? 'bg-green-100 text-green-800' 
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${booking.status === 'confirmed'
+                            ? 'bg-green-100 text-green-800'
                             : booking.status === 'cancelled'
-                            ? 'bg-red-100 text-red-800'
-                            : 'bg-yellow-100 text-yellow-800'
-                        }`}>
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
                           {booking.status}
                         </span>
                       </td>
                       <td className="p-2">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          booking.paymentStatus === 'paid'
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${booking.paymentStatus === 'paid'
                             ? 'bg-green-100 text-green-800'
                             : 'bg-orange-100 text-orange-800'
-                        }`}>
+                          }`}>
                           {booking.paymentStatus}
                         </span>
                       </td>
@@ -528,13 +428,13 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
       )}
 
       {/* Top Performing Rooms - Shows message when empty */}
-      <Card>
+      <Card className="hidden">
         <CardHeader>
           <CardTitle>Top Performing Rooms</CardTitle>
         </CardHeader>
         <CardContent>
           {hotelAnalytics?.topRooms && hotelAnalytics.topRooms.length > 0 ? (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-y-4">
               {hotelAnalytics.topRooms.map((room, index) => (
                 <div key={room.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">

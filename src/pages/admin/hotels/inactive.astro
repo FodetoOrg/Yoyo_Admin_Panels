@@ -1,0 +1,28 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { apiService, serverApiService, type ApiResponse } from "../../../lib/utils/api";
+import { CONSTANTS, ROUTES } from "../../../lib/utils/constants";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const res:ApiResponse<{}> = await serverApiService.get("api/v1/hotels?type=inactive", Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "", Astro.cookies);
+
+let hotels:any[] = [];
+
+if(res.success){
+    hotels = res.data;
+}
+
+console.log('hotels ',hotels)
+---
+
+<DashboardLayout title="Hotels">
+    <Screen hotels={hotels} client:load writeAccess={true} />
+    
+</DashboardLayout>

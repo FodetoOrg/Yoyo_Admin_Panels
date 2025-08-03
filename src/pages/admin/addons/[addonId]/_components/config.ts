@@ -63,23 +63,7 @@ const formConfig: FormConfig = {
   ],
   columns: 2,
   onsuccess: "/admin/addons",
-  onSubmit: async (values: any, isUpdate: boolean) => {
-    try {
-      console.log('Addon form values:', values);
-
-      if (isUpdate) {
-        return await apiService.put(ROUTES.UPDATE_ADDON_ROUTE(values.hotelId, values.id), values);
-      } else {
-        return await apiService.post(ROUTES.CREATE_HOTEL_ADDON_ROUTE(values.hotelId), values);
-      }
-    } catch (error) {
-      console.error("Error saving addon:", error);
-      return {
-        success: false,
-        message: "An error occurred while saving the addon. Please try again."
-      };
-    }
-  }
+  
 };
 
 export default formConfig;

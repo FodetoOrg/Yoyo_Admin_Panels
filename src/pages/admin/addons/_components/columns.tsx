@@ -61,7 +61,7 @@ export const columns: ColumnDef<Addon>[] = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Name
+        AddOn Name
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
@@ -70,10 +70,28 @@ export const columns: ColumnDef<Addon>[] = [
     ),
   },
   {
-    accessorKey: "description",
-    header: "Description",
-    cell: ({ row }) => row.getValue("description") || "—",
+    accessorKey: "hotel.name",
+    header:'Hotel Name',
+    // header: ({ column }) => (
+    //   <Button
+    //     variant="ghost"
+    //     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+    //   >
+    //     Hotel Name
+    //     <ArrowUpDown className="ml-2 h-4 w-4" />
+    //   </Button>
+    // ),
+    cell: ({ row }) => {
+      const addon = row.original;
+
+     return  <div className="font-medium">{addon.hotel?.name || 'N/A'}</div>
+    },
   },
+  // {
+  //   accessorKey: "description",
+  //   header: "Description",
+  //   cell: ({ row }) => row.getValue("description") || "—",
+  // },
   {
     accessorKey: "hotelName",
     accessorFn: (row) => row.hotel?.name || "Unknown Hotel",
@@ -145,7 +163,7 @@ export const columns: ColumnDef<Addon>[] = [
               Copy Addon ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <a href={`/admin/addons/${addon.id}`}>
+            <a href={`/admin/addons/${addon.id}?hotelId=${addon.hotel?.id}`}>
               <DropdownMenuItem>Edit Addon</DropdownMenuItem>
             </a>
           </DropdownMenuContent>

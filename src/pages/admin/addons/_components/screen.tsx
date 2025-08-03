@@ -3,7 +3,7 @@ import { DataTable } from "@/components/GlobalTable/data-table";
 import { Heading } from "@/components/Heading";
 import { getCurrentUser, getEffectiveHotelId, isSuperAdmin } from "@/lib/utils/auth";
 import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";// Add this import if using Next.js
 import { columns, datePickers, filterFields, type Addon } from "./columns";
 
 interface Props {
@@ -15,6 +15,7 @@ const AddonsScreen = ({ addons = [] }: Props) => {
   const effectiveHotelId = getEffectiveHotelId(currentUser);
   const isSuper = isSuperAdmin(currentUser);
   
+  console.log('addons ',addons)
   // Filter addons based on user role
   const filteredAddons = effectiveHotelId 
     ? addons.filter(addon => addon.hotelId === effectiveHotelId)
@@ -31,14 +32,20 @@ const AddonsScreen = ({ addons = [] }: Props) => {
               : "Manage all hotel addons and services"
             }
           />
-          {/* <Button>
-            <a
-              href="/admin/addons/new"
-              className="text-xs md:text-sm flex items-center"
-            >
-              <Plus className="mr-2 h-4 w-4 text-white" /> Add Addon
+          {/* Option 1: Using Next.js Link */}
+          <a href="/admin/addons/new">
+            <Button className="text-xs md:text-sm flex items-center">
+              <Plus className="mr-2 h-4 w-4" /> Add Addon
+            </Button>
+          </a>
+          
+          {/* Option 2: Using regular anchor tag (uncomment if not using Next.js)
+          <Button asChild>
+            <a href="/admin/addons/new" className="text-xs md:text-sm flex items-center">
+              <Plus className="mr-2 h-4 w-4" /> Add Addon
             </a>
-          </Button> */}
+          </Button>
+          */}
         </div>
         <DataTable
           columns={columns}

@@ -14,14 +14,13 @@ if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.ro
 // Get effective hotel ID for filtering
 const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
 
-
 // Fetch bookings from API
 let bookings: any[] = [];
 
 if (effectiveHotelId) {
   // If hotel admin, fetch bookings for specific hotel
   const bookingsResponse: ApiResponse<any> = await serverApiService.get(
-    `/api/v1/bookings/hotel/${effectiveHotelId}`,
+    `/api/v1/bookings/hotel/${effectiveHotelId}?status=cancelled`,
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
     Astro.cookies
   );
@@ -31,7 +30,7 @@ if (effectiveHotelId) {
   // This would typically be a separate API endpoint
   // For now, we'll use mock data or fetch from a general endpoint
   const bookingsResponse: ApiResponse<any> = await serverApiService.get(
-    "/api/v1/bookings/",
+    "/api/v1/bookings?status=cancelled",
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
     Astro.cookies
   );

@@ -20,7 +20,7 @@ const showHotelDashboard = isHotelAdmin(currentUser) || (isSuperAdmin(currentUse
         hotelId={effectiveHotelId}
         hotelName={isHotelAdmin(currentUser) ? "Your Hotel" : "Hotel Dashboard"}
         isViewingAs={isSuperAdmin(currentUser) && !!effectiveHotelId}
-        client:load 
+        client:only
       />
     ) : (
       <Dashboard client:load />

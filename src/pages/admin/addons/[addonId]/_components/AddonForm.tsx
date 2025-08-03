@@ -3,6 +3,8 @@ import DynamicForm from "@/components/GloabalForm/DynamicForm";
 import formConfig from "./config";
 import { UserRole } from "@/lib/utils/auth";
 import * as z from "zod";
+import { ROUTES } from "@/lib/utils/constants";
+import { apiService } from "@/lib/utils/api";
 
 interface AddonData {
   id?: string;
@@ -23,6 +25,29 @@ interface Props {
 const AddonForm = ({ addonData, hotels, currentUser }: Props) => {
   const isSuperAdmin = currentUser.role === UserRole.SUPER_ADMIN;
   const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+  console.log(' effectiveHotelId ',effectiveHotelId)
+
+ const onSubmit = async (values: any, isUpdate: boolean) => {
+    try {
+      console.log('Addon form values:', values);
+      console.log('isUpdate ',isUpdate)
+
+      let finalHotelId = effectiveHotelId ?effectiveHotelId: values.hotelId
+
+      if (isUpdate) {
+        return await apiService.put(ROUTES.UPDATE_ADDON_ROUTE(finalHotelId, values.id), values);
+      } else {
+        return await apiService.post(ROUTES.CREATE_HOTEL_ADDON_ROUTE(finalHotelId), values);
+      }
+    } catch (error) {
+      console.error("Error saving addon:", error);
+      return {
+        success: false,
+        message: "An error occurred while saving the addon. Please try again."
+      };
+    }
+  }
 
   const getFormConfig = () => {
     // Hotel selection field (only for super admin when not viewing as hotel admin)
@@ -80,11 +105,17 @@ const AddonForm = ({ addonData, hotels, currentUser }: Props) => {
       status: "active",
     });
 
-    return {
+    return addonData ? {
       ...formConfig,
       title: addonData ? "Edit Addon" : "Add Addon",
       fields,
       defaultValues: addonData ? defaultValues : (effectiveHotelId ? { hotelId: effectiveHotelId, status: "active" } : { status: "active" }),
+      onSubmit:onSubmit
+    } : {
+      ...formConfig,
+      title: addonData ? "Edit Addon" : "Add Addon",
+      fields,
+      onSubmit:onSubmit
     };
   };
 

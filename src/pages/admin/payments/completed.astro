@@ -1,0 +1,32 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Get effective hotel ID for filtering
+const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
+
+// Fetch payments from API
+const paymentsResponse: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/payments/history${effectiveHotelId ? `/${effectiveHotelId}` : ''}?status=completed`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+
+const payments = paymentsResponse.success ? paymentsResponse.data.payments : [];
+
+console.log(payments)
+
+---
+
+<DashboardLayout title="Payments">
+  <Screen payments={payments} client:load />

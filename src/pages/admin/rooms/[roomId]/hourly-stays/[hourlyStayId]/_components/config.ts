@@ -2,6 +2,7 @@
 import { z } from "zod";
 import { ROUTES } from "@/lib/utils/constants";
 import type { FormConfig } from "@/lib/types/dynamicForm";
+import { apiService } from "@/lib/utils/api";
 
 interface HourlyStayData {
   id: string;
@@ -92,7 +93,7 @@ export const getFormConfig = (
     title: isEditing ? "Edit Hourly Stay Package" : "Add Hourly Stay Package",
     description: `${isEditing ? "Update" : "Create"} hourly stay package for ${roomData.name}`,
     method: isEditing ? "PUT" : "POST",
-    action: isEditing 
+    action: isEditing
       ? ROUTES.UPDATE_HOURLY_STAY_ROUTE(hourlyStayData!.id)
       : ROUTES.CREATE_HOURLY_STAY_ROUTE,
     fields,
@@ -130,7 +131,29 @@ export const getFormConfig = (
 
   return {
     ...formConfig,
-    defaultValues,
+
+    defaultValues:isEditing?defaultValues:null,
     transformData,
+    onSubmit: async (values: any, isUpdate: boolean) => {
+      try {
+        console.log('Hotel addon form values:', values);
+
+        if (isUpdate) {
+          return await apiService.put(ROUTES.UPDATE_HOURLY_STAY_ROUTE(hourlyStayData!.id), values);
+        } else {
+          return await apiService.post(ROUTES.CREATE_HOURLY_STAY_ROUTE, {
+            ...values,
+            roomId:roomId
+          });
+        }
+      } catch (error) {
+        console.error("Error saving addon:", error);
+        return {
+          success: false,
+          message: "An error occurred while saving the addon. Please try again."
+        };
+      }
+    }
   };
+
 };
