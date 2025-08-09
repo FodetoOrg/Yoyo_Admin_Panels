@@ -61,6 +61,8 @@ export const columns: ColumnDef<Booking>[] = [
     // ),
   },
   {
+
+    id: "hotelName",
     accessorKey: "hotel.name",
     header: "Hotel",
     // cell: ({ row }) => row.getValue("hotelName"),
@@ -132,19 +134,19 @@ export const columns: ColumnDef<Booking>[] = [
             status === "confirmed"
               ? "default"
               : status === "pending"
-              ? "secondary"
-              : status === "cancelled"
-              ? "destructive"
-              : "outline"
+                ? "secondary"
+                : status === "cancelled"
+                  ? "destructive"
+                  : "outline"
           }
           className={
             status === "confirmed"
               ? "bg-green-500 text-white"
               : status === "pending"
-              ? "bg-yellow-500 text-white"
-              : status === "cancelled"
-              ? "bg-red-500 text-white"
-              : "bg-blue-500 text-white"
+                ? "bg-yellow-500 text-white"
+                : status === "cancelled"
+                  ? "bg-red-500 text-white"
+                  : "bg-blue-500 text-white"
           }
         >
           {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -163,15 +165,15 @@ export const columns: ColumnDef<Booking>[] = [
             status === "paid"
               ? "default"
               : status === "pending"
-              ? "secondary"
-              : "destructive"
+                ? "secondary"
+                : "destructive"
           }
           className={
             status === "paid"
               ? "bg-green-500 text-white"
               : status === "pending"
-              ? "bg-yellow-500 text-white"
-              : "bg-red-500 text-white"
+                ? "bg-yellow-500 text-white"
+                : "bg-red-500 text-white"
           }
         >
           {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -229,5 +231,5 @@ export const columns: ColumnDef<Booking>[] = [
   },
 ];
 
-export const filterFields = ["status", "paymentStatus", "hotelName"];
+export const filterFields = ["status", "paymentStatus", 'hotel.name'];
 export const datePickers = ["checkIn", "checkOut", "createdAt"];

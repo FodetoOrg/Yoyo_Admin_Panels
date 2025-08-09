@@ -1,0 +1,32 @@
+---
+import { UserRole } from "@/lib/utils/auth";
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import BookingDetailsScreen from "./_components/BookingDetailsScreen";
+import { CONSTANTS, serverApiService, type ApiResponse } from "@/lib/utils/api";
+const currentUser = Astro.locals.user;
+if (
+    !currentUser ||
+    (currentUser.role !== UserRole.SUPER_ADMIN &&
+        currentUser.role !== UserRole.HOTEL_ADMIN)
+) {
+    return Astro.redirect("/admin/dashboard");
+}
+
+const { id } = Astro.params;
+
+const bookingDetailsResponse: ApiResponse<any> = await serverApiService.get(
+    `/api/v1/bookings/${id}/details`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies,
+);
+console.log('bookingDetailsResponse ',bookingDetailsResponse)
+const bookingDetails = bookingDetailsResponse.success
+    ? bookingDetailsResponse.data.booking
+    : [];
+
+console.log("bookingDetails ", bookingDetails);
+---
+
+<DashboardLayout title="Booking Details">
+    <BookingDetailsScreen booking={bookingDetails}  user={currentUser} client:load/>
+</DashboardLayout>

@@ -1,22 +1,23 @@
 import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Heading } from "@/components/Heading";
-import { getCurrentUser, getEffectiveHotelId } from "@/lib/utils/auth";
+import { getCurrentUser, getEffectiveHotelId, UserRole } from "@/lib/utils/auth";
 import { columns, datePickers, filterFields } from "./columns";
 import type { Booking } from "@/lib/types";
 
 interface Props {
   bookings: Booking[];
+  user: any;
 }
 
-const BookingsScreen = ({ bookings = [] }: Props) => {
-  const currentUser = getCurrentUser();
-  const effectiveHotelId = getEffectiveHotelId(currentUser);
-  
+const BookingsScreen = ({ bookings = [], user }: Props) => {
+
+  console.log('user ', user)
+  console.log('bookings ',bookings)
   // Filter bookings based on user role
-  const filteredBookings = effectiveHotelId 
-    ? bookings.filter(booking => booking.hotelId === effectiveHotelId)
-    : bookings;
+  // const filteredBookings = user?.hotelId
+  //   ? bookings.filter(booking => booking.hotelId === user?.hotelId)
+  //   : bookings;
 
   return (
     <PageContainer>
@@ -24,8 +25,8 @@ const BookingsScreen = ({ bookings = [] }: Props) => {
         <div className="flex justify-between items-center">
           <Heading
             title="Bookings"
-            description={effectiveHotelId 
-              ? "Manage your hotel bookings and reservations" 
+            description={user?.hotelId
+              ? "Manage your hotel bookings and reservations"
               : "Manage all hotel bookings and reservations"
             }
           />
@@ -33,9 +34,9 @@ const BookingsScreen = ({ bookings = [] }: Props) => {
         <DataTable
           columns={columns}
           filterFields={filterFields}
-          data={filteredBookings}
+          data={bookings}
           datePickers={datePickers}
-          hiddenColumns={[]}
+          hiddenColumns={user?.role === UserRole.HOTEL_ADMIN ? ['hotelName'] : []}
         />
       </div>
     </PageContainer>

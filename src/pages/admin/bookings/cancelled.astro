@@ -41,5 +41,5 @@ console.log('bookings are ',bookings)
 ---
 
 <DashboardLayout title="Bookings">
-  <Screen bookings={bookings} client:load />
+  <Screen bookings={bookings} user={currentUser} client:load />
   </DashboardLayout>

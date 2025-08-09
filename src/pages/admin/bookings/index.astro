@@ -7,13 +7,17 @@ import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
-if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
-  return Astro.redirect('/admin/dashboard');
+if (
+  !currentUser ||
+  (currentUser.role !== UserRole.SUPER_ADMIN &&
+    currentUser.role !== UserRole.HOTEL_ADMIN)
+) {
+  return Astro.redirect("/admin/dashboard");
 }
 
 // Get effective hotel ID for filtering
-const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
-
+const effectiveHotelId =
+  currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
 
 // Fetch bookings from API
 let bookings: any[] = [];
@@ -23,7 +27,7 @@ if (effectiveHotelId) {
   const bookingsResponse: ApiResponse<any> = await serverApiService.get(
     `/api/v1/bookings/hotel/${effectiveHotelId}`,
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-    Astro.cookies
+    Astro.cookies,
   );
   bookings = bookingsResponse.success ? bookingsResponse.data.bookings : [];
 } else {
@@ -31,16 +35,16 @@ if (effectiveHotelId) {
   // This would typically be a separate API endpoint
   // For now, we'll use mock data or fetch from a general endpoint
   const bookingsResponse: ApiResponse<any> = await serverApiService.get(
-    "/api/v1/bookings/",
+    "/api/v1/bookings",
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-    Astro.cookies
+    Astro.cookies,
   );
   bookings = bookingsResponse.success ? bookingsResponse.data.bookings : [];
 }
 
-console.log('bookings are ',bookings)
+console.log("bookings are ", bookings);
 ---
 
 <DashboardLayout title="Bookings">
-  <Screen bookings={bookings} client:load />
-  </DashboardLayout>
+  <Screen bookings={bookings} user={currentUser} client:load />
+</DashboardLayout>
