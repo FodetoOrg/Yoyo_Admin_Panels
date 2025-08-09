@@ -1,0 +1,30 @@
+
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import RefundsScreen from "./_components/screen";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+import { UserRole, getEffectiveHotelId } from "@/lib/utils/auth";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Get effective hotel ID for filtering
+const effectiveHotelId = getEffectiveHotelId(currentUser);
+
+// Fetch refunds from API
+const refundsResponse: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/refunds${effectiveHotelId ? `/${effectiveHotelId}` : ''}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+const refunds = refundsResponse.success ? refundsResponse.data.refunds : [];
+---
+
+<DashboardLayout title="Refunds">
+  <RefundsScreen refunds={refunds} client:load />
+</DashboardLayout>

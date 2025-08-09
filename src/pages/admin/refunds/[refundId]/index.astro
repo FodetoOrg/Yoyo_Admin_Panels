@@ -1,0 +1,34 @@
+
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import RefundDetailsScreen from "./_components/RefundDetailsScreen";
+import { CONSTANTS } from "@/lib/utils/constants";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const refundId = Astro.params.refundId;
+
+if (!refundId) {
+  return Astro.redirect('/admin/refunds');
+}
+
+const refundDetails: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/details/refunds/${refundId}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!refundDetails.success) {
+  return Astro.redirect('/admin/refunds');
+}
+---
+
+<DashboardLayout title={`Refund: ${refundId}`}>
+  <RefundDetailsScreen refundData={refundDetails.data} client:load />
+</DashboardLayout>
