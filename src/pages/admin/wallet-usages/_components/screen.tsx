@@ -3,26 +3,25 @@ import React, { useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { RefreshCw, DollarSign, Users, TrendingDown } from "lucide-react";
+import { Wallet, Users, DollarSign, TrendingUp } from "lucide-react";
 import { columns } from "./columns";
 
-interface Refund {
+interface WalletUsage {
   id: string;
+  userId: string;
   bookingId: string;
   paymentId: string;
-  amount: number;
-  reason: string;
-  status: string;
-  processedAt: string;
-  refundMethod: string;
+  amountUsed: number;
+  balanceBefore: number;
+  balanceAfter: number;
   createdAt: string;
-  bookingReference: string;
   userName: string;
   userEmail: string;
   userPhone: string;
+  bookingReference: string;
   hotelName: string;
-  originalPaymentAmount: number;
-  originalPaymentMethod: string;
+  paymentAmount: number;
+  paymentMethod: string;
 }
 
 interface Pagination {
@@ -33,17 +32,17 @@ interface Pagination {
 }
 
 interface Props {
-  refunds: Refund[];
+  walletUsages: WalletUsage[];
   pagination: Pagination;
   currentUser: any;
 }
 
-const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
+const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
   const [loading, setLoading] = useState(false);
 
-  const totalRefundAmount = refunds.reduce((sum, refund) => sum + refund.amount, 0);
-  const completedRefunds = refunds.filter(refund => refund.status === "completed").length;
-  const uniqueUsers = new Set(refunds.map(refund => refund.userName)).size;
+  const totalAmountUsed = walletUsages.reduce((sum, usage) => sum + usage.amountUsed, 0);
+  const uniqueUsers = new Set(walletUsages.map(usage => usage.userId)).size;
+  const avgUsageAmount = walletUsages.length > 0 ? totalAmountUsed / walletUsages.length : 0;
 
   return (
     <PageContainer>
@@ -51,9 +50,9 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Refunds</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Wallet Usages</h1>
             <p className="text-muted-foreground">
-              Manage and track refund requests and processing
+              Track wallet transactions and usage patterns
             </p>
           </div>
         </div>
@@ -62,54 +61,52 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Refunds</CardTitle>
+              <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalRefundAmount.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{totalAmountUsed.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
-                Total refunded amount
+                Total wallet amount used
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <RefreshCw className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedRefunds}</div>
-              <p className="text-xs text-muted-foreground">
-                Processed refunds
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Affected Users</CardTitle>
+              <CardTitle className="text-sm font-medium">Unique Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{uniqueUsers}</div>
               <p className="text-xs text-muted-foreground">
-                Unique customers
+                Users who used wallet
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Refund</CardTitle>
-              <TrendingDown className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Avg. Usage</CardTitle>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                ₹{refunds.length > 0 ? Math.round(totalRefundAmount / refunds.length) : 0}
-              </div>
+              <div className="text-2xl font-bold">₹{Math.round(avgUsageAmount)}</div>
               <p className="text-xs text-muted-foreground">
-                Average amount
+                Average per transaction
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
+              <Wallet className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{pagination.total}</div>
+              <p className="text-xs text-muted-foreground">
+                Wallet transactions
               </p>
             </CardContent>
           </Card>
@@ -118,12 +115,12 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         {/* Data Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Refund Requests</CardTitle>
+            <CardTitle>Wallet Usage History</CardTitle>
           </CardHeader>
           <CardContent>
             <DataTable
               columns={columns()}
-              data={refunds}
+              data={walletUsages}
               searchKey="userName"
               loading={loading}
             />

@@ -1,8 +1,7 @@
-
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,109 +11,86 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
+import { MoreHorizontal, Eye, User, DollarSign, Calendar } from "lucide-react";
 
-export interface Refund {
+interface Refund {
   id: string;
-  refund_amount: number;
-  refund_reason: string;
-  refund_type: string;
-  status: "pending" | "processed" | "rejected";
-  customer_name: string;
-  customer_phone: string;
-  booking_id: string;
-  created_at: string;
-  processed_at?: string;
-  hotel_name?: string;
+  bookingId: string;
+  paymentId: string;
+  amount: number;
+  reason: string;
+  status: string;
+  processedAt: string;
+  refundMethod: string;
+  createdAt: string;
+  bookingReference: string;
+  userName: string;
+  userEmail: string;
+  userPhone: string;
+  hotelName: string;
+  originalPaymentAmount: number;
+  originalPaymentMethod: string;
 }
 
-export const columns: ColumnDef<Refund>[] = [
+export const columns = (): ColumnDef<Refund>[] => [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
+    accessorKey: "userName",
+    header: "Customer",
+    cell: ({ row }) => {
+      const refund = row.original;
+      return (
+        <div className="flex flex-col gap-y-1">
+          <div className="font-medium">{refund.userName}</div>
+          <div className="text-sm text-muted-foreground">{refund.userPhone}</div>
+          <div className="text-xs text-muted-foreground">{refund.userEmail}</div>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "id",
-    header: "Refund ID",
-    cell: ({ row }) => (
-      <div className="font-mono text-sm">{row.getValue("id")}</div>
-    ),
+    accessorKey: "bookingReference",
+    header: "Booking",
+    cell: ({ row }) => {
+      const refund = row.original;
+      return (
+        <div className="flex flex-col gap-y-1">
+          <div className="font-medium">{refund.bookingReference}</div>
+          <div className="text-sm text-muted-foreground">{refund.hotelName}</div>
+        </div>
+      );
+    },
   },
   {
-    accessorKey: "customer_name",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Customer
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    accessorKey: "amount",
+    header: "Refund Amount",
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium">{row.getValue("customer_name")}</div>
-        <div className="text-sm text-muted-foreground">{row.original.customer_phone}</div>
+      <div className="flex items-center font-medium text-red-600">
+        <DollarSign className="mr-1 h-4 w-4" />
+        ₹{row.getValue("amount")}
       </div>
     ),
   },
   {
-    accessorKey: "booking_id",
-    header: "Booking ID",
-    cell: ({ row }) => (
-      <div className="font-mono text-sm">{row.getValue("booking_id")}</div>
-    ),
-  },
-  {
-    accessorKey: "refund_amount",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Amount
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    accessorKey: "originalPaymentAmount",
+    header: "Original Amount",
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("refund_amount"));
-      return <div className="text-right font-medium">₹{amount}</div>;
+      const refund = row.original;
+      return (
+        <div className="flex flex-col gap-y-1">
+          <div className="font-medium">₹{refund.originalPaymentAmount}</div>
+          <Badge variant="outline" className="text-xs w-fit">
+            {refund.originalPaymentMethod}
+          </Badge>
+        </div>
+      );
     },
   },
   {
-    accessorKey: "refund_type",
-    header: "Type",
-    cell: ({ row }) => (
-      <Badge variant="outline" className="capitalize">
-        {row.getValue("refund_type")}
-      </Badge>
-    ),
-  },
-  {
-    accessorKey: "refund_reason",
+    accessorKey: "reason",
     header: "Reason",
     cell: ({ row }) => (
-      <div className="max-w-[200px] truncate" title={row.getValue("refund_reason")}>
-        {row.getValue("refund_reason")}
+      <div className="max-w-[200px] truncate" title={row.getValue("reason")}>
+        {row.getValue("reason")}
       </div>
     ),
   },
@@ -126,11 +102,9 @@ export const columns: ColumnDef<Refund>[] = [
       return (
         <Badge
           variant={
-            status === "processed"
-              ? "default"
-              : status === "rejected"
-              ? "destructive"
-              : "secondary"
+            status === "completed" ? "default" :
+            status === "pending" ? "secondary" :
+            status === "rejected" ? "destructive" : "outline"
           }
         >
           {status}
@@ -139,33 +113,55 @@ export const columns: ColumnDef<Refund>[] = [
     },
   },
   {
-    accessorKey: "hotel_name",
-    header: "Hotel",
+    accessorKey: "refundMethod",
+    header: "Method",
     cell: ({ row }) => (
-      <div className="text-sm">{row.getValue("hotel_name")}</div>
+      <Badge variant="outline">
+        {row.getValue("refundMethod")}
+      </Badge>
     ),
   },
   {
-    accessorKey: "created_at",
-    header: ({ column }) => (
-      <Button
-        variant="ghost"
-        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-      >
-        Created
-        <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
+    accessorKey: "createdAt",
+    header: "Requested",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("created_at"));
-      return <div className="text-sm">{date.toLocaleDateString()}</div>;
+      const date = new Date(row.getValue("createdAt"));
+      return (
+        <div className="flex items-center">
+          <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
+          {date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: "processedAt",
+    header: "Processed",
+    cell: ({ row }) => {
+      const processedAt = row.getValue("processedAt") as string;
+      if (!processedAt) return <span className="text-muted-foreground">-</span>;
+
+      const date = new Date(processedAt);
+      return (
+        <div className="text-sm">
+          {date.toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      );
     },
   },
   {
     id: "actions",
-    enableHiding: false,
     cell: ({ row }) => {
       const refund = row.original;
+
       return (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -176,53 +172,22 @@ export const columns: ColumnDef<Refund>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(refund.id)}
-            >
-              Copy refund ID
-            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => window.open(`/admin/refunds/${refund.id}`, '_blank')}
+              onClick={() => window.location.href = `/admin/refunds/${refund.id}`}
             >
-              View details
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => window.open(`/admin/users/customers/${refund.customer_name}`, '_blank')}
+              onClick={() => window.location.href = `/admin/users/customers/${refund.userName}`}
             >
-              View customer
+              <User className="mr-2 h-4 w-4" />
+              View Customer
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );
     },
-  },
-];
-
-export const filterFields = [
-  {
-    id: "status",
-    title: "Status",
-    options: [
-      { label: "Pending", value: "pending" },
-      { label: "Processed", value: "processed" },
-      { label: "Rejected", value: "rejected" },
-    ],
-  },
-  {
-    id: "refund_type",
-    title: "Type",
-    options: [
-      { label: "Cancellation", value: "cancellation" },
-      { label: "Service Issue", value: "service_issue" },
-      { label: "Technical Issue", value: "technical_issue" },
-    ],
-  },
-];
-
-export const datePickers = [
-  {
-    id: "created_at",
-    title: "Created Date",
   },
 ];

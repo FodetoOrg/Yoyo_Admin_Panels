@@ -56,7 +56,7 @@ export const ROUTES = {
   GENERATE_INVOICE_ROUTE: "/api/v1/invoices/generate",
   UPLOAD_IMAGES_BASE64_ROUTE: "/api/v1/upload/images/base64",
   DELETE_IMAGE_ROUTE: "/api/v1/upload/images",
-  GET_DASHBOARD_ANALYTICS_ROUTE: (type: string, hotelId?: string) => 
+  GET_DASHBOARD_ANALYTICS_ROUTE: (type: string, hotelId?: string) =>
     `/api/v1/analytics/dashboard?type=${type}${hotelId ? `&hotelId=${hotelId}` : ''}`,
   GET_CITY_ANALYTICS_ROUTE: (cityId: string) => `/api/v1/analytics/dashboard/cities/${cityId}`,
   GET_REVENUE_ANALYTICS_ROUTE: "/api/v1/analytics/revenue",
@@ -76,6 +76,13 @@ export const ROUTES = {
   GET_HOURLY_STAYS_BY_HOTEL_ROUTE: (hotelId: string) => `/api/v1/hourlyStays/hotels/${hotelId}/hourly-stays`,
   UPDATE_HOURLY_STAY_ROUTE: (id: string) => `/api/v1/hourlyStays/hourly-stays/${id}`,
   DELETE_HOURLY_STAY_ROUTE: (id: string) => `/api/v1/hourlyStays/hourly-stays/${id}`,
+
+  // Refund routes
+  GET_REFUND_DETAILS_ROUTE: (refundId: string) => `/api/v1/details/refunds/${refundId}`,
+  REFUNDS_LIST_ROUTE: "/api/v1/details/refunds",
+
+  // Wallet routes
+  WALLET_USAGES_ROUTE: "/api/v1/details/wallet-usages",
 
   // Add other route constants as needed
 } as const;
