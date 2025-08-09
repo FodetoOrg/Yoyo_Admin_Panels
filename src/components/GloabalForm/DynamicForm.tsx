@@ -452,7 +452,7 @@ const DynamicForm = ({
                   className={`col-span-1 ${getColumnClass(field.space)}`}
                 >
                   {field.type === "dynamicGroup" ? (
-                    <div className="space-y-2">
+                    <div className="flex flex-col gap-y-2">
                       <h3 className="font-medium">{field.label}</h3>
                       {renderDynamicGroup(field)}
                     </div>

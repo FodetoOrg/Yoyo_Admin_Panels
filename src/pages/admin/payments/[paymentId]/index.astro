@@ -1,10 +1,9 @@
-
 ---
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
-import DashboardLayout from "../../../layouts/DashboardLayout.astro";
 import PaymentDetailsScreen from "./_components/PaymentDetailsScreen";
 import { CONSTANTS } from "@/lib/utils/constants";
 import { UserRole } from "@/lib/utils/auth";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
 
 // Check if user has permission
 const currentUser = Astro.locals.user;
@@ -24,7 +23,9 @@ const paymentDetails: ApiResponse<any> = await serverApiService.get(
   Astro.cookies
 );
 
+console.log('paymentDetails ',JSON.stringify(paymentDetails))
 if (!paymentDetails.success) {
+
   return Astro.redirect('/admin/payments');
 }
 ---

@@ -426,7 +426,7 @@ const CityDashboard = ({ selectedCity, cities }: CityDashboardProps) => {
             <CardTitle>Top Hotels by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-y-3">
               {cityAnalytics.topHotels.map((hotel, index) => (
                 <div key={hotel.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
                   <div className="flex items-center gap-3">
@@ -459,7 +459,7 @@ const CityDashboard = ({ selectedCity, cities }: CityDashboardProps) => {
             <CardTitle>Recent Bookings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="flex flex-col gap-y-3">
               {cityAnalytics.recentBookings.map((booking) => (
                 <div key={booking.id} className="flex justify-between items-center p-4 border rounded-lg">
                   <div className="flex-1">

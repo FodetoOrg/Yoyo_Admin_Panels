@@ -106,19 +106,19 @@ export const columns = [
             status === "successful"
               ? "default"
               : status === "pending"
-              ? "secondary"
-              : status === "failed"
-              ? "destructive"
-              : "outline"
+                ? "secondary"
+                : status === "failed"
+                  ? "destructive"
+                  : "outline"
           }
           className={
             status === "successful"
               ? "bg-green-500 text-white"
               : status === "pending"
-              ? "bg-yellow-500 text-white"
-              : status === "failed"
-              ? "bg-red-500 text-white"
-              : "bg-blue-500 text-white"
+                ? "bg-yellow-500 text-white"
+                : status === "failed"
+                  ? "bg-red-500 text-white"
+                  : "bg-blue-500 text-white"
           }
         >
           {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -167,7 +167,9 @@ export const columns = [
               Copy Transaction ID
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>View Details</DropdownMenuItem>
+            <a href={`/admin/payments/${payment.id}`}>
+              <DropdownMenuItem >View Details</DropdownMenuItem>
+            </a>
             {payment.status === "successful" && (
               <DropdownMenuItem>Process Refund</DropdownMenuItem>
             )}

@@ -147,6 +147,9 @@ export const columns: ColumnDef<Category>[] = [
             <a href={`/hotels/${category.id}`}>
               <DropdownMenuItem>Edit Category</DropdownMenuItem>
             </a>
+            <a href={`/admin/users/customers/${category.id}`}>
+              <DropdownMenuItem >View Details</DropdownMenuItem>
+            </a>
             {/* <GlobalDeleteModal
               row={row.original}
               onDelete={async () => {

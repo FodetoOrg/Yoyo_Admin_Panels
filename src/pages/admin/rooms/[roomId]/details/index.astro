@@ -1,10 +1,9 @@
-
 ---
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
-import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
 import RoomDetailsScreen from "./_components/RoomDetailsScreen";
 import { CONSTANTS } from "@/lib/utils/constants";
 import { UserRole } from "@/lib/utils/auth";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
 
 // Check if user has permission
 const currentUser = Astro.locals.user;
@@ -23,6 +22,8 @@ const roomDetails: ApiResponse<any> = await serverApiService.get(
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies
 );
+
+console.log('roomDetails ',JSON.stringify(roomDetails))
 
 if (!roomDetails.success) {
   return Astro.redirect('/admin/rooms');

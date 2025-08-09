@@ -1,0 +1,35 @@
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS } from "@/lib/utils/constants";
+import { UserRole } from "@/lib/utils/auth";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import HotelDetailScreen from "./_components/HotelDetailScreen";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN )) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const hotelId = Astro.params.hotelId;
+
+if (!hotelId) {
+  return Astro.redirect('/admin/hotels');
+}
+
+const hotelDetails: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/details/hotels/${hotelId}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+console.log('hotelDetails ',JSON.stringify(hotelDetails))
+
+if (!hotelDetails.success) {
+  return Astro.redirect('/admin/hotels');
+}
+---
+
+<DashboardLayout title={`Room: ${hotelDetails.data.hotel.name}`}>
+  <HotelDetailScreen hotelData={hotelDetails.data} client:load ></HotelDetailScreen>
+</DashboardLayout>

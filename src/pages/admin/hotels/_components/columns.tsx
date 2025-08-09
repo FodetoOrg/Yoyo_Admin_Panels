@@ -147,6 +147,9 @@ export const columns: ColumnDef<Category>[] = [
             <a href={`/admin/hotels/${category.id}`}>
               <DropdownMenuItem>Edit Category</DropdownMenuItem>
             </a>
+            <a href={`/admin/hotels/${category.id}/details`}>
+              <DropdownMenuItem>View Details</DropdownMenuItem>
+            </a>
             <a href={`/admin/hotels/${category.id}/addons`}>
               <DropdownMenuItem>Manage Addons</DropdownMenuItem>
             </a>

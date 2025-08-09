@@ -11,7 +11,7 @@ interface Props {
 const HotelsScreen = ({ hotelAdmins = [] }: Props) => {
   return (
     // <PageContainer>
-    <div className="space-y-4">
+    <div className="flex flex-col gap-y-4">
       
       <DataTable
         columns={columns}

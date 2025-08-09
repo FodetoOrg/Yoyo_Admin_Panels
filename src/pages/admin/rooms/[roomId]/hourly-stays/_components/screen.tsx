@@ -86,7 +86,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
 
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-y-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -107,7 +107,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
         {/* Stats Cards */}
         <div className="grid gap-4 md:grid-cols-4 hidden">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Packages</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -120,7 +120,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
           </Card>
           
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Active Packages</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -133,7 +133,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Price Range</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -152,7 +152,7 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Duration</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>

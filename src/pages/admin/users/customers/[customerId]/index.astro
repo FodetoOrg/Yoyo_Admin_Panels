@@ -1,10 +1,10 @@
-
 ---
 import { serverApiService, type ApiResponse } from "@/lib/utils/api";
-import DashboardLayout from "../../_layout.astro";
+
 import CustomerDetailsScreen from "./_components/CustomerDetailsScreen";
 import { CONSTANTS } from "@/lib/utils/constants";
 import { UserRole } from "@/lib/utils/auth";
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
 
 // Check if user has permission
 const currentUser = Astro.locals.user;
@@ -24,6 +24,7 @@ const customerDetails: ApiResponse<any> = await serverApiService.get(
   Astro.cookies
 );
 
+console.log('customerDetails ',JSON.stringify(customerDetails))
 if (!customerDetails.success) {
   return Astro.redirect('/admin/users/customers');
 }

@@ -39,7 +39,7 @@ export const columns = ({ onDelete, onToggleActive, roomId }: ColumnsProps): Col
     cell: ({ row }) => {
       const stay = row.original;
       return (
-        <div className="space-y-1">
+        <div className="flex flex-col gap-y-1">
           <div className="font-medium">{stay.name}</div>
           {stay.description && (
             <div className="text-sm text-muted-foreground line-clamp-2">

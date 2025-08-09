@@ -35,7 +35,7 @@ const RevenueScreen = ({ revenueRecords = [] }: Props) => {
 
   return (
     <PageContainer>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-y-4">
         <Heading
           title="Revenue Management"
           description="Manage hotel commission payments and revenue tracking"
@@ -51,7 +51,7 @@ const RevenueScreen = ({ revenueRecords = [] }: Props) => {
             </TabsTrigger>
           </TabsList>
           
-          <TabsContent value="pending" className="space-y-4">
+          <TabsContent value="pending" className="flex flex-col gap-y-4">
             <DataTable
               columns={columns}
               onMarkAsPaid={handleMarkAsPaid}
@@ -62,7 +62,7 @@ const RevenueScreen = ({ revenueRecords = [] }: Props) => {
             />
           </TabsContent>
           
-          <TabsContent value="paid" className="space-y-4">
+          <TabsContent value="paid" className="flex flex-col gap-y-4">
             <DataTable
               columns={columns}
               filterFields={filterFields}

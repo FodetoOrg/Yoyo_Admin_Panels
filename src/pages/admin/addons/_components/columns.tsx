@@ -71,7 +71,7 @@ export const columns: ColumnDef<Addon>[] = [
   },
   {
     accessorKey: "hotel.name",
-    header:'Hotel Name',
+    header: 'Hotel Name',
     // header: ({ column }) => (
     //   <Button
     //     variant="ghost"
@@ -84,7 +84,7 @@ export const columns: ColumnDef<Addon>[] = [
     cell: ({ row }) => {
       const addon = row.original;
 
-     return  <div className="font-medium">{addon.hotel?.name || 'N/A'}</div>
+      return <div className="font-medium">{addon.hotel?.name || 'N/A'}</div>
     },
   },
   // {
@@ -165,6 +165,9 @@ export const columns: ColumnDef<Addon>[] = [
             <DropdownMenuSeparator />
             <a href={`/admin/addons/${addon.id}?hotelId=${addon.hotel?.id}`}>
               <DropdownMenuItem>Edit Addon</DropdownMenuItem>
+            </a>
+            <a href={`/admin/addons/${addon.id}/details`}>
+              <DropdownMenuItem>View Details</DropdownMenuItem>
             </a>
           </DropdownMenuContent>
         </DropdownMenu>

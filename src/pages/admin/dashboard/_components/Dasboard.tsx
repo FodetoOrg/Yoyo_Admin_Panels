@@ -290,7 +290,7 @@ const Dashboard = () => {
         {/* Top Cities */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Top Cities by Revenue</h3>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-y-3">
             {dashboardData?.topCities?.length ? (
               dashboardData.topCities.map((city, index) => (
                 <div key={city.name} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -316,7 +316,7 @@ const Dashboard = () => {
         {/* Top Hotels */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h3 className="text-lg font-semibold mb-4">Top Hotels by Revenue</h3>
-          <div className="space-y-3">
+          <div className="flex flex-col gap-y-3">
             {dashboardData?.topHotels?.length ? (
               dashboardData.topHotels.map((hotel, index) => (
                 <div key={hotel.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
@@ -343,7 +343,7 @@ const Dashboard = () => {
       {/* Recent Bookings Section */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <h3 className="text-lg font-semibold mb-4">Recent Bookings</h3>
-        <div className="space-y-3">
+        <div className="flex flex-col gap-y-3">
           {dashboardData?.recentBookings?.length ? (
             dashboardData.recentBookings.map((booking) => (
               <div key={booking.id} className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">

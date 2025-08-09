@@ -34,7 +34,7 @@ const Header = ({
   currentUser?: { role: string };
 }) => {
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-y-4">
       <div className="flex justify-between items-center">
         {DashboardTabs.length > 0 && (
           <TabGroup tabs={DashboardTabs} currentTab={currentTab || ""} />

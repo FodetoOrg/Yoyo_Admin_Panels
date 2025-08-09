@@ -13,7 +13,7 @@ const CitiesScreen = ({ cities = [] }: Props) => {
   console.log("citiesData ", cities);
   return (
     <PageContainer>
-      <div className="space-y-4">
+      <div className="flex flex-col gap-y-4">
         <div className="flex justify-between items-center">
           <Heading
             title={"Cities"}

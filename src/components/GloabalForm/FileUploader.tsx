@@ -182,7 +182,7 @@ export const FileUploader = ({
           <div className="rounded-full border border-dashed p-3">
             <UploadIcon className="h-7 w-7 text-muted-foreground" />
           </div>
-          <div className="space-y-px">
+          <div className="flex flex-col gap-y-px">
             <p className="font-medium text-muted-foreground">
               Drag 'n' drop files here, or click to select files
             </p>
@@ -202,7 +202,7 @@ export const FileUploader = ({
         />
       </div>
       {files?.length > 0 && (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-y-4">
           {files.map((file, index) => (
             <div
               key={index}

@@ -72,7 +72,7 @@ const AddonDetailsScreen = ({ addonData }: Props) => {
 
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="icon" onClick={() => window.history.back()}>
@@ -119,7 +119,7 @@ const AddonDetailsScreen = ({ addonData }: Props) => {
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
               <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -129,7 +129,7 @@ const AddonDetailsScreen = ({ addonData }: Props) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Usage Count</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -139,7 +139,7 @@ const AddonDetailsScreen = ({ addonData }: Props) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Quantity Sold</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -149,7 +149,7 @@ const AddonDetailsScreen = ({ addonData }: Props) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Quantity per Booking</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>

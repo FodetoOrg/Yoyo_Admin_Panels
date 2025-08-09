@@ -66,7 +66,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
 
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="flex flex-col gap-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <Button variant="outline" size="icon" onClick={() => window.history.back()}>
@@ -93,7 +93,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
         {/* Refund Summary */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Refund Amount</CardTitle>
               <IndianRupee className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -106,7 +106,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Created Date</CardTitle>
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -119,7 +119,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
 
           {refund.processed_at && (
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Processed Date</CardTitle>
                 <RefreshCw className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
@@ -158,7 +158,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
                 Customer Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="flex flex-col gap-y-3">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Name</label>
                 <div className="text-sm">{user.name}</div>
@@ -182,7 +182,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
                 Hotel & Room Details
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="flex flex-col gap-y-3">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Hotel</label>
                 <div className="text-sm">{hotel.name}</div>
@@ -205,7 +205,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
               Original Booking Details
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="flex flex-col gap-y-4">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Booking ID</label>
@@ -231,7 +231,7 @@ const RefundDetailsScreen = ({ refundData }: Props) => {
             {booking.addons && booking.addons.length > 0 && (
               <div>
                 <label className="text-sm font-medium text-muted-foreground">Addons</label>
-                <div className="mt-2 space-y-2">
+                <div className="mt-2 flex flex-col gap-y-2">
                   {booking.addons.map((addon, index) => (
                     <div key={index} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                       <span className="text-sm">{addon.addon_name} (x{addon.quantity})</span>

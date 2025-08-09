@@ -24,7 +24,7 @@ const selectedCityId = Astro.url.searchParams.get("cityId") || (cities.length > 
 ---
 
 <Layout pageTitle="Cities Dashboard">
-  <div class="space-y-6 mt-6">
+  <div class="flex flex-col gap-y-6 mt-6">
     <div class="flex justify-between items-center">
       <h2 class="text-2xl font-bold">Cities Analytics</h2>
       <CitySelector 
