@@ -1,0 +1,34 @@
+
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import DashboardLayout from "../../../../layouts/DashboardLayout.astro";
+import AddonDetailsScreen from "./_components/AddonDetailsScreen";
+import { CONSTANTS } from "@/lib/utils/constants";
+import { UserRole, getEffectiveHotelId } from "@/lib/utils/auth";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const addonId = Astro.params.addonId;
+
+if (!addonId) {
+  return Astro.redirect('/admin/addons');
+}
+
+const addonDetails: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/details/addons/${addonId}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!addonDetails.success) {
+  return Astro.redirect('/admin/addons');
+}
+---
+
+<DashboardLayout title={`Addon: ${addonDetails.data.addon.name}`}>
+  <AddonDetailsScreen addonData={addonDetails.data} client:load />
+</DashboardLayout>

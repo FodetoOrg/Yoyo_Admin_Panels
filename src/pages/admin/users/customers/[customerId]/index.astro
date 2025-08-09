@@ -1,0 +1,34 @@
+
+---
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import DashboardLayout from "../../_layout.astro";
+import CustomerDetailsScreen from "./_components/CustomerDetailsScreen";
+import { CONSTANTS } from "@/lib/utils/constants";
+import { UserRole } from "@/lib/utils/auth";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+const customerId = Astro.params.customerId;
+
+if (!customerId) {
+  return Astro.redirect('/admin/users/customers');
+}
+
+const customerDetails: ApiResponse<any> = await serverApiService.get(
+  `/api/v1/details/customers/${customerId}`,
+  Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+  Astro.cookies
+);
+
+if (!customerDetails.success) {
+  return Astro.redirect('/admin/users/customers');
+}
+---
+
+<DashboardLayout pageTitle={`Customer: ${customerDetails.data.customer.name}`}>
+  <CustomerDetailsScreen customerData={customerDetails.data} client:load />
+</DashboardLayout>
