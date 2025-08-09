@@ -20,7 +20,7 @@ interface Refund {
   amount: number;
   reason: string;
   status: string;
-  processedAt: string;
+  processedAt: string | null;
   refundMethod: string;
   createdAt: string;
   bookingReference: string;
@@ -30,6 +30,9 @@ interface Refund {
   hotelName: string;
   originalPaymentAmount: number;
   originalPaymentMethod: string;
+  cancellationFeeAmount?: number;
+  expectedProcessingDays?: number;
+  refundType?: string;
 }
 
 export const columns = (): ColumnDef<Refund>[] => [
@@ -40,9 +43,9 @@ export const columns = (): ColumnDef<Refund>[] => [
       const refund = row.original;
       return (
         <div className="flex flex-col gap-y-1">
-          <div className="font-medium">{refund.userName}</div>
-          <div className="text-sm text-muted-foreground">{refund.userPhone}</div>
-          <div className="text-xs text-muted-foreground">{refund.userEmail}</div>
+          <div className="font-medium">{refund.userName || 'N/A'}</div>
+          <div className="text-sm text-muted-foreground">{refund.userPhone || 'N/A'}</div>
+          <div className="text-xs text-muted-foreground">{refund.userEmail || 'N/A'}</div>
         </div>
       );
     },
@@ -54,8 +57,8 @@ export const columns = (): ColumnDef<Refund>[] => [
       const refund = row.original;
       return (
         <div className="flex flex-col gap-y-1">
-          <div className="font-medium">{refund.bookingReference}</div>
-          <div className="text-sm text-muted-foreground">{refund.hotelName}</div>
+          <div className="font-medium text-sm">{refund.bookingReference || refund.bookingId}</div>
+          <div className="text-sm text-muted-foreground">{refund.hotelName || 'N/A'}</div>
         </div>
       );
     },
@@ -63,12 +66,15 @@ export const columns = (): ColumnDef<Refund>[] => [
   {
     accessorKey: "amount",
     header: "Refund Amount",
-    cell: ({ row }) => (
-      <div className="flex items-center font-medium text-red-600">
-        <DollarSign className="mr-1 h-4 w-4" />
-        ₹{row.getValue("amount")}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const amount = row.getValue("amount") as number;
+      return (
+        <div className="flex items-center font-medium text-red-600">
+          <DollarSign className="mr-1 h-4 w-4" />
+          ₹{amount?.toLocaleString() || '0'}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "originalPaymentAmount",
@@ -77,10 +83,15 @@ export const columns = (): ColumnDef<Refund>[] => [
       const refund = row.original;
       return (
         <div className="flex flex-col gap-y-1">
-          <div className="font-medium">₹{refund.originalPaymentAmount}</div>
+          <div className="font-medium">₹{refund.originalPaymentAmount?.toLocaleString() || '0'}</div>
           <Badge variant="outline" className="text-xs w-fit">
-            {refund.originalPaymentMethod}
+            {refund.originalPaymentMethod || 'online'}
           </Badge>
+          {refund.cancellationFeeAmount && refund.cancellationFeeAmount > 0 && (
+            <div className="text-xs text-muted-foreground">
+              Fee: ₹{refund.cancellationFeeAmount}
+            </div>
+          )}
         </div>
       );
     },
@@ -88,11 +99,14 @@ export const columns = (): ColumnDef<Refund>[] => [
   {
     accessorKey: "reason",
     header: "Reason",
-    cell: ({ row }) => (
-      <div className="max-w-[200px] truncate" title={row.getValue("reason")}>
-        {row.getValue("reason")}
-      </div>
-    ),
+    cell: ({ row }) => {
+      const reason = row.getValue("reason") as string;
+      return (
+        <div className="max-w-[200px] truncate" title={reason || 'No reason provided'}>
+          {reason || 'No reason provided'}
+        </div>
+      );
+    },
   },
   {
     accessorKey: "status",
@@ -107,7 +121,7 @@ export const columns = (): ColumnDef<Refund>[] => [
             status === "rejected" ? "destructive" : "outline"
           }
         >
-          {status}
+          {status || 'unknown'}
         </Badge>
       );
     },
@@ -115,25 +129,33 @@ export const columns = (): ColumnDef<Refund>[] => [
   {
     accessorKey: "refundMethod",
     header: "Method",
-    cell: ({ row }) => (
-      <Badge variant="outline">
-        {row.getValue("refundMethod")}
-      </Badge>
-    ),
+    cell: ({ row }) => {
+      const method = row.getValue("refundMethod") as string;
+      return (
+        <Badge variant="outline">
+          {method || 'N/A'}
+        </Badge>
+      );
+    },
   },
   {
     accessorKey: "createdAt",
     header: "Requested",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("createdAt"));
+      const dateStr = row.getValue("createdAt") as string;
+      if (!dateStr) return <span className="text-muted-foreground">-</span>;
+      
+      const date = new Date(dateStr);
       return (
         <div className="flex items-center">
           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-          {date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-          })}
+          <div className="text-sm">
+            {date.toLocaleDateString("en-US", {
+              year: "numeric",
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
         </div>
       );
     },
@@ -143,7 +165,17 @@ export const columns = (): ColumnDef<Refund>[] => [
     header: "Processed",
     cell: ({ row }) => {
       const processedAt = row.getValue("processedAt") as string;
-      if (!processedAt) return <span className="text-muted-foreground">-</span>;
+      if (!processedAt) {
+        const refund = row.original;
+        if (refund.status === "pending") {
+          return (
+            <div className="text-xs text-muted-foreground">
+              Expected: {refund.expectedProcessingDays || 7} days
+            </div>
+          );
+        }
+        return <span className="text-muted-foreground">-</span>;
+      }
 
       const date = new Date(processedAt);
       return (
@@ -174,13 +206,28 @@ export const columns = (): ColumnDef<Refund>[] => [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => window.location.href = `/admin/refunds/${refund.id}`}
+              onClick={() => {
+                // Copy refund ID to clipboard
+                navigator.clipboard.writeText(refund.id);
+              }}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Copy Refund ID
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                console.log('View refund details:', refund);
+                // You can implement a modal or navigation here
+              }}
             >
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
-              onClick={() => window.location.href = `/admin/users/customers/${refund.userName}`}
+              onClick={() => {
+                console.log('View customer:', refund.userName);
+                // You can implement customer view here
+              }}
             >
               <User className="mr-2 h-4 w-4" />
               View Customer

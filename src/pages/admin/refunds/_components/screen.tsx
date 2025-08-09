@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
@@ -6,23 +5,45 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, DollarSign, Users, TrendingDown } from "lucide-react";
 import { columns } from "./columns";
 
-interface Refund {
+interface RefundData {
   id: string;
   bookingId: string;
-  paymentId: string;
-  amount: number;
-  reason: string;
+  originalPaymentId: string;
+  userId: string;
+  refundType: string;
+  originalAmount: number;
+  cancellationFeeAmount: number;
+  refundAmount: number;
+  cancellationFeePercentage: number;
+  refundReason: string;
   status: string;
-  processedAt: string;
   refundMethod: string;
+  razorpayRefundId: string | null;
+  processedBy: string | null;
+  processedAt: string | null;
+  rejectionReason: string | null;
+  bankDetails: any;
+  expectedProcessingDays: number;
   createdAt: string;
-  bookingReference: string;
-  userName: string;
-  userEmail: string;
-  userPhone: string;
-  hotelName: string;
-  originalPaymentAmount: number;
-  originalPaymentMethod: string;
+  updatedAt: string;
+  booking: {
+    id: string;
+    guestName: string;
+    guestEmail: string;
+    guestPhone: string;
+    hotel: {
+      name: string;
+    };
+    user: {
+      name: string | null;
+      email: string;
+      phone: string;
+    };
+  };
+  originalPayment: {
+    amount: number;
+    paymentMethod: string;
+  };
 }
 
 interface Pagination {
@@ -33,17 +54,53 @@ interface Pagination {
 }
 
 interface Props {
-  refunds: Refund[];
-  pagination: Pagination;
+  refunds: RefundData[] | null | undefined;
+  pagination?: Pagination;
   currentUser: any;
 }
 
 const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
   const [loading, setLoading] = useState(false);
 
-  const totalRefundAmount = refunds.reduce((sum, refund) => sum + refund.amount, 0);
-  const completedRefunds = refunds.filter(refund => refund.status === "completed").length;
-  const uniqueUsers = new Set(refunds.map(refund => refund.userName)).size;
+  // Handle case where refunds might be null, undefined, or empty
+  const refundsData = refunds || [];
+  
+  const totalRefundAmount = refundsData.reduce((sum, refund) => sum + (refund.refundAmount || 0), 0);
+  const completedRefunds = refundsData.filter(refund => refund.status === "completed").length;
+  const pendingRefunds = refundsData.filter(refund => refund.status === "pending").length;
+  
+  // Get unique users by combining guestName and user data
+  const uniqueUsers = new Set(
+    refundsData.map(refund => 
+      refund.booking?.guestName || 
+      refund.booking?.user?.name || 
+      refund.booking?.user?.phone || 
+      refund.userId
+    )
+  ).size;
+
+  // Transform data for the table to match expected structure
+  const transformedRefunds = refundsData.map(refund => ({
+    id: refund.id,
+    bookingId: refund.bookingId,
+    paymentId: refund.originalPaymentId,
+    amount: refund.refundAmount,
+    reason: refund.refundReason,
+    status: refund.status,
+    processedAt: refund.processedAt,
+    refundMethod: refund.refundMethod,
+    createdAt: refund.createdAt,
+    bookingReference: refund.bookingId,
+    userName: refund.booking?.guestName || refund.booking?.user?.name || 'N/A',
+    userEmail: refund.booking?.guestEmail || refund.booking?.user?.email || 'N/A',
+    userPhone: refund.booking?.guestPhone || refund.booking?.user?.phone || 'N/A',
+    hotelName: refund.booking?.hotel?.name || 'N/A',
+    originalPaymentAmount: refund.originalAmount,
+    originalPaymentMethod: refund.originalPayment?.paymentMethod || 'online',
+    cancellationFeeAmount: refund.cancellationFeeAmount,
+    expectedProcessingDays: refund.expectedProcessingDays,
+    refundType: refund.refundType
+  }));
 
   return (
     <PageContainer>
@@ -61,7 +118,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Refunds</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -74,7 +131,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed</CardTitle>
               <RefreshCw className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -87,26 +144,26 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Affected Users</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Pending</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{uniqueUsers}</div>
+              <div className="text-2xl font-bold">{pendingRefunds}</div>
               <p className="text-xs text-muted-foreground">
-                Unique customers
+                Awaiting processing
               </p>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Refund</CardTitle>
               <TrendingDown className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ₹{refunds.length > 0 ? Math.round(totalRefundAmount / refunds.length) : 0}
+                ₹{refundsData.length > 0 ? Math.round(totalRefundAmount / refundsData.length) : 0}
               </div>
               <p className="text-xs text-muted-foreground">
                 Average amount
@@ -118,12 +175,12 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         {/* Data Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Refund Requests</CardTitle>
+            <CardTitle>Refund Requests ({refundsData.length} total)</CardTitle>
           </CardHeader>
           <CardContent>
             <DataTable
               columns={columns()}
-              data={refunds}
+              data={transformedRefunds}
               searchKey="userName"
               loading={loading}
             />

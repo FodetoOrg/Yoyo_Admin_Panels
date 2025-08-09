@@ -224,21 +224,21 @@ export const navItems: NavItem[] = [
     url: "/admin/addons",
     icon: Percent,
     isActive: false,
-    allowedRoles: [UserRole.SUPER_ADMIN,UserRole.HOTEL_ADMIN],
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
     show: true,
     items: [
       {
         title: "All Addons",
         url: "/admin/addons",
-      icon: Gift,
-        allowedRoles: [UserRole.SUPER_ADMIN,UserRole.HOTEL_ADMIN],
+        icon: Gift,
+        allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
         show: true,
       },
       {
         title: "Active Addons",
         url: "/admin/addons/active",
         icon: Gift,
-        allowedRoles: [UserRole.SUPER_ADMIN,UserRole.HOTEL_ADMIN],
+        allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
         show: true,
         badge: "8"
       },
@@ -246,9 +246,43 @@ export const navItems: NavItem[] = [
         title: "Inactive Addons",
         url: "/admin/addons/expired",
         icon: Gift,
-        allowedRoles: [UserRole.SUPER_ADMIN,UserRole.HOTEL_ADMIN],
+        allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
         show: true,
       },
+    ]
+  },
+  {
+    title: "Wallet Usage",
+    url: "/admin/wallet-usages",
+    icon: Percent,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN],
+    show: true,
+    items: [
+      {
+        title: "All Wallet Usage",
+        url: "/admin/wallet-usages",
+        icon: Gift,
+        allowedRoles: [UserRole.SUPER_ADMIN],
+        show: true,
+      }
+    ]
+  },
+  {
+    title: "Refunds",
+    url: "/admin/refunds",
+    icon: Percent,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN],
+    show: true,
+    items: [
+      {
+        title: "All Refunds",
+        url: "/admin/refunds",
+        icon: Gift,
+        allowedRoles: [UserRole.SUPER_ADMIN],
+        show: true,
+      }
     ]
   },
   {
@@ -281,6 +315,16 @@ export const navItems: NavItem[] = [
         allowedRoles: [UserRole.SUPER_ADMIN],
         show: true,
       },
+      
     ]
+  },
+  {
+    title: "Settings",
+    url: "/admin/configurations",
+    icon: Bed,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
+
   },
 ]

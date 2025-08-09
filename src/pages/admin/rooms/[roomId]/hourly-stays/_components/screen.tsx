@@ -143,15 +143,16 @@ const Screen: React.FC<Props> = ({ roomId, roomData, hourlyStays, currentUser })
             )}
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="flex flex-col gap-4">
           <div>
-            <Label htmlFor={`name-${hours}`}>Package Name</Label>
+            <Label className="mb-2" htmlFor={`name-${hours}`}>Package Name</Label>
             <Input
               id={`name-${hours}`}
               value={formData.name}
               onChange={(e) => updateFormData(hours, 'name', e.target.value)}
               disabled={!isEditing}
               placeholder={`${hours} Hour Package`}
+              className="mt-2"
             />
           </div>
           <div>

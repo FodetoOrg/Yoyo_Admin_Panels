@@ -1,21 +1,48 @@
-
 ---
 import DashboardLayout from "@/layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
-import { apiService } from "@/lib/utils/api";
-import { ROUTES } from "@/lib/utils/constants";
+import { apiService, serverApiService } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const { searchParams } = Astro.url;
 const page = parseInt(searchParams.get("page") || "1");
 const limit = parseInt(searchParams.get("limit") || "20");
 
-let refundsData = { refunds: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
+let refundsData = [];
+let pagination = { page: 1, limit: 20, total: 0, pages: 0 };
 
 try {
-  const response = await apiService.get(`${ROUTES.REFUNDS_LIST_ROUTE}?page=${page}&limit=${limit}`);
+  const response = await serverApiService.get(
+    `${ROUTES.REFUNDS_LIST_ROUTE}?page=${page}&limit=${limit}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+
+  console.log("Response refunds: ", JSON.stringify(response, null, 2));
+
   if (response.success) {
-    refundsData = response.data;
+    // Handle different API response structures
+    if (Array.isArray(response.data)) {
+      // If response.data is directly an array of refunds
+      refundsData = response.data;
+      pagination = {
+        page,
+        limit,
+        total: response.data.length,
+        pages: Math.ceil(response.data.length / limit)
+      };
+    } else if (response.data.refunds) {
+      // If response.data has a nested refunds array
+      refundsData = response.data.refunds;
+      pagination = response.data.pagination || pagination;
+    } else if (response.data.data) {
+      // If response has another nested structure
+      refundsData = Array.isArray(response.data.data) ? response.data.data : [];
+      pagination = response.data.pagination || pagination;
+    }
   }
+  
+  console.log("Processed refunds data:", refundsData.length, "items");
 } catch (error) {
   console.error("Error fetching refunds:", error);
 }
@@ -24,10 +51,10 @@ const currentUser = Astro.locals.user;
 ---
 
 <DashboardLayout title="Refunds">
-  <Screen 
-    refunds={refundsData.refunds} 
-    pagination={refundsData.pagination}
+  <Screen
+    refunds={refundsData}
+    pagination={pagination}
     currentUser={currentUser}
-    client:load 
+    client:load
   />
 </DashboardLayout>

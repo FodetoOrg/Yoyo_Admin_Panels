@@ -23,7 +23,7 @@ const hotelDetails: ApiResponse<any> = await serverApiService.get(
   Astro.cookies
 );
 
-console.log('hotelDetails ',JSON.stringify(hotelDetails))
+console.log('hotelDetails came',JSON.stringify(hotelDetails))
 
 if (!hotelDetails.success) {
   return Astro.redirect('/admin/hotels');

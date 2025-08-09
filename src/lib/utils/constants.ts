@@ -79,7 +79,7 @@ export const ROUTES = {
 
   // Refund routes
   GET_REFUND_DETAILS_ROUTE: (refundId: string) => `/api/v1/details/refunds/${refundId}`,
-  REFUNDS_LIST_ROUTE: "/api/v1/details/refunds",
+  REFUNDS_LIST_ROUTE: "/api/v1/admin/refunds",
 
   // Wallet routes
   WALLET_USAGES_ROUTE: "/api/v1/details/wallet-usages",
