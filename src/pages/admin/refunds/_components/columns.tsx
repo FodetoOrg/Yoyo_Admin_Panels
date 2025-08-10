@@ -238,3 +238,7 @@ export const columns = (): ColumnDef<Refund>[] => [
     },
   },
 ];
+
+export const filterFields = [];
+
+export const datePickers = [];

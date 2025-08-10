@@ -4,7 +4,7 @@ import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Wallet, Users, DollarSign, TrendingUp } from "lucide-react";
-import { columns } from "./columns";
+import { columns, datePickers, filterFields } from "./columns";
 
 interface WalletUsage {
   id: string;
@@ -60,7 +60,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Usage</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -73,7 +73,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Unique Users</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -86,7 +86,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className=" items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Usage</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -99,7 +99,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className=" items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -123,6 +123,8 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
               data={walletUsages}
               searchKey="userName"
               loading={loading}
+              filterFields={filterFields}
+              datePickers={datePickers}
             />
           </CardContent>
         </Card>

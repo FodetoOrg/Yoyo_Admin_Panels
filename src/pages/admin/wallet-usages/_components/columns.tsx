@@ -152,3 +152,6 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
     },
   },
 ];
+export const filterFields = [];
+
+export const datePickers = [];

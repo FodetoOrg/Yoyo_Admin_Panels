@@ -3,7 +3,7 @@ import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw, DollarSign, Users, TrendingDown } from "lucide-react";
-import { columns } from "./columns";
+import { columns, datePickers, filterFields } from "./columns";
 
 interface RefundData {
   id: string;
@@ -183,6 +183,8 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
               data={transformedRefunds}
               searchKey="userName"
               loading={loading}
+              filterFields={filterFields}
+              datePickers={datePickers}
             />
           </CardContent>
         </Card>

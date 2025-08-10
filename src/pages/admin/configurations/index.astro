@@ -1,8 +1,126 @@
 ---
 import DashboardLayout from "@/layouts/DashboardLayout.astro";
 import ConfigurationsScreen from "./_components/Screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Initialize data structures
+let configurations = {};
+let hotels: any[] = [];
+let error = null;
+
+try {
+  // Fetch configurations from API
+  const configResponse: ApiResponse<any> = await serverApiService.get(
+    '/api/v1/configurations', // Adjust this route as per your API structure
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+
+  if (configResponse.success) {
+    // Transform API response to match component structure
+    const apiConfigs = configResponse.data;
+    configurations = {
+      app_maintenance_mode: {
+        value: apiConfigs.app_maintenance_mode === true || apiConfigs.app_maintenance_mode === 'true',
+        type: 'boolean',
+        description: 'Enable/disable app maintenance mode',
+        category: 'app'
+      },
+      panel_maintenance_mode: {
+        value: apiConfigs.panel_maintenance_mode === true || apiConfigs.panel_maintenance_mode === 'true',
+        type: 'boolean', 
+        description: 'Enable/disable admin panel maintenance mode',
+        category: 'app'
+      },
+      online_payment_global_enabled: {
+        value: apiConfigs.online_payment_global_enabled === true || apiConfigs.online_payment_global_enabled === 'true',
+        type: 'boolean',
+        description: 'Global online payment enable/disable',
+        category: 'payment'
+      },
+      app_banner_image: {
+        value: apiConfigs.app_banner_image || '',
+        type: 'string',
+        description: 'Banner image URL for app',
+        category: 'ui'
+      },
+      app_banner_coupon_code: {
+        value: apiConfigs.app_banner_coupon_code || '',
+        type: 'string',
+        description: 'Coupon code associated with banner',
+        category: 'ui'
+      },
+      featured_hotels: {
+        value: Array.isArray(apiConfigs.featured_hotels) ? 
+          apiConfigs.featured_hotels : 
+          JSON.parse(apiConfigs.featured_hotels || '[]'),
+        type: 'array',
+        description: 'Array of featured hotel IDs',
+        category: 'app'
+      },
+      default_cancellation_hours: {
+        value: typeof apiConfigs.default_cancellation_hours === 'number' ? 
+          apiConfigs.default_cancellation_hours : 
+          parseInt(apiConfigs.default_cancellation_hours) || 24,
+        type: 'number',
+        description: 'Default cancellation period in hours',
+        category: 'booking'
+      }
+    };
+  } else {
+    error = configResponse.message || 'Failed to fetch configurations';
+  }
+
+  // Fetch hotels list for hotel selection (if super admin)
+  if (currentUser.role === UserRole.SUPER_ADMIN) {
+    try {
+      const hotelsResponse: ApiResponse<any> = await serverApiService.get(
+        '/api/v1/configurations/hotelIds', // Adjust this route as per your API structure
+        Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+        Astro.cookies
+      );
+      
+      if (hotelsResponse.success) {
+        hotels = hotelsResponse.data;
+      }
+      console.log('hotels response ',hotelsResponse)
+    } catch (hotelsError) {
+      console.warn('Failed to fetch hotels:', hotelsError);
+      // Continue without hotels data - not critical
+    }
+  }
+
+} catch (fetchError) {
+  console.error('Error fetching configurations:', fetchError);
+  error = fetchError.message || 'Failed to load configurations';
+  
+  // Fallback to default configurations if API fails
+  configurations = {
+    app_maintenance_mode: { value: false, type: 'boolean', description: 'Enable/disable app maintenance mode', category: 'app' },
+    panel_maintenance_mode: { value: false, type: 'boolean', description: 'Enable/disable admin panel maintenance mode', category: 'app' },
+    online_payment_global_enabled: { value: true, type: 'boolean', description: 'Global online payment enable/disable', category: 'payment' },
+    app_banner_image: { value: '', type: 'string', description: 'Banner image URL for app', category: 'ui' },
+    app_banner_coupon_code: { value: '', type: 'string', description: 'Coupon code associated with banner', category: 'ui' },
+    featured_hotels: { value: [], type: 'array', description: 'Array of featured hotel IDs', category: 'app' },
+    default_cancellation_hours: { value: 24, type: 'number', description: 'Default cancellation period in hours', category: 'booking' }
+  };
+}
 ---
 
-<DashboardLayout title="'config">
-    <ConfigurationsScreen />
+<DashboardLayout title="Configurations">
+    <ConfigurationsScreen 
+      client:load
+      initialConfigurations={configurations}
+      availableHotels={hotels}
+      apiError={error}
+      currentUser={currentUser}
+    />
 </DashboardLayout>

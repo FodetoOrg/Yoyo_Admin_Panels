@@ -1,22 +1,13 @@
-import React from "react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils/utils"
+import type { ReactNode } from "react"
+
 
 export default function PageContainer({
   children,
-  scrollable = true,
+  className,
 }: {
-  children: React.ReactNode;
-  scrollable?: boolean;
+  children: ReactNode
+  className?: string
 }) {
-  return (
-    <>
-      {scrollable ? (
-        <ScrollArea className="h-[calc(100dvh-52px)]">
-          <div className="h-full  p-4 md:px-8">{children}</div>
-        </ScrollArea>
-      ) : (
-        <div className="h-full  p-4 md:px-8">{children}</div>
-      )}
-    </>
-  );
+  return <div className={cn("mx-auto w-full  px-4 py-6 sm:px-6 lg:px-8", className)}>{children}</div>
 }
