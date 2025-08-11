@@ -48,14 +48,6 @@ try {
                 description: "Enable/disable app maintenance mode",
                 category: "app",
             },
-            panel_maintenance_mode: {
-                value:
-                    apiConfigs.panel_maintenance_mode === true ||
-                    apiConfigs.panel_maintenance_mode === "true",
-                type: "boolean",
-                description: "Enable/disable admin panel maintenance mode",
-                category: "app",
-            },
             online_payment_global_enabled: {
                 value:
                     apiConfigs.online_payment_global_enabled === true ||
@@ -93,6 +85,15 @@ try {
                 description: "Default cancellation period in hours",
                 category: "booking",
             },
+            auto_cancellation_hours: {
+                value:
+                    typeof apiConfigs.auto_cancellation_hours === "number"
+                        ? apiConfigs.auto_cancellation_hours
+                        : parseInt(apiConfigs.auto_cancellation_hours) || 1,
+                type: "number",
+                description: "Default cancellation period in hours if user doesn't show up",
+                category: "booking",
+            },
         };
     } else {
         error = configResponse.message || "Failed to fetch configurations";
@@ -128,12 +129,6 @@ try {
             description: "Enable/disable app maintenance mode",
             category: "app",
         },
-        panel_maintenance_mode: {
-            value: false,
-            type: "boolean",
-            description: "Enable/disable admin panel maintenance mode",
-            category: "app",
-        },
         online_payment_global_enabled: {
             value: true,
             type: "boolean",
@@ -162,6 +157,12 @@ try {
             value: 24,
             type: "number",
             description: "Default cancellation period in hours",
+            category: "booking",
+        },
+        auto_cancellation_hours: {
+            value: 1,
+            type: "number",
+            description: "Default cancellation period in hours if user doesn't show up",
             category: "booking",
         },
     };

@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { apiService } from "@/lib/utils/api";
+import { apiService, type ApiResponse } from "@/lib/utils/api";
 import { ROUTES } from "@/lib/utils/constants";
 import {
     Settings,
@@ -25,23 +25,32 @@ import {
     Clock,
     AlertCircle,
     ChevronDown,
-    Check
+    Check,
+    RotateCcw,
+    Timer,
+    XCircle,
+    Play
 } from 'lucide-react';
 import { UserRole } from '@/lib/utils/auth';
 
-const ConfigurationsScreen = ({ 
-  initialConfigurations = {}, 
-  availableHotels = [], 
-  apiError = null,
-  currentUser = null
+const ConfigurationsScreen = ({
+    initialConfigurations = {},
+    availableHotels = [],
+    apiError = null,
+    currentUser = null
 }) => {
     const [configurations, setConfigurations] = useState(initialConfigurations);
     const [loading, setLoading] = useState(false);
+    const [initializing, setInitializing] = useState(false);
     const [saving, setSaving] = useState({});
     const [errors, setErrors] = useState({});
     const [success, setSuccess] = useState({});
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const [selectedHotels, setSelectedHotels] = useState([]);
+    const [bannerImage, setBannerImage] = useState(null);
+    const [bannerCoupon, setBannerCoupon] = useState('');
+    const [uploadingBanner, setUploadingBanner] = useState(false);
+    const [cancellingNoShows, setCancellingNoShows] = useState(false);
 
     // Auto-clear success messages
     useEffect(() => {
@@ -61,13 +70,20 @@ const ConfigurationsScreen = ({
         }
     }, [configurations.featured_hotels?.value]);
 
+    // Initialize banner coupon from configurations
+    useEffect(() => {
+        if (configurations.app_banner_coupon_code?.value) {
+            setBannerCoupon(configurations.app_banner_coupon_code.value);
+        }
+    }, [configurations.app_banner_coupon_code?.value]);
+
     const loadConfigurations = async () => {
         setLoading(true);
         setErrors({});
 
         try {
-            const response = await apiService.get('/api/v1/configurations');
-            
+            const response: ApiResponse<any> = await apiService.get('/api/v1/configurations');
+
             if (response.success) {
                 const apiConfigs = response.data;
                 const transformedConfigs = {
@@ -75,12 +91,6 @@ const ConfigurationsScreen = ({
                         value: apiConfigs.app_maintenance_mode === true || apiConfigs.app_maintenance_mode === 'true',
                         type: 'boolean',
                         description: 'Enable/disable app maintenance mode',
-                        category: 'app'
-                    },
-                    panel_maintenance_mode: {
-                        value: apiConfigs.panel_maintenance_mode === true || apiConfigs.panel_maintenance_mode === 'true',
-                        type: 'boolean',
-                        description: 'Enable/disable admin panel maintenance mode',
                         category: 'app'
                     },
                     online_payment_global_enabled: {
@@ -102,23 +112,31 @@ const ConfigurationsScreen = ({
                         category: 'ui'
                     },
                     featured_hotels: {
-                        value: Array.isArray(apiConfigs.featured_hotels) ? 
-                            apiConfigs.featured_hotels : 
+                        value: Array.isArray(apiConfigs.featured_hotels) ?
+                            apiConfigs.featured_hotels :
                             JSON.parse(apiConfigs.featured_hotels || '[]'),
                         type: 'array',
                         description: 'Array of featured hotel IDs',
                         category: 'app'
                     },
                     default_cancellation_hours: {
-                        value: typeof apiConfigs.default_cancellation_hours === 'number' ? 
-                            apiConfigs.default_cancellation_hours : 
+                        value: typeof apiConfigs.default_cancellation_hours === 'number' ?
+                            apiConfigs.default_cancellation_hours :
                             parseInt(apiConfigs.default_cancellation_hours) || 24,
                         type: 'number',
                         description: 'Default cancellation period in hours',
                         category: 'booking'
+                    },
+                    auto_cancellation_hours: {
+                        value: typeof apiConfigs.auto_cancellation_hours === 'number' ?
+                            apiConfigs.auto_cancellation_hours :
+                            parseInt(apiConfigs.auto_cancellation_hours) || 1,
+                        type: 'number',
+                        description: 'Default cancellation period in hours if user doesn\'t show up',
+                        category: 'booking'
                     }
                 };
-                
+
                 setConfigurations(transformedConfigs);
             } else {
                 setErrors({ general: response.message || 'Failed to load configurations' });
@@ -128,6 +146,60 @@ const ConfigurationsScreen = ({
             setErrors({ general: error.message || 'Failed to load configurations' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const initializeConfigurations = async () => {
+        setInitializing(true);
+        setErrors({});
+
+        try {
+            const response = await apiService.post('/api/v1/configurations/initialize');
+
+            if (response.success) {
+                setSuccess({ general: 'Configurations reinitialized successfully' });
+                // Reload configurations after initialization
+                await loadConfigurations();
+            } else {
+                setErrors({ general: response.message || 'Failed to reinitialize configurations' });
+            }
+        } catch (error) {
+            console.error('Failed to reinitialize configurations:', error);
+            setErrors({ general: error.message || 'Failed to reinitialize configurations' });
+        } finally {
+            setInitializing(false);
+        }
+    };
+
+    const triggerCancelNoShows = async () => {
+        setCancellingNoShows(true);
+        setErrors(prev => ({ ...prev, cancel_no_shows: null }));
+        setSuccess(prev => ({ ...prev, cancel_no_shows: false }));
+
+        try {
+            const response: ApiResponse<any> = await apiService.post('/api/v1/bookings/admin/jobs/cancel-no-shows');
+
+            console.log('response in cancellation is  ',response)
+            if (response.success) {
+                const cancelledCount = response.data?.cancelled || 0;
+                setSuccess(prev => ({ 
+                    ...prev, 
+                    cancel_no_shows: `Successfully cancelled ${cancelledCount} no-show booking${cancelledCount !== 1 ? 's' : ''}`
+                }));
+            } else {
+                setErrors(prev => ({ 
+                    ...prev, 
+                    cancel_no_shows: response.message || 'Failed to cancel no-show bookings' 
+                }));
+            }
+        } catch (error) {
+            console.error('Failed to cancel no-show bookings:', error);
+            setErrors(prev => ({ 
+                ...prev, 
+                cancel_no_shows: error.message || 'Failed to cancel no-show bookings' 
+            }));
+        } finally {
+            setCancellingNoShows(false);
         }
     };
 
@@ -220,6 +292,70 @@ const ConfigurationsScreen = ({
         setSelectedHotels(updatedHotels);
     };
 
+    const handleImageUpload = (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            setBannerImage(file);
+        }
+    };
+
+    const convertFileToBase64 = (file) => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    };
+
+    const uploadBannerAndCoupon = async () => {
+        if (!bannerImage && !bannerCoupon) {
+            setErrors(prev => ({ ...prev, banner_upload: 'Please select an image or enter a coupon code' }));
+            return;
+        }
+
+        setUploadingBanner(true);
+        setErrors(prev => ({ ...prev, banner_upload: null }));
+
+        try {
+            let base64Image = null;
+
+            // Convert image to base64 if file is selected
+            if (bannerImage) {
+                base64Image = await convertFileToBase64(bannerImage);
+            }
+
+            const requestBody = {
+                ...(base64Image && { banner_image: base64Image }),
+                ...(bannerCoupon && { coupon_code: bannerCoupon })
+            };
+
+            console.log('requestBody in banner ',requestBody)
+
+            const response: ApiResponse<any> = await apiService.post('/api/v1/configurations/banner', requestBody);
+
+            if (response.success) {
+                setSuccess(prev => ({ ...prev, banner_upload: true }));
+                setBannerImage(null);
+                setBannerCoupon('');
+                // Reset file input
+                const fileInput = document.getElementById('banner-image-upload');
+                if (fileInput) {
+                    fileInput.value = '';
+                }
+                // Reload configurations to get the new image URL
+                await loadConfigurations();
+            } else {
+                setErrors(prev => ({ ...prev, banner_upload: response.message || 'Failed to upload banner' }));
+            }
+        } catch (error) {
+            console.error('Failed to upload banner:', error);
+            setErrors(prev => ({ ...prev, banner_upload: error.message || 'Failed to upload banner' }));
+        } finally {
+            setUploadingBanner(false);
+        }
+    };
+
     const getStatusIcon = (value, type) => {
         if (type === 'boolean') {
             return value ?
@@ -265,10 +401,26 @@ const ConfigurationsScreen = ({
                         {!canManageGlobalSettings && ' (Limited access as Hotel Admin)'}
                     </p>
                 </div>
-                <Button onClick={loadConfigurations} variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
-                </Button>
+                <div className="flex gap-2">
+                    <Button onClick={loadConfigurations} variant="outline">
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Refresh
+                    </Button>
+                    {canManageGlobalSettings && (
+                        <Button
+                            onClick={initializeConfigurations}
+                            variant="outline"
+                            disabled={initializing}
+                        >
+                            {initializing ? (
+                                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                            ) : (
+                                <RotateCcw className="h-4 w-4 mr-2" />
+                            )}
+                            Reinitialize
+                        </Button>
+                    )}
+                </div>
             </div>
 
             {/* API Error Alert */}
@@ -277,6 +429,16 @@ const ConfigurationsScreen = ({
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                         {apiError || errors.general}
+                    </AlertDescription>
+                </Alert>
+            )}
+
+            {/* Success Alert */}
+            {success.general && (
+                <Alert>
+                    <CheckCircle className="h-4 w-4" />
+                    <AlertDescription>
+                        {success.general}
                     </AlertDescription>
                 </Alert>
             )}
@@ -299,10 +461,10 @@ const ConfigurationsScreen = ({
                             <div className="flex items-center space-x-2">
                                 <Wrench className="h-5 w-5" />
                                 <CardTitle>App Control</CardTitle>
-                                {getStatusIcon(configurations.app_maintenance_mode?.value || configurations.panel_maintenance_mode?.value, 'boolean')}
+                                {getStatusIcon(configurations.app_maintenance_mode?.value, 'boolean')}
                             </div>
                             <CardDescription>
-                                Control app and admin panel accessibility
+                                Control app accessibility
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
@@ -326,32 +488,6 @@ const ConfigurationsScreen = ({
                                         checked={configurations.app_maintenance_mode?.value || false}
                                         onCheckedChange={(checked) => handleBooleanChange('app_maintenance_mode', checked)}
                                         disabled={saving.app_maintenance_mode}
-                                    />
-                                </div>
-                            </div>
-
-                            <Separator />
-
-                            <div className="flex items-center justify-between">
-                                <div className="flex flex-col gap-1">
-                                    <Label htmlFor="panel-maintenance">Admin Panel Maintenance</Label>
-                                    <p className="text-sm text-muted-foreground">
-                                        Enable to put the admin panel in maintenance mode
-                                    </p>
-                                    {errors.panel_maintenance_mode && (
-                                        <p className="text-sm text-red-500">{errors.panel_maintenance_mode}</p>
-                                    )}
-                                    {success.panel_maintenance_mode && (
-                                        <p className="text-sm text-green-500">✓ Updated successfully</p>
-                                    )}
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    {saving.panel_maintenance_mode && <RefreshCw className="h-4 w-4 animate-spin" />}
-                                    <Switch
-                                        id="panel-maintenance"
-                                        checked={configurations.panel_maintenance_mode?.value || false}
-                                        onCheckedChange={(checked) => handleBooleanChange('panel_maintenance_mode', checked)}
-                                        disabled={saving.panel_maintenance_mode}
                                     />
                                 </div>
                             </div>
@@ -498,75 +634,86 @@ const ConfigurationsScreen = ({
                                 <CardTitle>App Banner</CardTitle>
                             </div>
                             <CardDescription>
-                                Configure the promotional banner and coupon code
+                                Upload banner image and set coupon code
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col gap-4">
+                            {/* Image Upload */}
                             <div className="flex flex-col gap-2">
-                                <Label htmlFor="banner-image">Banner Image URL</Label>
-                                <div className="flex space-x-2">
-                                    <Input
-                                        id="banner-image"
-                                        placeholder="https://example.com/banner.jpg"
-                                        value={configurations.app_banner_image?.value || ''}
-                                        onChange={(e) => handleStringChange('app_banner_image', e.target.value)}
-                                    />
-                                    <Button
-                                        onClick={() => handleStringSave('app_banner_image')}
-                                        disabled={saving.app_banner_image}
-                                    >
-                                        {saving.app_banner_image ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                                    </Button>
-                                </div>
-                                {errors.app_banner_image && (
-                                    <p className="text-sm text-red-500">{errors.app_banner_image}</p>
-                                )}
-                                {success.app_banner_image && (
-                                    <p className="text-sm text-green-500">✓ Updated successfully</p>
+                                <Label htmlFor="banner-image-upload">Banner Image</Label>
+                                <Input
+                                    id="banner-image-upload"
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    disabled={uploadingBanner}
+                                />
+                                {bannerImage && (
+                                    <p className="text-sm text-muted-foreground">
+                                        Selected: {bannerImage.name}
+                                    </p>
                                 )}
                             </div>
 
+                            {/* Coupon Code */}
+                            <div className="flex flex-col gap-2">
+                                <Label htmlFor="coupon-code">Coupon Code</Label>
+                                <Input
+                                    id="coupon-code"
+                                    placeholder="WELCOME25"
+                                    value={bannerCoupon}
+                                    onChange={(e) => setBannerCoupon(e.target.value)}
+                                    disabled={uploadingBanner}
+                                />
+                            </div>
+
+                            {/* Upload Button */}
+                            <Button
+                                onClick={uploadBannerAndCoupon}
+                                disabled={uploadingBanner || (!bannerImage && !bannerCoupon)}
+                                className="w-full"
+                            >
+                                {uploadingBanner ? (
+                                    <>
+                                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                        Uploading...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Upload className="h-4 w-4 mr-2" />
+                                        Upload Banner & Coupon
+                                    </>
+                                )}
+                            </Button>
+
+                            {errors.banner_upload && (
+                                <p className="text-sm text-red-500">{errors.banner_upload}</p>
+                            )}
+                            {success.banner_upload && (
+                                <p className="text-sm text-green-500">✓ Banner updated successfully</p>
+                            )}
+
+                            {/* Current Banner Preview */}
                             {configurations.app_banner_image?.value && (
                                 <div className="flex flex-col gap-2">
-                                    <Label>Preview</Label>
+                                    <Label>Current Banner</Label>
                                     <div className="border rounded-lg overflow-hidden max-w-md">
                                         <img
                                             src={configurations.app_banner_image.value}
-                                            alt="Banner preview"
+                                            alt="Current banner"
                                             className="w-full h-32 object-cover"
                                             onError={(e) => {
                                                 e.target.style.display = 'none';
                                             }}
                                         />
                                     </div>
+                                    {configurations.app_banner_coupon_code?.value && (
+                                        <Badge variant="outline" className="w-fit">
+                                            Current Coupon: {configurations.app_banner_coupon_code.value}
+                                        </Badge>
+                                    )}
                                 </div>
                             )}
-
-                            <Separator />
-
-                            <div className="flex flex-col gap-2">
-                                <Label htmlFor="coupon-code">Coupon Code</Label>
-                                <div className="flex space-x-2">
-                                    <Input
-                                        id="coupon-code"
-                                        placeholder="WELCOME25"
-                                        value={configurations.app_banner_coupon_code?.value || ''}
-                                        onChange={(e) => handleStringChange('app_banner_coupon_code', e.target.value)}
-                                    />
-                                    <Button
-                                        onClick={() => handleStringSave('app_banner_coupon_code')}
-                                        disabled={saving.app_banner_coupon_code}
-                                    >
-                                        {saving.app_banner_coupon_code ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                                    </Button>
-                                </div>
-                                {errors.app_banner_coupon_code && (
-                                    <p className="text-sm text-red-500">{errors.app_banner_coupon_code}</p>
-                                )}
-                                {success.app_banner_coupon_code && (
-                                    <p className="text-sm text-green-500">✓ Updated successfully</p>
-                                )}
-                            </div>
                         </CardContent>
                     </Card>
                 )}
@@ -612,7 +759,7 @@ const ConfigurationsScreen = ({
                     </Card>
                 )}
 
-                {/* Cancellation Settings - Available to both roles */}
+                {/* Booking Settings - Available to both roles */}
                 <Card>
                     <CardHeader>
                         <div className="flex items-center space-x-2">
@@ -624,7 +771,8 @@ const ConfigurationsScreen = ({
                             {!canManageGlobalSettings && ' (View Only)'}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent>
+                    <CardContent className="flex flex-col gap-4">
+                        {/* Default Cancellation Hours */}
                         <div className="flex flex-col gap-2">
                             <Label htmlFor="cancellation-hours">Default Cancellation Hours</Label>
                             <div className="flex space-x-2">
@@ -659,6 +807,73 @@ const ConfigurationsScreen = ({
                         </div>
                     </CardContent>
                 </Card>
+
+                {/* No-Show Management - Super Admin Only */}
+                {canManageGlobalSettings && (
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center space-x-2">
+                                <XCircle className="h-5 w-5" />
+                                <CardTitle>No-Show Management</CardTitle>
+                            </div>
+                            <CardDescription>
+                                Cancel bookings for guests who don't show up
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="flex flex-col gap-4">
+                            <div className="flex flex-col gap-3">
+                                <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                    <div className="flex items-start space-x-2">
+                                        <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
+                                        <div className="flex-1">
+                                            <p className="text-sm font-medium text-amber-800">Auto-Cancellation Policy</p>
+                                            <p className="text-sm text-amber-700 mt-1">
+                                                All confirmed bookings that missed their check-in time will be automatically cancelled with a 1-hour buffer period.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    onClick={triggerCancelNoShows}
+                                    disabled={cancellingNoShows}
+                                    variant="destructive"
+                                    className="w-full"
+                                >
+                                    {cancellingNoShows ? (
+                                        <>
+                                            <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                                            Processing No-Shows...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Play className="h-4 w-4 mr-2" />
+                                            Trigger Auto-Cancel No-Shows
+                                        </>
+                                    )}
+                                </Button>
+
+                                {errors.cancel_no_shows && (
+                                    <Alert variant="destructive">
+                                        <AlertCircle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            {errors.cancel_no_shows}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+
+                                {success.cancel_no_shows && (
+                                    <Alert>
+                                        <CheckCircle className="h-4 w-4" />
+                                        <AlertDescription>
+                                            {success.cancel_no_shows}
+                                        </AlertDescription>
+                                    </Alert>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
             </div>
         </div>
     );

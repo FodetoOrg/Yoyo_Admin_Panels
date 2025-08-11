@@ -36,12 +36,6 @@ import {
 import { apiService, type ApiResponse } from "@/lib/utils/api";
 import { UserRole } from "@/lib/utils/auth";
 
-
-
-
-
-
-
 // Loading component
 const LoadingSpinner = () => (
   <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">
@@ -80,7 +74,7 @@ const getStatusColor = (status) => {
     confirmed: "bg-blue-100 text-blue-800",
     pending: "bg-yellow-100 text-yellow-800",
     cancelled: "bg-red-100 text-red-800",
-    checked_in: "bg-green-100 text-green-800",
+    'checked-in': "bg-green-100 text-green-800",
     completed: "bg-gray-100 text-gray-800",
   };
   return colors[status] || colors.pending;
@@ -111,8 +105,6 @@ const pretty = (iso) => {
 
 const canShowRefund = (userRole, booking) => {
   const paid = booking.paymentStaus === "paid";
-  // const statusOk = ["cancelled", "completed"].includes(booking.status);
-  // const notAlready = !booking.refundInfo || booking.refundInfo.status !== "processed";
   return [UserRole.SUPER_ADMIN].includes(userRole) && !paid && booking.refundInfo && booking.refundInfo.status !== "processed"
 };
 
@@ -129,6 +121,7 @@ export default function BookingDetailsScreen({
   const [cancelOpen, setCancelOpen] = useState(false);
   const [refundOpen, setRefundOpen] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [completeOpen, setCompleteOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [refundReason, setRefundReason] = useState("");
   const [refundAmount, setRefundAmount] = useState(booking?.totalAmount || 0);
@@ -166,22 +159,46 @@ export default function BookingDetailsScreen({
 
   const canCancel = booking.status !== "cancelled" && derivedStatus !== "completed";
 
-  const onConfirmCheckIn = async (markPaymentCollected) => {
+  // Check if booking can be marked as complete
+  const canComplete = booking.status === "checked-in";
+  
+  // Check if current time is before checkout time
+  const isBeforeCheckout = useMemo(() => {
+    const now = new Date();
+    const checkout = new Date(booking.checkOut);
+    return !isNaN(+checkout) && now < checkout;
+  }, [booking.checkOut]);
+
+  const onConfirmCheckIn = async () => {
     try {
       setWorking(true);
-      if (paymentStatus !== "paid" && markPaymentCollected) {
-        const pay = await api.post(`/bookings/${booking.id}/mark-paid`);
-        if (!pay?.success) {
-          alert("Failed to mark payment as collected.");
-          return;
-        }
-      }
-      const res: ApiResponse<any> = await apiService.patch(`/bookings/${booking.id}/status`, { status: "checked_in" });
+
+      const res: ApiResponse<any> = await apiService.put(`/api/v1/bookings/${booking.id}/status`, { status: "checked-in" });
       if (!res?.success) alert("Failed to check in.");
       else alert("Guest checked in successfully!");
+      window.location.reload()
     } finally {
       setWorking(false);
       setConfirmOpen(false);
+    }
+  };
+
+  const onConfirmComplete = async () => {
+    if (isBeforeCheckout) {
+      alert("Cannot be marked as completed before checkout time.");
+      return;
+    }
+
+    try {
+      setWorking(true);
+
+      const res: ApiResponse<any> = await apiService.put(`/api/v1/bookings/${booking.id}/status`, { status: "completed" });
+      if (!res?.success) alert("Failed to mark as completed.");
+      else alert("Booking marked as completed successfully!");
+      window.location.reload()
+    } finally {
+      setWorking(false);
+      setCompleteOpen(false);
     }
   };
 
@@ -230,7 +247,6 @@ export default function BookingDetailsScreen({
       setRefundOpen(false);
     }
   };
-
 
   return (
     <div className=" mx-auto p-4 flex flex-col gap-6">
@@ -283,7 +299,7 @@ export default function BookingDetailsScreen({
                       Cancel
                     </Button>
                     <Button
-                      onClick={() => onConfirmCheckIn(paymentStatus !== "paid")}
+                      onClick={() => onConfirmCheckIn(paymentStatus !== "completed")}
                       disabled={working}
                     >
                       {working ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
@@ -294,6 +310,59 @@ export default function BookingDetailsScreen({
               </Dialog>
             )}
 
+            {canComplete && (
+              <Dialog open={completeOpen} onOpenChange={setCompleteOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" disabled={working}>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Mark Complete
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Mark Booking as Complete</DialogTitle>
+                    <DialogDescription>
+                      {isBeforeCheckout 
+                        ? "This booking cannot be marked as completed before the checkout time."
+                        : "Confirm that the guest has checked out and the booking is complete."
+                      }
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="flex flex-col gap-2 py-4">
+                    <div className="flex justify-between">
+                      <span>Guest:</span>
+                      <span className="font-medium">{booking.guestName}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Checkout Time:</span>
+                      <span className="font-medium">{pretty(booking.checkOut)}</span>
+                    </div>
+                    {isBeforeCheckout && (
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-md mt-2">
+                        <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                        <span className="text-sm text-yellow-800">
+                          Checkout time has not passed yet
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <DialogFooter className="gap-2">
+                    <Button variant="outline" onClick={() => setCompleteOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={onConfirmComplete}
+                      disabled={working || isBeforeCheckout}
+                    >
+                      {working ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                      Mark Complete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
+
+            {/* 
             {canCancel && (
               <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
                 <DialogTrigger asChild>
@@ -326,7 +395,7 @@ export default function BookingDetailsScreen({
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            )}
+            )} */}
 
             {canShowRefund(user.role, booking) && (
               <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
@@ -347,9 +416,7 @@ export default function BookingDetailsScreen({
                     <div className="flex flex-row items-center gap-4 ">
                       <label className="text-sm font-medium ">Amount</label>
                       <text className="text-2xl">{booking.refundInfo.refundAmount}</text>
-
                     </div>
-
                   </div>
                   <DialogFooter className="gap-2">
                     <Button variant="outline" onClick={() => setRefundOpen(false)}>
@@ -366,8 +433,6 @@ export default function BookingDetailsScreen({
           </div>
         </div>
       </div>
-
-
 
       <div className="grid md:grid-cols-3 gap-6">
         {/* Main Content */}
@@ -466,8 +531,6 @@ export default function BookingDetailsScreen({
             </div>
           </CardContent>
         </Card>
-
-
 
         {/* Hotel Contact */}
         <Card>
