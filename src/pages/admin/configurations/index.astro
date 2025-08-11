@@ -91,8 +91,18 @@ try {
                         ? apiConfigs.auto_cancellation_hours
                         : parseInt(apiConfigs.auto_cancellation_hours) || 1,
                 type: "number",
-                description: "Default cancellation period in hours if user doesn't show up",
+                description:
+                    "Default cancellation period in hours if user doesn't show up",
                 category: "booking",
+            },
+            platform_fee: {
+                value:
+                    typeof apiConfigs.platform_fee === "number"
+                        ? apiConfigs.platform_fee
+                        : parseInt(apiConfigs.platform_fee) || 1,
+                type: "number",
+                description: "Default platform fee  in rupees ",
+                category: "app",
             },
         };
     } else {
@@ -162,8 +172,15 @@ try {
         auto_cancellation_hours: {
             value: 1,
             type: "number",
-            description: "Default cancellation period in hours if user doesn't show up",
+            description:
+                "Default cancellation period in hours if user doesn't show up",
             category: "booking",
+        },
+        platform_fee: {
+            value: "5",
+            type: "number",
+            description: "Default platform fee",
+            category: "app",
         },
     };
 }

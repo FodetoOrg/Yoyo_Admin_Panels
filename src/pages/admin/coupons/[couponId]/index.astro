@@ -47,6 +47,8 @@ const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
 const cities = citiesResponse.success ? citiesResponse.data : [];
 const hotels = hotelsResponse.success ? hotelsResponse.data : [];
 const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
+
+console.log('couponData ',couponData)
 ---
 
 <DashboardLayout title="Coupon Management">

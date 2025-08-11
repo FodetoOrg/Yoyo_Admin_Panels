@@ -38,6 +38,8 @@ interface Props {
 }
 
 const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
+
+  console.log('hotelData ',hotelData)
   const getFormConfig = () => {
     const hotelUsersField = {
       name: "ownerId",
@@ -103,6 +105,8 @@ const NewHotelScreen = ({ hotelData, hotelUsers, cities }: Props) => {
         latitude: Number(hotelData.mapCoordinates?.split(",")[0]),
         longitude: Number(hotelData.mapCoordinates?.split(",")[1]),
         commissionRate: hotelData.commissionRate || 15,
+        onlinePaymentEnabled:hotelData.onlinePaymentEnabled,
+        gstPercentage:hotelData.gstPercentage
       },
       fields: [idField, hotelUsersField, cityField, ...formConfig.fields],
     };

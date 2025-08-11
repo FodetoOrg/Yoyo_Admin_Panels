@@ -35,6 +35,8 @@ const MappingScreen = ({
         existingMappings={existingMappings}
         onSubmit={async (mappingData) => {
           try {
+
+            console.log('mappingData ',mappingData)
             // Update coupon with new mappings
             const response = await apiService.put(ROUTES.UPDATE_COUPON_ROUTE(couponId), {
               mappings: mappingData

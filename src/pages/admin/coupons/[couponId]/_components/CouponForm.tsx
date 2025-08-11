@@ -59,7 +59,7 @@ const CouponForm = ({ couponData, cities, hotels, roomTypes }: Props) => {
         discountValue: couponData.discountValue,
         maxDiscountAmount: couponData.maxDiscountAmount,
         minOrderAmount: couponData.minOrderAmount,
-        validFrom: couponData.validFrom,
+        validFrom: new Date(couponData.validFrom),
         validTo: couponData.validTo,
         usageLimit: couponData.usageLimit,
         priceIncreasePercentage: couponData.priceIncreasePercentage,

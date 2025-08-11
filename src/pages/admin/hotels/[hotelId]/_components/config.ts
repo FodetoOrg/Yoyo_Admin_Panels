@@ -101,6 +101,30 @@ const formConfig: FormConfig = {
       inputType: "number",
       order: 15,
     },
+    // onlinePaymentEnabled
+    {
+      name: "onlinePaymentEnabled",
+      type: "select",
+      validation: z.string().optional(),
+      label: "Online Payment Enable",
+      options: [
+        { label: "Yes", value: "true" },
+        { label: "No", value: "false" },
+      ],
+      space: 1,
+      isSearchable: true,
+      order: 3,
+    },
+    {
+      name: "gstPercentage",
+      type: "input",
+      validation: z.number().min(0).max(100),
+      label: "GST percentage (%)",
+      placeholder: "validation percentage (e.g., 18)",
+      space: 1,
+      inputType: "number",
+      order: 15,
+    },
 
     {
       name: "images",
@@ -113,14 +137,20 @@ const formConfig: FormConfig = {
     },
   ],
   columns: 2,
-  onsuccess:'/admin/hotels',
+  onsuccess: '/admin/hotels',
   onSubmit: async (values: any, isUpdate: boolean) => {
     try {
-      console.log('values are ',values)
+      console.log('values are ', values)
       // Format mapCoordinates
       let mapCoordinates = values.mapCoordinates;
       if (values.latitude && values.longitude) {
         mapCoordinates = `${values.latitude},${values.longitude}`;
+
+
+
+      }
+      if (typeof values.onlinePaymentEnabled === 'string') {
+        values.onlinePaymentEnabled = values.onlinePaymentEnabled === 'true';
       }
 
       const formattedValues = {

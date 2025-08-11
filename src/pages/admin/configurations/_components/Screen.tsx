@@ -179,24 +179,24 @@ const ConfigurationsScreen = ({
         try {
             const response: ApiResponse<any> = await apiService.post('/api/v1/bookings/admin/jobs/cancel-no-shows');
 
-            console.log('response in cancellation is  ',response)
+            console.log('response in cancellation is  ', response)
             if (response.success) {
                 const cancelledCount = response.data?.cancelled || 0;
-                setSuccess(prev => ({ 
-                    ...prev, 
+                setSuccess(prev => ({
+                    ...prev,
                     cancel_no_shows: `Successfully cancelled ${cancelledCount} no-show booking${cancelledCount !== 1 ? 's' : ''}`
                 }));
             } else {
-                setErrors(prev => ({ 
-                    ...prev, 
-                    cancel_no_shows: response.message || 'Failed to cancel no-show bookings' 
+                setErrors(prev => ({
+                    ...prev,
+                    cancel_no_shows: response.message || 'Failed to cancel no-show bookings'
                 }));
             }
         } catch (error) {
             console.error('Failed to cancel no-show bookings:', error);
-            setErrors(prev => ({ 
-                ...prev, 
-                cancel_no_shows: error.message || 'Failed to cancel no-show bookings' 
+            setErrors(prev => ({
+                ...prev,
+                cancel_no_shows: error.message || 'Failed to cancel no-show bookings'
             }));
         } finally {
             setCancellingNoShows(false);
@@ -330,7 +330,7 @@ const ConfigurationsScreen = ({
                 ...(bannerCoupon && { coupon_code: bannerCoupon })
             };
 
-            console.log('requestBody in banner ',requestBody)
+            console.log('requestBody in banner ', requestBody)
 
             const response: ApiResponse<any> = await apiService.post('/api/v1/configurations/banner', requestBody);
 
@@ -802,6 +802,52 @@ const ConfigurationsScreen = ({
                                 <p className="text-sm text-red-500">{errors.default_cancellation_hours}</p>
                             )}
                             {success.default_cancellation_hours && (
+                                <p className="text-sm text-green-500">✓ Updated successfully</p>
+                            )}
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center space-x-2">
+                            <Clock className="h-5 w-5" />
+                            <CardTitle>Platform Fee</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Platform fees for each booking
+                            {!canManageGlobalSettings && ' (View Only)'}
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex flex-col gap-4">
+                        {/* Default Cancellation Hours */}
+                        <div className="flex flex-col gap-2">
+                            <Label htmlFor="cancellation-hours">Default Cancellation Hours</Label>
+                            <div className="flex space-x-2">
+                                <Input
+                                    id="cancellation-hours"
+                                    type="number"
+                                    min="0"
+                                    max="168"
+                                    placeholder="24"
+                                    value={configurations.platform_fee?.value || 0}
+                                    onChange={(e) => handleNumberChange('platform_fee', e.target.value)}
+                                    disabled={!canManageGlobalSettings}
+                                />
+                                {canManageGlobalSettings && (
+                                    <Button
+                                        onClick={() => handleNumberSave('platform_fee')}
+                                        disabled={saving.platform_fee}
+                                    >
+                                        {saving.platform_fee ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                    </Button>
+                                )}
+                            </div>
+                           
+                            {errors.platform_fee && (
+                                <p className="text-sm text-red-500">{errors.platform_fee}</p>
+                            )}
+                            {success.platform_fee && (
                                 <p className="text-sm text-green-500">✓ Updated successfully</p>
                             )}
                         </div>
