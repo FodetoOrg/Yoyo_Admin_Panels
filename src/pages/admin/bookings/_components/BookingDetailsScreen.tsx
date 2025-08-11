@@ -113,7 +113,7 @@ const canShowRefund = (userRole, booking) => {
   const paid = booking.paymentStaus === "paid";
   // const statusOk = ["cancelled", "completed"].includes(booking.status);
   // const notAlready = !booking.refundInfo || booking.refundInfo.status !== "processed";
-  return [UserRole.SUPER_ADMIN].includes(userRole) && !paid && booking.refundInfo 
+  return [UserRole.SUPER_ADMIN].includes(userRole) && !paid && booking.refundInfo && booking.refundInfo.status !== "processed"
 };
 
 export default function BookingDetailsScreen({
@@ -192,7 +192,7 @@ export default function BookingDetailsScreen({
     }
     try {
       setWorking(true);
-      const res:ApiResponse<any> = await apiService.put(`/api/v1/bookings/${booking.id}/cancel`, { reason: cancelReason.trim() });
+      const res: ApiResponse<any> = await apiService.put(`/api/v1/bookings/${booking.id}/cancel`, { reason: cancelReason.trim() });
       if (!res?.success) alert("Failed to cancel booking.");
       else alert("Booking cancelled successfully!");
     } finally {
@@ -203,28 +203,34 @@ export default function BookingDetailsScreen({
   };
 
   const handleRefund = async () => {
-    if (!refundAmount || refundAmount <= 0) {
-      alert("Enter a valid refund amount.");
+    if (!refundAmount || Number(refundAmount) <= 0) {
+      window.alert("Enter a valid refund amount.");
       return;
     }
-    if (!refundReason?.trim() || refundReason.trim().length < 5) {
-      alert("Please enter a reason for refund.");
-      return;
-    }
+
     try {
       setWorking(true);
-      const res = await api.post(`/bookings/${booking.id}/refund-wallet`, {
-        amount: Math.min(refundAmount, booking.totalAmount),
-        reason: refundReason.trim(),
-        method: "wallet",
-      });
-      if (!res?.success) alert("Failed to issue refund.");
-      else alert("Refund processed successfully!");
+
+      // If you're using axios:
+      const res: ApiResponse<any> = await apiService.post(`/api/v1/admin/refunds/${booking.refundInfo?.id}/process`);
+      const success = res?.success // covers both shapes
+
+      if (!success) {
+        window.alert("Failed to issue refund.");
+        return;
+      }
+
+      window.alert("Refund processed successfully!");
+      window.location.reload(); // runs after user clicks OK
+    } catch (e) {
+      console.error(e);
+      window.alert("Something went wrong while issuing the refund.");
     } finally {
       setWorking(false);
       setRefundOpen(false);
     }
   };
+
 
   return (
     <div className=" mx-auto p-4 flex flex-col gap-6">
@@ -338,30 +344,12 @@ export default function BookingDetailsScreen({
                     </DialogDescription>
                   </DialogHeader>
                   <div className="flex flex-col gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Amount</label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={booking.totalAmount}
-                        value={refundAmount}
-                        onChange={(e) => setRefundAmount(Number(e.target.value))}
-                        className="mt-1"
-                      />
-                      <p className="text-xs text-gray-500 mt-1">
-                        Max: {formatINR(booking.totalAmount)}
-                      </p>
+                    <div className="flex flex-row items-center gap-4 ">
+                      <label className="text-sm font-medium ">Amount</label>
+                      <text className="text-2xl">{booking.refundInfo.refundAmount}</text>
+
                     </div>
-                    <div>
-                      <label className="text-sm font-medium">Reason</label>
-                      <Textarea
-                        placeholder="Refund reason..."
-                        value={refundReason}
-                        onChange={(e) => setRefundReason(e.target.value)}
-                        rows={2}
-                        className="mt-1"
-                      />
-                    </div>
+
                   </div>
                   <DialogFooter className="gap-2">
                     <Button variant="outline" onClick={() => setRefundOpen(false)}>
