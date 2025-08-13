@@ -144,9 +144,7 @@ export const columns: ColumnDef<Category>[] = [
               Copy Category
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <a href={`/hotels/${category.id}`}>
-              <DropdownMenuItem>Edit Category</DropdownMenuItem>
-            </a>
+           
             <a href={`/admin/users/customers/${category.id}`}>
               <DropdownMenuItem >View Details</DropdownMenuItem>
             </a>

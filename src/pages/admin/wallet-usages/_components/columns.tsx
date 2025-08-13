@@ -1,4 +1,3 @@
-
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
@@ -12,108 +11,137 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Eye, User, DollarSign, Calendar } from "lucide-react";
+import { MoreHorizontal, Eye, User, DollarSign, Calendar, ArrowUpDown } from "lucide-react";
 
 interface WalletUsage {
   id: string;
   userId: string;
-  bookingId: string;
-  paymentId: string;
+  source: string;
   amountUsed: number;
-  balanceBefore: number;
-  balanceAfter: number;
+  refrenceType: string;
+  refrenceId: string;
   createdAt: string;
-  userName: string;
+  userName: string | null;
   userEmail: string;
   userPhone: string;
-  bookingReference: string;
-  hotelName: string;
-  paymentAmount: number;
-  paymentMethod: string;
 }
 
 export const columns = (): ColumnDef<WalletUsage>[] => [
   {
-    accessorKey: "userName",
-    header: "Customer",
+    accessorKey: "userPhone",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Customer
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
     cell: ({ row }) => {
       const usage = row.original;
       return (
         <div className="flex flex-col gap-y-1">
-          <div className="font-medium">{usage.userName}</div>
+          <div className="font-medium">
+            {usage.userName || "Unknown User"}
+          </div>
           <div className="text-sm text-muted-foreground">{usage.userPhone}</div>
-          <div className="text-xs text-muted-foreground">{usage.userEmail}</div>
+          {usage.userEmail && (
+            <div className="text-xs text-muted-foreground">{usage.userEmail}</div>
+          )}
         </div>
       );
     },
   },
   {
-    accessorKey: "bookingReference",
-    header: "Booking",
+    accessorKey: "source",
+    header: "Source",
+    cell: ({ row }) => {
+      const source = row.getValue("source") as string;
+      return (
+        <Badge
+          variant={source === "payment" ? "default" : "secondary"}
+          className={source === "payment" ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"}
+        >
+          {source.charAt(0).toUpperCase() + source.slice(1)}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "refrenceType",
+    header: "Reference",
     cell: ({ row }) => {
       const usage = row.original;
       return (
         <div className="flex flex-col gap-y-1">
-          <div className="font-medium">{usage.bookingReference}</div>
-          <div className="text-sm text-muted-foreground">{usage.hotelName}</div>
+          <div className="font-medium capitalize">{usage.refrenceType}</div>
+          <div className="text-xs text-muted-foreground font-mono">
+            {usage.refrenceId.slice(0, 8)}...
+          </div>
         </div>
       );
     },
   },
   {
     accessorKey: "amountUsed",
-    header: "Amount Used",
-    cell: ({ row }) => (
-      <div className="flex items-center font-medium text-red-600">
-        <DollarSign className="mr-1 h-4 w-4" />
-        ₹{row.getValue("amountUsed")}
-      </div>
-    ),
-  },
-  {
-    accessorKey: "balanceBefore",
-    header: "Balance Before",
-    cell: ({ row }) => (
-      <div className="font-medium">₹{row.getValue("balanceBefore")}</div>
-    ),
-  },
-  {
-    accessorKey: "balanceAfter",
-    header: "Balance After",
-    cell: ({ row }) => (
-      <div className="font-medium">₹{row.getValue("balanceAfter")}</div>
-    ),
-  },
-  {
-    accessorKey: "paymentAmount",
-    header: "Payment Total",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Amount Used
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
     cell: ({ row }) => {
       const usage = row.original;
       return (
-        <div className="flex flex-col gap-y-1">
-          <div className="font-medium">₹{usage.paymentAmount}</div>
-          <Badge variant="outline" className="text-xs w-fit">
-            {usage.paymentMethod}
-          </Badge>
+        <div className={`flex items-center font-medium ${usage.source === "payment" ? "text-red-600" : "text-green-600"
+          }`}>
+          <DollarSign className="mr-1 h-4 w-4" />
+          ₹{usage.amountUsed.toFixed(2)}
         </div>
       );
     },
   },
   {
     accessorKey: "createdAt",
-    header: "Date",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Date
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      )
+    },
     cell: ({ row }) => {
       const date = new Date(row.getValue("createdAt"));
       return (
         <div className="flex items-center">
           <Calendar className="mr-2 h-4 w-4 text-muted-foreground" />
-          {date.toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-            day: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
-          })}
+          <div className="flex flex-col">
+            <span className="text-sm">
+              {date.toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              {date.toLocaleTimeString("en-US", {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </span>
+          </div>
         </div>
       );
     },
@@ -134,17 +162,23 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem 
+            <DropdownMenuItem
               onClick={() => window.location.href = `/admin/users/customers/${usage.userId}`}
             >
               <User className="mr-2 h-4 w-4" />
               View Customer
             </DropdownMenuItem>
-            <DropdownMenuItem 
-              onClick={() => window.location.href = `/admin/payments/${usage.paymentId}`}
+            <DropdownMenuItem
+              onClick={() => {
+                if (usage.refrenceType === "payment") {
+                  window.location.href = `/admin/payments/${usage.refrenceId}`;
+                } else if (usage.refrenceType === "booking") {
+                  window.location.href = `/admin/bookings/${usage.refrenceId}`;
+                }
+              }}
             >
               <Eye className="mr-2 h-4 w-4" />
-              View Payment
+              View {usage.refrenceType === "payment" ? "Payment" : "Booking"}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -152,6 +186,7 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
     },
   },
 ];
+
 export const filterFields = [];
 
 export const datePickers = [];

@@ -1,17 +1,29 @@
 ---
 import DashboardLayout from "@/layouts/DashboardLayout.astro";
 import Screen from "./_components/screen";
-import { apiService } from "@/lib/utils/api";
-import { ROUTES } from "@/lib/utils/constants";
+import {
+  apiService,
+  serverApiService,
+  type ApiResponse,
+} from "@/lib/utils/api";
+import { CONSTANTS, ROUTES } from "@/lib/utils/constants";
 
 const { searchParams } = Astro.url;
 const page = parseInt(searchParams.get("page") || "1");
 const limit = parseInt(searchParams.get("limit") || "20");
 
-let walletUsagesData = { walletUsages: [], pagination: { page: 1, limit: 20, total: 0, pages: 0 } };
+let walletUsagesData = {
+  walletUsages: [],
+  pagination: { page: 1, limit: 20, total: 0, pages: 0 },
+};
 
 try {
-  const response = await apiService.get(`${ROUTES.WALLET_USAGES_ROUTE}?page=${page}&limit=${limit}`);
+  const response: ApiResponse<any> = await serverApiService.get(
+    `${ROUTES.WALLET_USAGES_ROUTE}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies,
+  );
+  console.log("response in wallet usages ", JSON.stringify(response));
   if (response.success) {
     walletUsagesData = response.data;
   }
@@ -23,10 +35,10 @@ const currentUser = Astro.locals.user;
 ---
 
 <DashboardLayout title="Wallet Usages">
-  <Screen 
-    walletUsages={walletUsagesData.walletUsages} 
+  <Screen
+    walletUsages={walletUsagesData.walletUsagesDb}
     pagination={walletUsagesData.pagination}
     currentUser={currentUser}
-    client:load 
+    client:load
   />
 </DashboardLayout>

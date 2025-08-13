@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import PageContainer from "@/components/PageContainer";
 import { DataTable } from "@/components/GlobalTable/data-table";
@@ -9,19 +8,14 @@ import { columns, datePickers, filterFields } from "./columns";
 interface WalletUsage {
   id: string;
   userId: string;
-  bookingId: string;
-  paymentId: string;
+  source: string;
   amountUsed: number;
-  balanceBefore: number;
-  balanceAfter: number;
+  refrenceType: string;
+  refrenceId: string;
   createdAt: string;
-  userName: string;
+  userName: string | null;
   userEmail: string;
   userPhone: string;
-  bookingReference: string;
-  hotelName: string;
-  paymentAmount: number;
-  paymentMethod: string;
 }
 
 interface Pagination {
@@ -43,6 +37,11 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
   const totalAmountUsed = walletUsages.reduce((sum, usage) => sum + usage.amountUsed, 0);
   const uniqueUsers = new Set(walletUsages.map(usage => usage.userId)).size;
   const avgUsageAmount = walletUsages.length > 0 ? totalAmountUsed / walletUsages.length : 0;
+  const totalTransactions = walletUsages.length;
+
+  // Filter by source type
+  const paymentTransactions = walletUsages.filter(usage => usage.source === 'payment');
+  const refundTransactions = walletUsages.filter(usage => usage.source === 'refund');
 
   return (
     <PageContainer>
@@ -65,7 +64,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{totalAmountUsed.toLocaleString()}</div>
+              <div className="text-2xl font-bold">₹{totalAmountUsed.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
                 Total wallet amount used
               </p>
@@ -86,12 +85,12 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className=" items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Avg. Usage</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">₹{Math.round(avgUsageAmount)}</div>
+              <div className="text-2xl font-bold">₹{avgUsageAmount.toFixed(2)}</div>
               <p className="text-xs text-muted-foreground">
                 Average per transaction
               </p>
@@ -99,14 +98,14 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className=" items-center justify-between flex flex-col gap-y-0 pb-2">
+            <CardHeader className="items-center justify-between flex flex-col gap-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Transactions</CardTitle>
               <Wallet className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{pagination.total}</div>
+              <div className="text-2xl font-bold">{totalTransactions}</div>
               <p className="text-xs text-muted-foreground">
-                Wallet transactions
+                {paymentTransactions.length} payments, {refundTransactions.length} refunds
               </p>
             </CardContent>
           </Card>
@@ -121,7 +120,7 @@ const Screen: React.FC<Props> = ({ walletUsages, pagination, currentUser }) => {
             <DataTable
               columns={columns()}
               data={walletUsages}
-              searchKey="userName"
+              searchKey="userPhone"
               loading={loading}
               filterFields={filterFields}
               datePickers={datePickers}

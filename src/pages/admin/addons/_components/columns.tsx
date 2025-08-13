@@ -166,9 +166,9 @@ export const columns: ColumnDef<Addon>[] = [
             <a href={`/admin/addons/${addon.id}?hotelId=${addon.hotel?.id}`}>
               <DropdownMenuItem>Edit Addon</DropdownMenuItem>
             </a>
-            <a href={`/admin/addons/${addon.id}/details`}>
+            {/* <a href={`/admin/addons/${addon.id}/details`}>
               <DropdownMenuItem>View Details</DropdownMenuItem>
-            </a>
+            </a> */}
           </DropdownMenuContent>
         </DropdownMenu>
       );

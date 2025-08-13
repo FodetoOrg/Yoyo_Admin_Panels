@@ -588,7 +588,7 @@ export default function BookingDetailsScreen({
         )}
 
         {/* Policy */}
-        {booking.cancellationPolicy && (
+        {/* {booking.cancellationPolicy && (
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -600,7 +600,7 @@ export default function BookingDetailsScreen({
               <p className="text-sm text-gray-600">{booking.cancellationPolicy}</p>
             </CardContent>
           </Card>
-        )}
+        )} */}
 
         {/* Refund Info */}
         {booking.refundInfo && (

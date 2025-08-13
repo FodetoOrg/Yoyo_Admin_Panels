@@ -71,7 +71,15 @@ export const columns: ColumnDef<Category>[] = [
   {
     accessorKey: "description",
     header: "Description",
-    cell: ({ row }) => row.getValue("description") || "—",
+    cell: ({ row }) => {
+      return (
+        <p>
+          {row.getValue("description")
+            ? row.getValue("description").split(" ").slice(0, 10).join(" ") + "..."
+            : ""}
+        </p>
+      );
+    }
   },
   {
     accessorKey: "status",
