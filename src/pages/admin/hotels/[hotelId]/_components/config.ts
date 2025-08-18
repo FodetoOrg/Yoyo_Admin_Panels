@@ -125,6 +125,16 @@ const formConfig: FormConfig = {
       inputType: "number",
       order: 15,
     },
+    {
+      name: "about",
+      type: "textarea",
+      validation: z.string().min(10).max(100),
+      label: "about Hotel",
+      placeholder: "something about hotel",
+      space: 1,
+      inputType: "text",
+      order: 26,
+    },
 
     {
       name: "images",
