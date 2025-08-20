@@ -84,6 +84,17 @@ export const ROUTES = {
   // Wallet routes
   WALLET_USAGES_ROUTE: "/api/v1/details/walletusages",
 
+  // Notification routes
+  GET_NOTIFICATIONS_ROUTE: "/api/v1/notifications",
+  MARK_NOTIFICATION_READ_ROUTE: (id: string) => `/api/v1/notifications/${id}/read`,
+  MARK_ALL_NOTIFICATIONS_READ_ROUTE: "/api/v1/notifications/mark-all-read",
+  DELETE_NOTIFICATION_ROUTE: (id: string) => `/api/v1/notifications/${id}`,
+  BULK_DELETE_NOTIFICATIONS_ROUTE: "/api/v1/notifications/bulk-delete",
+  WEB_PUSH_SUBSCRIBE_ROUTE: "/api/v1/web-push/subscribe",
+  WEB_PUSH_UNSUBSCRIBE_ROUTE: "/api/v1/web-push/unsubscribe",
+  WEB_PUSH_TEST_ROUTE: "/api/v1/web-push/test",
+  WEB_PUSH_VAPID_KEY_ROUTE: "/api/v1/web-push/vapid-public-key",
+
   // Add other route constants as needed
 } as const;
 

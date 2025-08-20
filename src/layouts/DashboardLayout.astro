@@ -155,6 +155,21 @@ const allowedItems = navItems.filter(item =>
       document.addEventListener('astro:after-swap', () => {
         new LoadingBar();
       });
+
+      // Initialize Web Push Notifications
+      document.addEventListener('DOMContentLoaded', () => {
+        // Check if notifications are supported
+        if ('serviceWorker' in navigator && 'PushManager' in window) {
+          // Register service worker
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('Service Worker registered successfully');
+            })
+            .catch(error => {
+              console.error('Service Worker registration failed:', error);
+            });
+        }
+      });
     </script>
   </body>
 </html>
