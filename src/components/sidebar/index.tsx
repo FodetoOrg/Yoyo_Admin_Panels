@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { getCurrentUser, getEffectiveRole, isHotelAdmin, isSuperAdmin, UserRole } from "@/lib/utils/auth";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
+import { NotificationProvider } from "@/components/notifications/NotificationProvider";
 import {
   Collapsible,
   CollapsibleContent,
@@ -81,6 +84,7 @@ export default function AppSidebar({
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
   const [openCollapsibles, setOpenCollapsibles] = useState<string[]>([]);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(true);
 
   const currentUser = user;
   const effectiveRole = getEffectiveRole(currentUser);
@@ -184,21 +188,26 @@ export default function AppSidebar({
   };
 
   return (
+    <NotificationProvider userId={user?.id}>
     <SidebarProvider>
       <Sidebar collapsible="icon">
         <SidebarHeader>
+          {/* Notification Permission Banner */}
+          {showNotificationBanner && (
+            <NotificationPermissionBanner
+              onPermissionGranted={() => setShowNotificationBanner(false)}
+              onDismiss={() => setShowNotificationBanner(false)}
+            />
+          )}
+          
           <div className="flex gap-2 py-2 text-sidebar-accent-foreground">
             <div className="flex aspect-square size-10 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
               <company.logo className="w-6 h-6" />
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
               <span className="truncate font-semibold text-base">{company.name}</span>
-              <span className="truncate text-xs flex items-center gap-2">
-                {company.plan}
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {user?.role}
-                </Badge>
-              </span>
+            <div className="flex items-center gap-2 px-4">
+              <NotificationBell userId={user?.id} />
             </div>
           </div>
         </SidebarHeader>
@@ -353,5 +362,6 @@ export default function AppSidebar({
         {children}
       </SidebarInset>
     </SidebarProvider>
+    </NotificationProvider>
   );
 }

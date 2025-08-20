@@ -1,0 +1,40 @@
+---
+import DashboardLayout from "@/layouts/DashboardLayout.astro";
+import NotificationsScreen from "./_components/NotificationsScreen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
+  return Astro.redirect('/admin/dashboard');
+}
+
+// Fetch notifications from API
+let notifications: any[] = [];
+let unreadCount = 0;
+
+try {
+  const notificationsResponse: ApiResponse<any> = await serverApiService.get(
+    '/api/v1/notifications',
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies
+  );
+
+  if (notificationsResponse.success) {
+    notifications = notificationsResponse.data.notifications || [];
+    unreadCount = notificationsResponse.data.unreadCount || 0;
+  }
+} catch (error) {
+  console.error('Failed to fetch notifications:', error);
+}
+---
+
+<DashboardLayout title="Notifications">
+  <NotificationsScreen 
+    initialNotifications={notifications}
+    initialUnreadCount={unreadCount}
+    client:load 
+  />
+</DashboardLayout>

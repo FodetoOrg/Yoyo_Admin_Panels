@@ -17,7 +17,8 @@ import {
   Settings,
   PieChart,
   TrendingUp,
-  Gift
+  Gift,
+  Bell
 } from "lucide-react";
 import { UserRole } from "./auth";
 
@@ -41,6 +42,14 @@ export const navItems: NavItem[] = [
     title: "Dashboard",
     url: "/admin/dashboard",
     icon: LayoutDashboard,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
+  },
+  {
+    title: "Notifications",
+    url: "/admin/notifications",
+    icon: Bell,
     isActive: false,
     allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
     show: true,
