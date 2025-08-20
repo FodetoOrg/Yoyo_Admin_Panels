@@ -3,6 +3,8 @@ import "../styles/global.css";
 import DashboardSidebar from "@/components/sidebar";
 import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
+import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
 
 interface Props {
   title: string;
@@ -42,6 +44,8 @@ const allowedItems = navItems.filter((item) =>
       <div class="loading-progress"></div>
     </div>
 
+    <!-- Auto-show notification permission banner -->
+    <div id="notification-banner-container"></div>
     <DashboardSidebar
       client:load
       pathname={pathname}
@@ -168,12 +172,48 @@ const allowedItems = navItems.filter((item) =>
             .register("/sw.js")
             .then((registration) => {
               console.log("Service Worker registered successfully");
+              
+              // Auto-check notification permission and show banner if needed
+              setTimeout(() => {
+                checkAndShowNotificationBanner();
+              }, 2000); // Wait 2 seconds after page load
             })
             .catch((error) => {
               console.error("Service Worker registration failed:", error);
             });
         }
       });
+
+      // Function to check and show notification banner
+      function checkAndShowNotificationBanner() {
+        // Only show on dashboard pages, not on auth
+        if (window.location.pathname.includes('/auth')) return;
+        
+        // Check if permission is default or denied but not subscribed
+        if (Notification.permission === 'default' || 
+            (Notification.permission === 'granted' && !localStorage.getItem('push-subscribed'))) {
+          
+          // Check if banner was dismissed recently
+          const dismissed = localStorage.getItem('notification-banner-dismissed');
+          const dismissedTime = dismissed ? parseInt(dismissed) : 0;
+          const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+          
+          if (dismissedTime < oneDayAgo) {
+            // Import and show the banner component
+            import('@/components/notifications/NotificationPermissionBanner').then(({ NotificationPermissionBanner }) => {
+              const container = document.getElementById('notification-banner-container');
+              if (container && !container.hasChildNodes()) {
+                // Create a React root and render the banner
+                const bannerElement = document.createElement('div');
+                container.appendChild(bannerElement);
+                
+                // You would need to use React.render here in a real implementation
+                // For now, we'll handle this in the sidebar component
+              }
+            });
+          }
+        }
+      }
     </script>
   </body>
 </html>

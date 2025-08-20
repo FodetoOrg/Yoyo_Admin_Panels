@@ -51,11 +51,29 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
+  // Ensure component is mounted before accessing browser APIs
+  useEffect(() => {
+    setMounted(true);
+  }, []);
   // Initialize web push client
   useEffect(() => {
+    if (!mounted) return;
+    
     const initWebPush = async () => {
+      // Check if notifications are supported
+      if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+        console.log('Notifications not supported');
+        return;
+      }
+
       const authToken = getCookie(CONSTANTS.ACCESS_TOKEN_KEY);
+      if (!authToken) {
+        console.log('No auth token found');
+        return;
+      }
+
       const client = new WebPushClient({ authToken });
       setWebPushClient(client);
       
@@ -65,13 +83,35 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       // Check if already subscribed
       const subscribed = await client.checkExistingSubscription();
       setIsSubscribed(subscribed);
+
+      // Auto-request permission if it's default and not subscribed
+      if (Notification.permission === 'default' && !subscribed) {
+        try {
+          const permission = await Notification.requestPermission();
+          setPushPermission(permission);
+          
+          if (permission === 'granted') {
+            // Auto-subscribe after permission granted
+            try {
+              await client.subscribe();
+              setIsSubscribed(true);
+            } catch (subscribeError) {
+              console.error('Auto-subscribe failed:', subscribeError);
+            }
+          }
+        } catch (permissionError) {
+          console.error('Permission request failed:', permissionError);
+        }
+      }
     };
 
     initWebPush();
-  }, []);
+  }, [mounted]);
 
   // Fetch notifications
   useEffect(() => {
+    if (!mounted) return;
+    
     const fetchNotifications = async () => {
       try {
         const response = await apiService.get('/api/v1/notifications');
@@ -89,10 +129,11 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     // Poll for new notifications every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   // Helper function to get cookie
   const getCookie = (name: string): string | null => {
+    if (typeof document === 'undefined') return null;
     const value = `; ${document.cookie}`;
     const parts = value.split(`; ${name}=`);
     if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
@@ -109,6 +150,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       setPushPermission('granted');
     } catch (error) {
       console.error('Failed to subscribe to push notifications:', error);
+      alert('Failed to enable notifications. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -123,6 +165,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
       setIsSubscribed(false);
     } catch (error) {
       console.error('Failed to unsubscribe from push notifications:', error);
+      alert('Failed to disable notifications. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -174,8 +217,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     
     try {
       await webPushClient.sendTestNotification('This is a test notification from your hotel admin dashboard!');
+      alert('Test notification sent! Check your browser notifications.');
     } catch (error) {
       console.error('Failed to send test notification:', error);
+      alert('Failed to send test notification. Please try again.');
     }
   };
 
@@ -213,6 +258,21 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     }
   };
 
+  // Don't render on server
+  if (!mounted) {
+    return (
+      <div className={`relative ${className}`}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9"
+          disabled
+        >
+          <Bell className="h-5 w-5" />
+        </Button>
+      </div>
+    );
+  }
   return (
     <div className={`relative ${className}`}>
       <Popover open={isOpen} onOpenChange={setIsOpen}>

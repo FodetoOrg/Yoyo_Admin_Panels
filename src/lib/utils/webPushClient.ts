@@ -77,9 +77,11 @@ export class WebPushClient {
 
       if (this.subscription) {
         console.log('Existing web push subscription found');
+        localStorage.setItem('push-subscribed', 'true');
         return true;
       }
 
+      localStorage.removeItem('push-subscribed');
       return false;
     } catch (error) {
       console.error('Failed to check existing subscription:', error);
@@ -125,6 +127,7 @@ export class WebPushClient {
 
       if (response.success) {
         console.log('Successfully subscribed to web push notifications');
+        localStorage.setItem('push-subscribed', 'true');
         return true;
       } else {
         throw new Error(response.message);
@@ -140,6 +143,7 @@ export class WebPushClient {
     try {
       if (!this.subscription) {
         console.log('No active subscription to unsubscribe');
+        localStorage.removeItem('push-subscribed');
         return true;
       }
 
@@ -153,6 +157,7 @@ export class WebPushClient {
         });
 
         this.subscription = null;
+        localStorage.removeItem('push-subscribed');
         console.log('Successfully unsubscribed from web push notifications');
         return true;
       }
@@ -213,6 +218,7 @@ export class WebPushClient {
 
 // Helper function to get cookie
 function getCookie(name: string): string | null {
+  if (typeof document === 'undefined') return null;
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
   if (parts.length === 2) return parts.pop()?.split(';').shift() || null;
