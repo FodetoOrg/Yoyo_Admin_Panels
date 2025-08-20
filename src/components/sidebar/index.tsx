@@ -87,7 +87,7 @@ export default function AppSidebar({
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
   const [openCollapsibles, setOpenCollapsibles] = useState<string[]>([]);
-  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(true);
 
 
   const currentUser = user;
@@ -402,15 +402,9 @@ export default function AppSidebar({
         </header>
 
         {/* Auto-show notification permission banner */}
-        {showNotificationBanner && (
-          <NotificationPermissionBanner
-            onPermissionGranted={() => {
-              setShowNotificationBanner(false);
-              localStorage.setItem('push-subscribed', 'true');
-            }}
-            onDismiss={() => setShowNotificationBanner(false)}
-          />
-        )}
+        {/* {showNotificationBanner && ( */}
+        
+        {/* )} */}
 
         {children}
       </SidebarInset>

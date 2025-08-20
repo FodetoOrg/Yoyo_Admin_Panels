@@ -304,7 +304,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
         </div>
 
         {/* Statistics */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-4 hidden">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Notifications</CardTitle>
@@ -436,7 +436,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
         )}
 
         {/* Notifications Table */}
-        <Card>
+        <Card className="hidden">
           <CardHeader>
             <CardTitle>All Notifications ({notifications.length})</CardTitle>
           </CardHeader>

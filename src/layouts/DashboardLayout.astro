@@ -46,6 +46,13 @@ const allowedItems = navItems.filter((item) =>
 
     <!-- Auto-show notification permission banner -->
     <div id="notification-banner-container"></div>
+    <NotificationPermissionBanner
+    onPermissionGranted={() => {
+      
+      localStorage.setItem('push-subscribed', 'true');
+    }}
+
+  />
     <DashboardSidebar
       client:load
       pathname={pathname}
