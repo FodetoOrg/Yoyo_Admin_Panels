@@ -37,7 +37,8 @@ self.addEventListener('push', (event) => {
       tag: data.tag || 'default',
       timestamp: data.data?.timestamp || Date.now(),
       vibrate: [200, 100, 200],
-      sound: 'default'
+      sound: 'default',
+      silent: false
     };
 
     event.waitUntil(
@@ -51,7 +52,9 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
       self.registration.showNotification('New Notification', {
         body: 'You have a new notification',
-        icon: '/favicon.svg'
+        icon: '/favicon.svg',
+        badge: '/favicon.svg',
+        vibrate: [200, 100, 200]
       })
     );
   }
@@ -129,3 +132,11 @@ async function syncNotifications() {
     console.error('Failed to sync notifications:', error);
   }
 }
+// Message event for communication with main thread
+self.addEventListener('message', (event) => {
+  console.log('Service Worker received message:', event.data);
+  
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});

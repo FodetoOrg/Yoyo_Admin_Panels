@@ -41,6 +41,8 @@ import {
 import { deleteCookie, CONSTANTS } from "@/lib/utils/api";
 import { Breadcrumbs } from "./Breadcrumbs";
 import { Icons } from "./Icons";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
 
 
 // Enhanced NavItem interface with role-based access
@@ -85,11 +87,35 @@ export default function AppSidebar({
   const [filteredNavItems, setFilteredNavItems] = useState<NavItem[]>([]);
   const [notifications, setNotifications] = useState(3);
   const [openCollapsibles, setOpenCollapsibles] = useState<string[]>([]);
+  const [showNotificationBanner, setShowNotificationBanner] = useState(false);
 
 
   const currentUser = user;
   const effectiveRole = getEffectiveRole(currentUser);
 
+  // Check notification permission on mount
+  useEffect(() => {
+    setMounted(true);
+    
+    // Check notification permission after component mounts
+    setTimeout(() => {
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        const shouldShow = Notification.permission === 'default' || 
+                          (Notification.permission === 'granted' && !localStorage.getItem('push-subscribed'));
+        
+        // Don't show on auth pages
+        if (!window.location.pathname.includes('/auth') && shouldShow) {
+          const dismissed = localStorage.getItem('notification-banner-dismissed');
+          const dismissedTime = dismissed ? parseInt(dismissed) : 0;
+          const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
+          
+          if (dismissedTime < oneDayAgo) {
+            setShowNotificationBanner(true);
+          }
+        }
+      }
+    }, 1000);
+  }, []);
 
   // Function to check if current path matches any item in the navigation
   const isPathActive = (item: NavItem): boolean => {
@@ -370,15 +396,21 @@ export default function AppSidebar({
             <Separator orientation="vertical" className="mr-2 h-4" />
             <Breadcrumbs pathname={pathname} />
           </div>
-          <div className="flex hidden items-center gap-2 px-4">
-            {notifications > 0 && (
-              <Badge variant="destructive">
-                {notifications} new notifications
-              </Badge>
-            )}
+          <div className="flex items-center gap-2 px-4">
+            <NotificationBell userId={user?.id} />
           </div>
         </header>
 
+        {/* Auto-show notification permission banner */}
+        {showNotificationBanner && (
+          <NotificationPermissionBanner
+            onPermissionGranted={() => {
+              setShowNotificationBanner(false);
+              localStorage.setItem('push-subscribed', 'true');
+            }}
+            onDismiss={() => setShowNotificationBanner(false)}
+          />
+        )}
 
         {children}
       </SidebarInset>
