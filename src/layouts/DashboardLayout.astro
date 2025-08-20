@@ -1,7 +1,5 @@
 ---
-// src/layouts/MainLayout.astro
 import "../styles/global.css";
-import "../styles/notifications.css"; // Add notification styles
 import DashboardSidebar from "@/components/sidebar";
 import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
@@ -16,31 +14,20 @@ const { pathname } = Astro.url;
 // User is already authenticated by middleware
 const currentUser = Astro.locals.user;
 
-const allowedItems = navItems.filter((item) =>
-  item.allowedRoles?.includes(currentUser.role),
+const allowedItems = navItems.filter(item =>
+  item.allowedRoles?.includes(currentUser.role)
 );
 
-// Pass user data to client-side for notifications
-const userDataForClient = {
-  id: currentUser.id,
-  role: currentUser.role,
-  name: currentUser.name,
-  email: currentUser.email
-};
 ---
 
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="description" content="Admin Dashboard" />
+    <meta name="description" content="Astro description" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    
-    <!-- Pass user data to client-side -->
-    <meta name="current-user" content={JSON.stringify(userDataForClient)} />
-    
     <title>{title}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -55,11 +42,7 @@ const userDataForClient = {
     <div id="loading-bar" class="loading-bar">
       <div class="loading-progress"></div>
     </div>
-
-    <!-- Notification System Components -->
-    <!-- This will be populated by the notification system -->
-    <div id="toast-container" class="toast-container"></div>
-
+   
     <DashboardSidebar
       client:load
       pathname={pathname}
@@ -68,85 +51,43 @@ const userDataForClient = {
     >
       <slot />
     </DashboardSidebar>
-
-    <!-- Import the notification client -->
-    <script>
-      import { initializeNotificationClient } from '../lib/notificationClient.js';
-      
-      // Set user data globally for notification system
-      window.currentUser = JSON.parse(document.querySelector('meta[name="current-user"]').content);
-      
-      // Initialize notification system
-      initializeNotificationClient();
-      
-      // Setup additional event listeners
-      window.addEventListener('astro:notification', (event) => {
-        const notification = event.detail;
-        
-        // You can add custom logic here for specific notification types
-        if (notification.type === 'order') {
-          // Maybe update order counter in sidebar
-          console.log('New order notification:', notification);
-        } else if (notification.type === 'payment') {
-          // Maybe update revenue counters
-          console.log('Payment notification:', notification);
-        }
-      });
-      
-      window.addEventListener('astro:notification-connected', () => {
-        // Update UI to show connected status
-        const statusIndicators = document.querySelectorAll('.notification-status');
-        statusIndicators.forEach(indicator => {
-          indicator.classList.add('connected');
-          indicator.classList.remove('connecting');
-        });
-      });
-      
-      window.addEventListener('astro:notification-disconnected', () => {
-        // Update UI to show disconnected status
-        const statusIndicators = document.querySelectorAll('.notification-status');
-        statusIndicators.forEach(indicator => {
-          indicator.classList.remove('connected');
-          indicator.classList.add('connecting');
-        });
-      });
-    </script>
+    <!-- <Toaster client:load /> -->
 
     <script>
-      // Loading bar functionality (existing code)
+      // Loading bar functionality
       class LoadingBar {
         constructor() {
-          this.bar = document.getElementById("loading-bar");
-          this.progress = this.bar?.querySelector(".loading-progress");
+          this.bar = document.getElementById('loading-bar');
+          this.progress = this.bar?.querySelector('.loading-progress');
           this.isLoading = false;
           this.currentProgress = 0;
           this.progressInterval = null;
-
+          
           this.init();
         }
 
         init() {
           // Listen for Astro's view transition events
-          document.addEventListener("astro:before-preparation", () => {
+          document.addEventListener('astro:before-preparation', () => {
             this.start();
           });
 
-          document.addEventListener("astro:after-swap", () => {
+          document.addEventListener('astro:after-swap', () => {
             this.complete();
           });
 
           // Fallback for regular navigation
-          document.addEventListener("beforeunload", () => {
+          document.addEventListener('beforeunload', () => {
             this.start();
           });
 
           // Listen for link clicks
-          document.addEventListener("click", (e) => {
-            const link = e.target.closest("a");
+          document.addEventListener('click', (e) => {
+            const link = e.target.closest('a');
             if (link && link.href && link.href !== window.location.href) {
               // Only show loader for internal links
               const isInternal = link.hostname === window.location.hostname;
-              if (isInternal && !link.hasAttribute("download")) {
+              if (isInternal && !link.hasAttribute('download')) {
                 this.start();
               }
             }
@@ -155,22 +96,19 @@ const userDataForClient = {
 
         start() {
           if (this.isLoading) return;
-
+          
           this.isLoading = true;
           this.currentProgress = 0;
-
+          
           if (this.bar) {
-            this.bar.classList.add("active");
+            this.bar.classList.add('active');
             this.updateProgress(10);
-
+            
             // Simulate progress
             this.progressInterval = setInterval(() => {
               if (this.currentProgress < 90) {
                 const increment = Math.random() * 30;
-                this.currentProgress = Math.min(
-                  90,
-                  this.currentProgress + increment,
-                );
+                this.currentProgress = Math.min(90, this.currentProgress + increment);
                 this.updateProgress(this.currentProgress);
               }
             }, 200);
@@ -185,17 +123,17 @@ const userDataForClient = {
 
         complete() {
           if (!this.isLoading) return;
-
+          
           if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
           }
-
+          
           this.updateProgress(100);
-
+          
           setTimeout(() => {
             if (this.bar) {
-              this.bar.classList.remove("active");
+              this.bar.classList.remove('active');
               this.currentProgress = 0;
               this.updateProgress(0);
               this.isLoading = false;
@@ -205,8 +143,8 @@ const userDataForClient = {
       }
 
       // Initialize loading bar when DOM is ready
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
           new LoadingBar();
         });
       } else {
@@ -214,7 +152,7 @@ const userDataForClient = {
       }
 
       // Re-initialize after view transitions
-      document.addEventListener("astro:after-swap", () => {
+      document.addEventListener('astro:after-swap', () => {
         new LoadingBar();
       });
     </script>
@@ -233,16 +171,16 @@ const userDataForClient = {
       white 60%
     );
   }
-
+  
   html {
     font-family: "Outfit", serif;
   }
-
+  
   * {
     margin: 0;
     box-sizing: border-box;
   }
-
+  
   code {
     font-family:
       Menlo,
@@ -275,10 +213,9 @@ const userDataForClient = {
   .loading-progress {
     height: 100%;
     width: 0%;
-    background: linear-gradient(
-      90deg,
-      rgb(var(--accent)),
-      rgb(var(--accent-light)),
+    background: linear-gradient(90deg, 
+      rgb(var(--accent)), 
+      rgb(var(--accent-light)), 
       rgb(var(--accent))
     );
     background-size: 200% 100%;
@@ -299,7 +236,7 @@ const userDataForClient = {
 
   /* Optional: Add a subtle glow effect */
   .loading-bar.active .loading-progress {
-    box-shadow:
+    box-shadow: 
       0 0 10px rgba(var(--accent), 0.6),
       0 0 20px rgba(var(--accent), 0.3);
   }
