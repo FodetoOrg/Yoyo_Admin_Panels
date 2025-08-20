@@ -26,7 +26,7 @@ export class WebPushClient {
   constructor(options: { apiUrl?: string; authToken?: string } = {}) {
     this.apiUrl = options.apiUrl || '/api/v1/web-push';
     this.authToken = options.authToken || null;
-    
+
     this.init();
   }
 
@@ -48,10 +48,10 @@ export class WebPushClient {
 
       // Get VAPID public key
       await this.getVapidPublicKey();
-      
+
       // Check existing subscription
       await this.checkExistingSubscription();
-      
+
     } catch (error) {
       console.error('Failed to initialize Web Push client:', error);
     }
@@ -60,7 +60,7 @@ export class WebPushClient {
   async getVapidPublicKey(): Promise<void> {
     try {
       const response = await apiService.get(`${this.apiUrl}/vapid-public-key`);
-      
+
       if (response.success) {
         this.vapidPublicKey = response.data.publicKey;
       }
@@ -72,14 +72,14 @@ export class WebPushClient {
   async checkExistingSubscription(): Promise<boolean> {
     try {
       if (!this.registration) return false;
-      
+
       this.subscription = await this.registration.pushManager.getSubscription();
-      
+
       if (this.subscription) {
         console.log('Existing web push subscription found');
         return true;
       }
-      
+
       return false;
     } catch (error) {
       console.error('Failed to check existing subscription:', error);
@@ -89,11 +89,11 @@ export class WebPushClient {
 
   async requestPermission(): Promise<NotificationPermission> {
     const permission = await Notification.requestPermission();
-    
+
     if (permission !== 'granted') {
       throw new Error('Notification permission denied');
     }
-    
+
     return permission;
   }
 
@@ -101,7 +101,7 @@ export class WebPushClient {
     try {
       // Request notification permission
       await this.requestPermission();
-      
+
       if (!this.vapidPublicKey) {
         await this.getVapidPublicKey();
       }
@@ -120,14 +120,16 @@ export class WebPushClient {
       const response = await apiService.post(`${this.apiUrl}/subscribe`, {
         subscription: this.subscription.toJSON()
       });
-      
+
+      console.log('response from backend is ', response)
+
       if (response.success) {
         console.log('Successfully subscribed to web push notifications');
         return true;
       } else {
         throw new Error(response.message);
       }
-      
+
     } catch (error) {
       console.error('Failed to subscribe to web push notifications:', error);
       throw error;
@@ -143,7 +145,7 @@ export class WebPushClient {
 
       // Unsubscribe from browser
       const success = await this.subscription.unsubscribe();
-      
+
       if (success) {
         // Remove subscription from server
         await apiService.post(`${this.apiUrl}/unsubscribe`, {
@@ -154,9 +156,9 @@ export class WebPushClient {
         console.log('Successfully unsubscribed from web push notifications');
         return true;
       }
-      
+
       return false;
-      
+
     } catch (error) {
       console.error('Failed to unsubscribe from web push notifications:', error);
       throw error;
@@ -166,14 +168,14 @@ export class WebPushClient {
   async sendTestNotification(message: string): Promise<any> {
     try {
       const response = await apiService.post(`${this.apiUrl}/test`, { message });
-      
+
       if (response.success) {
         console.log('Test notification sent successfully');
         return response;
       } else {
         throw new Error(response.message);
       }
-      
+
     } catch (error) {
       console.error('Failed to send test notification:', error);
       throw error;

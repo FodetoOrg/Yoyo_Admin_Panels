@@ -46,14 +46,7 @@ export const navItems: NavItem[] = [
     allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
     show: true,
   },
-  {
-    title: "Notifications",
-    url: "/admin/notifications",
-    icon: Bell,
-    isActive: false,
-    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
-    show: true,
-  },
+
   {
     title: "Cities",
     url: "/admin/cities",
@@ -324,8 +317,16 @@ export const navItems: NavItem[] = [
         allowedRoles: [UserRole.SUPER_ADMIN],
         show: true,
       },
-      
+
     ]
+  },
+  {
+    title: "Notifications",
+    url: "/admin/notifications",
+    icon: Bell,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
   },
   {
     title: "Settings",

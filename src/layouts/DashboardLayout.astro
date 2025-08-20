@@ -14,10 +14,9 @@ const { pathname } = Astro.url;
 // User is already authenticated by middleware
 const currentUser = Astro.locals.user;
 
-const allowedItems = navItems.filter(item =>
-  item.allowedRoles?.includes(currentUser.role)
+const allowedItems = navItems.filter((item) =>
+  item.allowedRoles?.includes(currentUser.role),
 );
-
 ---
 
 <!doctype html>
@@ -42,7 +41,7 @@ const allowedItems = navItems.filter(item =>
     <div id="loading-bar" class="loading-bar">
       <div class="loading-progress"></div>
     </div>
-   
+
     <DashboardSidebar
       client:load
       pathname={pathname}
@@ -51,43 +50,44 @@ const allowedItems = navItems.filter(item =>
     >
       <slot />
     </DashboardSidebar>
+
     <!-- <Toaster client:load /> -->
 
     <script>
       // Loading bar functionality
       class LoadingBar {
         constructor() {
-          this.bar = document.getElementById('loading-bar');
-          this.progress = this.bar?.querySelector('.loading-progress');
+          this.bar = document.getElementById("loading-bar");
+          this.progress = this.bar?.querySelector(".loading-progress");
           this.isLoading = false;
           this.currentProgress = 0;
           this.progressInterval = null;
-          
+
           this.init();
         }
 
         init() {
           // Listen for Astro's view transition events
-          document.addEventListener('astro:before-preparation', () => {
+          document.addEventListener("astro:before-preparation", () => {
             this.start();
           });
 
-          document.addEventListener('astro:after-swap', () => {
+          document.addEventListener("astro:after-swap", () => {
             this.complete();
           });
 
           // Fallback for regular navigation
-          document.addEventListener('beforeunload', () => {
+          document.addEventListener("beforeunload", () => {
             this.start();
           });
 
           // Listen for link clicks
-          document.addEventListener('click', (e) => {
-            const link = e.target.closest('a');
+          document.addEventListener("click", (e) => {
+            const link = e.target.closest("a");
             if (link && link.href && link.href !== window.location.href) {
               // Only show loader for internal links
               const isInternal = link.hostname === window.location.hostname;
-              if (isInternal && !link.hasAttribute('download')) {
+              if (isInternal && !link.hasAttribute("download")) {
                 this.start();
               }
             }
@@ -96,19 +96,22 @@ const allowedItems = navItems.filter(item =>
 
         start() {
           if (this.isLoading) return;
-          
+
           this.isLoading = true;
           this.currentProgress = 0;
-          
+
           if (this.bar) {
-            this.bar.classList.add('active');
+            this.bar.classList.add("active");
             this.updateProgress(10);
-            
+
             // Simulate progress
             this.progressInterval = setInterval(() => {
               if (this.currentProgress < 90) {
                 const increment = Math.random() * 30;
-                this.currentProgress = Math.min(90, this.currentProgress + increment);
+                this.currentProgress = Math.min(
+                  90,
+                  this.currentProgress + increment,
+                );
                 this.updateProgress(this.currentProgress);
               }
             }, 200);
@@ -123,17 +126,17 @@ const allowedItems = navItems.filter(item =>
 
         complete() {
           if (!this.isLoading) return;
-          
+
           if (this.progressInterval) {
             clearInterval(this.progressInterval);
             this.progressInterval = null;
           }
-          
+
           this.updateProgress(100);
-          
+
           setTimeout(() => {
             if (this.bar) {
-              this.bar.classList.remove('active');
+              this.bar.classList.remove("active");
               this.currentProgress = 0;
               this.updateProgress(0);
               this.isLoading = false;
@@ -143,8 +146,8 @@ const allowedItems = navItems.filter(item =>
       }
 
       // Initialize loading bar when DOM is ready
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", () => {
           new LoadingBar();
         });
       } else {
@@ -152,21 +155,22 @@ const allowedItems = navItems.filter(item =>
       }
 
       // Re-initialize after view transitions
-      document.addEventListener('astro:after-swap', () => {
+      document.addEventListener("astro:after-swap", () => {
         new LoadingBar();
       });
 
       // Initialize Web Push Notifications
-      document.addEventListener('DOMContentLoaded', () => {
+      document.addEventListener("DOMContentLoaded", () => {
         // Check if notifications are supported
-        if ('serviceWorker' in navigator && 'PushManager' in window) {
+        if ("serviceWorker" in navigator && "PushManager" in window) {
           // Register service worker
-          navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-              console.log('Service Worker registered successfully');
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              console.log("Service Worker registered successfully");
             })
-            .catch(error => {
-              console.error('Service Worker registration failed:', error);
+            .catch((error) => {
+              console.error("Service Worker registration failed:", error);
             });
         }
       });
@@ -186,16 +190,16 @@ const allowedItems = navItems.filter(item =>
       white 60%
     );
   }
-  
+
   html {
     font-family: "Outfit", serif;
   }
-  
+
   * {
     margin: 0;
     box-sizing: border-box;
   }
-  
+
   code {
     font-family:
       Menlo,
@@ -228,9 +232,10 @@ const allowedItems = navItems.filter(item =>
   .loading-progress {
     height: 100%;
     width: 0%;
-    background: linear-gradient(90deg, 
-      rgb(var(--accent)), 
-      rgb(var(--accent-light)), 
+    background: linear-gradient(
+      90deg,
+      rgb(var(--accent)),
+      rgb(var(--accent-light)),
       rgb(var(--accent))
     );
     background-size: 200% 100%;
@@ -251,7 +256,7 @@ const allowedItems = navItems.filter(item =>
 
   /* Optional: Add a subtle glow effect */
   .loading-bar.active .loading-progress {
-    box-shadow: 
+    box-shadow:
       0 0 10px rgba(var(--accent), 0.6),
       0 0 20px rgba(var(--accent), 0.3);
   }

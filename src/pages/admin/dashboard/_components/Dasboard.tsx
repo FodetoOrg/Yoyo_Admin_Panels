@@ -102,7 +102,7 @@ const Dashboard = () => {
           ROUTES.GET_DASHBOARD_ANALYTICS_ROUTE('super')
         );
 
-        console.log('response analytics is', JSON.stringify(response));
+        // console.log('response analytics is', JSON.stringify(response));
         
         if (response.success) {
           setDashboardData(response.data);
