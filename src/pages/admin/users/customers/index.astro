@@ -12,7 +12,7 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
 }
 
 const page = Astro.url.searchParams.get("page") || 1;
-const limit = Astro.url.searchParams.get("limit") || 1000;
+const limit = Astro.url.searchParams.get("limit") || 100;
 
 
 
