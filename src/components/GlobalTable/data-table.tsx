@@ -690,6 +690,34 @@ function MobilePagination({ table, isMobile }) {
 function FilterDropDown({ column, title, options }) {
   const selectedValues = new Set(column?.getFilterValue() || []);
 
+  // Set up custom filter function for OR logic when component mounts
+  React.useEffect(() => {
+    if (column) {
+      // Override the default filter function to use OR logic
+      column.columnDef.filterFn = (row, id, filterValue) => {
+        if (!filterValue || filterValue.length === 0) return true;
+        const rowValue = row.getValue(id);
+        
+        // Handle different data types
+        if (typeof rowValue === 'string') {
+          // For string values, check if any selected value is included
+          return filterValue.some((value) => 
+            rowValue.toLowerCase().includes(value.toLowerCase())
+          );
+        } else if (typeof rowValue === 'object' && rowValue !== null) {
+          // For object values (like city.name), extract the relevant property
+          const stringValue = String(rowValue);
+          return filterValue.some((value) => 
+            stringValue.toLowerCase().includes(value.toLowerCase())
+          );
+        } else {
+          // For other types, use exact match with OR logic
+          return filterValue.includes(rowValue);
+        }
+      };
+    }
+  }, [column]);
+
   return (
     <Popover>
       <PopoverTrigger asChild>

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown, Eye, Edit, Trash2, ToggleLeft, ToggleRight, Clock, Calendar } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, Eye, Edit, Trash2, ToggleLeft, ToggleRight, Clock, Calendar, Building, BookOpen } from "lucide-react";
 import { Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -82,42 +82,39 @@ export const getColumns = (
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Room #
+          Room Details
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="font-mono font-medium">{row.getValue("roomNumber")}</div>
-      ),
-    },
-    {
-      accessorKey: "name",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Room Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("name")}</div>
+        <div className="space-y-1">
+          <div className="font-mono font-medium">{row.getValue("roomNumber")}</div>
+          <div className="font-medium text-sm">{row.original.name}</div>
+
+        </div>
       ),
     },
     ...(isSuperAdmin ? [{
       accessorKey: "hotelName",
       accessorFn: (row: Room) => row.hotel?.name || row.hotelName || "Unknown",
-      header: "Hotel",
-      cell: ({ row }: { row: any }) => (
-        <div className="font-medium">{row.getValue("hotelName")}</div>
-      ),
-    }] : []),
-    {
+      header: "Hotel & Type",
+      cell: ({ row }: { row: any }) => {
+        const room = row.original;
+        const roomType = room.roomType?.name || room.roomTypeName || room.type || "N/A";
+        return (
+          <div className="space-y-1">
+            <div className="font-medium">{row.getValue("hotelName")}</div>
+            <Badge variant="outline" className="capitalize text-xs">
+              {roomType.replace("_", " ")}
+            </Badge>
+          </div>
+        );
+      },
+    }] : [{
       accessorKey: "roomTypeName",
-      accessorFn: (row) => row.roomType?.name || row.roomTypeName || row.type || "N/A",
-      header: "Type",
-      cell: ({ row }) => {
+      accessorFn: (row: Room) => row.roomType?.name || row.roomTypeName || row.type || "N/A",
+      header: "Room Type",
+      cell: ({ row }: { row: any }) => {
         const type = row.getValue("roomTypeName") as string;
         return (
           <Badge variant="outline" className="capitalize">
@@ -125,83 +122,45 @@ export const getColumns = (
           </Badge>
         );
       },
-    },
+    }]),
     {
       accessorKey: "capacity",
       accessorFn: (row) => row.capacity || row.maxGuests || 0,
-      header: "Capacity",
-      cell: ({ row }) => `${row.getValue("capacity")} guests`,
-    },
-    {
-      accessorKey: "pricePerNight",
-      header: "Price/Night",
+      header: "Pricing & Capacity",
       cell: ({ row }) => {
-        const price = parseFloat(row.getValue("pricePerNight"));
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "INR",
-        }).format(price);
+        const pricePerNight = parseFloat(row.original.pricePerNight);
+        const pricePerHour = row.original.pricePerHour;
+        const capacity = row.getValue("capacity");
+        
+        return (
+          <div className="space-y-1">
+            <div className="font-medium text-sm">
+              {new Intl.NumberFormat("en-IN", {
+                style: "currency",
+                currency: "INR",
+              }).format(pricePerNight)}/night
+            </div>
+            
+            <div className="text-xs text-muted-foreground">{capacity} guests</div>
+          </div>
+        );
       },
     },
-    {
-      accessorKey: "pricePerHour",
-      header: "Price/Hour",
-      cell: ({ row }) => {
-        const price = row.getValue("pricePerHour") as number;
-        if (!price) return "—";
-        return new Intl.NumberFormat("en-US", {
-          style: "currency",
-          currency: "INR",
-        }).format(price);
-      },
-    },
-    // {
-    //   accessorKey: "status",
-    //   accessorFn: (row) => row.status || "available",
-    //   header: "Status",
-    //   cell: ({ row }) => {
-    //     const status = row.getValue("status") as string;
-    //     return (
-    //       <Badge
-    //         variant={
-    //           status === "available"
-    //             ? "default"
-    //             : status === "occupied"
-    //             ? "secondary"
-    //             : status === "maintenance"
-    //             ? "outline"
-    //             : "destructive"
-    //         }
-    //         className={
-    //           status === "available"
-    //             ? "bg-green-500 text-white"
-    //             : status === "occupied"
-    //             ? "bg-blue-500 text-white"
-    //             : status === "maintenance"
-    //             ? "bg-yellow-500 text-white"
-    //             : "bg-red-500 text-white"
-    //         }
-    //       >
-    //         {status.replace("_", " ").toUpperCase()}
-    //       </Badge>
-    //     );
-    //   },
-    // },
     {
       accessorKey: "bookingOptions",
       header: "Booking Options",
       cell: ({ row }) => {
         const room = row.original;
         return (
-          <div className="flex gap-1">
+          <div className="flex flex-col gap-1">
             {room.isHourlyBooking && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs w-fit">
                 <Clock className="w-3 h-3 mr-1" />
                 Hourly
               </Badge>
             )}
             {room.isDailyBooking && (
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs w-fit">
                 <Calendar className="w-3 h-3 mr-1" />
                 Daily
               </Badge>
@@ -214,13 +173,29 @@ export const getColumns = (
       },
     },
     {
-      accessorKey: "floor",
-      accessorFn: (row) => row.floor || 1,
-      header: "Floor",
-      cell: ({ row }) => `Floor ${row.getValue("floor")}`,
+      id: "quickActions",
+      header: "Quick Actions",
+      cell: ({ row }) => {
+        const room = row.original;
+        return (
+          <div className="flex space-y-2 gap-2">
+            <Button
+              size="sm"
+              className="h-7 px-3 text-xs bg-black text-white hover:bg-gray-800"
+              onClick={() => window.open(`/admin/hotels/${room.hotelId}/details`)}
+            >
+         
+               Hotel
+            </Button>
+           
+          </div>
+        );
+      },
+      enableSorting: false,
     },
     {
       id: "actions",
+      header: "Actions",
       cell: ({ row }) => {
         const room = row.original;
 
@@ -251,16 +226,17 @@ export const getColumns = (
               <a href={`/admin/rooms/${room.id}`}>
                 <DropdownMenuItem>
                   <Edit className="mr-2 h-4 w-4" />
-
-                  <a href={`/admin/rooms/${room.id}/addons`}>
-                    <DropdownMenuItem>
-                      <Tag className="mr-2 h-4 w-4" />
-                      Map Addons
-                    </DropdownMenuItem>
-                  </a>
                   Edit Room
                 </DropdownMenuItem>
               </a>
+
+              <a href={`/admin/rooms/${room.id}/addons`}>
+                <DropdownMenuItem>
+                  <Tag className="mr-2 h-4 w-4" />
+                  Map Addons
+                </DropdownMenuItem>
+              </a>
+
               <DropdownMenuItem
                 onClick={() => window.location.href = `/admin/rooms/${room.id}/hourly-stays`}
               >
@@ -351,5 +327,5 @@ export const getColumns = (
     },
   ];
 
-export const filterFields = ["status", "roomTypeName", "floor", "hotelName"];
+export const filterFields = ["hotelName"];
 export const datePickers = ["createdAt"];

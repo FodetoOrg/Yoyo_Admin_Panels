@@ -37,9 +37,11 @@ self.addEventListener('push', (event) => {
       tag: data.tag || 'default',
       timestamp: data.data?.timestamp || Date.now(),
       vibrate: [200, 100, 200],
-      sound: 'default',
       silent: false
     };
+
+    // Play notification sound
+    playNotificationSound();
 
     event.waitUntil(
       self.registration.showNotification(data.title, options)
@@ -48,13 +50,17 @@ self.addEventListener('push', (event) => {
   } catch (error) {
     console.error('Error processing push notification:', error);
     
+    // Play notification sound even for fallback
+    playNotificationSound();
+    
     // Fallback notification
     event.waitUntil(
       self.registration.showNotification('New Notification', {
         body: 'You have a new notification',
         icon: '/favicon.svg',
         badge: '/favicon.svg',
-        vibrate: [200, 100, 200]
+        vibrate: [200, 100, 200],
+        silent: false
       })
     );
   }
@@ -140,3 +146,53 @@ self.addEventListener('message', (event) => {
     self.skipWaiting();
   }
 });
+
+// Function to play notification sound
+function playNotificationSound() {
+  try {
+    // Try to play a big beep sound using Web Audio API
+    const audioContext = new (self.AudioContext || self.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    // Create a big notification sound (very loud and longer)
+    oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+    oscillator.frequency.setValueAtTime(1400, audioContext.currentTime + 0.4);
+    oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.6);
+    oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.8);
+    
+    // Very high volume (0.8) and longer duration (1.0 seconds)
+    gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+    
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 1.0);
+    
+    // Also try to notify any open clients to play sound
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'PLAY_NOTIFICATION_SOUND',
+          data: { timestamp: Date.now() }
+        });
+      });
+    });
+    
+  } catch (error) {
+    console.log('Could not play notification sound in service worker:', error);
+    
+    // Fallback: try to notify clients to play sound
+    self.clients.matchAll().then(clients => {
+      clients.forEach(client => {
+        client.postMessage({
+          type: 'PLAY_NOTIFICATION_SOUND',
+          data: { timestamp: Date.now() }
+        });
+      });
+    });
+  }
+}

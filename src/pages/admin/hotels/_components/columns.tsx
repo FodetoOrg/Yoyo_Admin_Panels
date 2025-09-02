@@ -6,6 +6,7 @@ import {
   ArrowUpDown,
   CheckCircle2,
   XCircle,
+  Eye,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -82,6 +83,16 @@ export const columns: ColumnDef<Category>[] = [
     }
   },
   {
+    accessorKey: "city.name",
+    header: "City",
+    // cell: ({ row }) => {
+
+    //   const city = row.original.city as { name: string } | null;
+    //   console.log('city ',city)
+    //   return city?.name || "N/A";
+    // }
+  },
+  {
     accessorKey: "status",
     header: "Active",
     cell: ({ row }) => {
@@ -131,6 +142,31 @@ export const columns: ColumnDef<Category>[] = [
       return rowDate >= start && rowDate <= end;
     },
   },
+  // New View Booking column
+  {
+    id: "viewBooking",
+    header: "Booking",
+    cell: ({ row }) => {
+      const category = row.original;
+      
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            // Navigate to booking page - adjust the URL as needed
+            window.location.href = `/admin/bookings?hotelId=${category.id}`;
+          }}
+          className="flex items-center gap-2"
+        >
+          <Eye className="h-4 w-4" />
+          View Booking
+        </Button>
+      );
+    },
+    enableSorting: false,
+    enableHiding: false,
+  },
   {
     id: "actions",
     cell: ({ row }) => {
@@ -178,6 +214,6 @@ export const columns: ColumnDef<Category>[] = [
 ];
 
 // Specify which fields to allow filtering
-export const filterFields = ["name", "active"];
+export const filterFields = ["name", "active","city_name"];
 
 export const datePickers = ["createdAt"];

@@ -40,9 +40,18 @@ export const columns: ColumnDef<Booking>[] = [
   },
   {
     accessorKey: "id",
-    header: "Booking ID",
+    header: "Booking Details",
     cell: ({ row }) => (
-      <div className="font-mono text-sm">{row.getValue("id")}</div>
+      <div className="space-y-1">
+        <div className="font-mono text-sm font-medium">{row.getValue("id")}</div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(row.original.bookingDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          })}
+        </div>
+      </div>
     ),
   },
   {
@@ -52,151 +61,150 @@ export const columns: ColumnDef<Booking>[] = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Guest Name
+        Guest & Property
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
-    // cell: ({ row }) => (
-    //   <div className="font-medium">{row.getValue("userName")}</div>
-    // ),
-  },
-  {
-
-    id: "hotelName",
-    accessorKey: "hotel.name",
-    header: "Hotel",
-    // cell: ({ row }) => row.getValue("hotelName"),
-  },
-  {
-    accessorKey: "room.name",
-    header: "Room",
-    // cell: ({ row }) => row.getValue("room.name"),
+    cell: ({ row }) => (
+      <div className="space-y-1">
+        <div className="font-medium">{row.original.user?.name || row.original.user?.phone}</div>
+        <div className="text-xs text-muted-foreground">
+          {row.original.hotel.name}
+        </div>
+        
+      </div>
+    ),
   },
   {
     accessorKey: "checkInDate",
-    header: "Check In",
+    header: "Stay Period",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("checkInDate"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      const checkIn = new Date(row.getValue("checkInDate"));
+      const checkOut = new Date(row.original.checkOutDate);
+      const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+      
+      return (
+        <div className="space-y-1">
+          <div className="text-sm">
+            {checkIn.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })} - {checkOut.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {nights} night{nights !== 1 ? 's' : ''} • {row.original.guestCount} guest{row.original.guestCount !== 1 ? 's' : ''}
+          </div>
+        </div>
+      );
     },
-  },
-  {
-    accessorKey: "checkOutDate",
-    header: "Check Out",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("checkOutDate"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
-  },
-  {
-    accessorKey: "guestCount",
-    header: "Guests",
-    cell: ({ row }) => row.getValue("guestCount"),
   },
   {
     accessorKey: "totalAmount",
-    header: "Amount",
+    header: "Financial",
     cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("totalAmount"));
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "INR",
-      }).format(amount);
-    },
-  },
-  {
-    accessorKey: "commissionAmount",
-    header: "Amount",
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue("commissionAmount"));
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "INR",
-      }).format(amount);
+      const totalAmount = Number(row.getValue("totalAmount"));
+      const commissionAmount = Number(row.original.commissionAmount);
+      
+      return (
+        <div className="space-y-1">
+          <div className="font-medium">
+            {new Intl.NumberFormat("en-IN", {
+              style: "currency",
+              currency: "INR",
+            }).format(totalAmount)}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Commission: {new Intl.NumberFormat("en-IN", {
+              style: "currency",
+              currency: "INR",
+            }).format(commissionAmount)}
+          </div>
+        </div>
+      );
     },
   },
   {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+      const bookingStatus = row.getValue("status") as string;
+      const paymentStatus = row.original.paymentStatus as string;
+      
       return (
-        <Badge
-          variant={
-            status === "confirmed"
-              ? "default"
-              : status === "pending"
-                ? "secondary"
-                : status === "cancelled"
-                  ? "destructive"
-                  : "outline"
-          }
-          className={
-            status === "confirmed"
-              ? "bg-green-500 text-white"
-              : status === "pending"
-                ? "bg-yellow-500 text-white"
-                : status === "cancelled"
-                  ? "bg-red-500 text-white"
-                  : "bg-blue-500 text-white"
-          }
-        >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </Badge>
+        <div className="space-y-2 flex flex-col gap-2">
+          <Badge
+            variant={
+              bookingStatus === "confirmed"
+                ? "default"
+                : bookingStatus === "pending"
+                  ? "secondary"
+                  : bookingStatus === "cancelled"
+                    ? "destructive"
+                    : "outline"
+            }
+            className={
+              bookingStatus === "confirmed"
+                ? "bg-green-500 text-white"
+                : bookingStatus === "pending"
+                  ? "bg-yellow-500 text-white"
+                  : bookingStatus === "cancelled"
+                    ? "bg-red-500 text-white"
+                    : "bg-blue-500 text-white"
+            }
+          >
+            {bookingStatus.charAt(0).toUpperCase() + bookingStatus.slice(1)}
+          </Badge>
+          <Badge
+            variant={
+              paymentStatus === "paid"
+                ? "default"
+                : paymentStatus === "pending"
+                  ? "secondary"
+                  : "destructive"
+            }
+            className={`text-xs ${
+              paymentStatus === "paid"
+                ? "bg-green-100 text-green-800 border-green-300"
+                : paymentStatus === "pending"
+                  ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                  : "bg-red-100 text-red-800 border-red-300"
+            }`}
+          >
+            Payment: {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+          </Badge>
+        </div>
       );
     },
   },
   {
-    accessorKey: "paymentStatus",
-    header: "Payment",
+    id: "quickActions",
+    header: "Quick Actions",
     cell: ({ row }) => {
-      const status = row.getValue("paymentStatus") as string;
+      const booking = row.original;
+
       return (
-        <Badge
-          variant={
-            status === "paid"
-              ? "default"
-              : status === "pending"
-                ? "secondary"
-                : "destructive"
-          }
-          className={
-            status === "paid"
-              ? "bg-green-500 text-white"
-              : status === "pending"
-                ? "bg-yellow-500 text-white"
-                : "bg-red-500 text-white"
-          }
-        >
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </Badge>
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => window.open(`/admin/hotels/${booking.hotel.id}/details`, '_blank')}
+          >
+            Hotel Details
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => window.open(`/admin/users/customers/${booking.user.id}`, '_blank')}
+          >
+            Customer Details
+          </Button>
+        </div>
       );
-    },
-  },
-  {
-    accessorKey: "bookingDate",
-    header: "Booked On",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("bookingDate"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    },
-    filterFn: (row, id, filterValue) => {
-      if (!filterValue || filterValue.length !== 2) return true;
-      const [start, end] = filterValue;
-      const rowDate = new Date(row.getValue(id));
-      return rowDate >= start && rowDate <= end;
     },
   },
   {
@@ -223,7 +231,7 @@ export const columns: ColumnDef<Booking>[] = [
             <a href={`/admin/bookings/${booking.id}`}>
               <DropdownMenuItem>View Details</DropdownMenuItem>
             </a>
-            <DropdownMenuItem>Generate Invoice</DropdownMenuItem>
+          
           </DropdownMenuContent>
         </DropdownMenu>
       );
@@ -231,5 +239,5 @@ export const columns: ColumnDef<Booking>[] = [
   },
 ];
 
-export const filterFields = ["status", "paymentStatus", 'hotel.name'];
-export const datePickers = ["checkIn", "checkOut", "createdAt"];
+export const filterFields = ["status", "paymentStatus", "hotel.name", "user.name", "user.phone"];
+export const datePickers = [];

@@ -12,12 +12,15 @@ interface HotelSelectorProps {
   hotels: Array<{
     id: string;
     name: string;
-    city: string;
-    rating: number;
+    city: {
+      name: string;
+      id: string;
+      state: string;
+    };
+    rating?: number;
     status: string;
   }>;
   selectedHotel: string;
-
 }
 
 const HotelSelector = ({ hotels, selectedHotel }: HotelSelectorProps) => {
@@ -34,12 +37,12 @@ const HotelSelector = ({ hotels, selectedHotel }: HotelSelectorProps) => {
           {hotels.map((hotel) => (
             <SelectItem key={hotel.id} value={hotel.id}>
               <div className="flex items-center justify-between w-full">
-                <span>{hotel.name} - {hotel.city}</span>
+                <span>{hotel.name} - {hotel.city?.name || 'Unknown City'}</span>
                 <Badge 
                   variant={hotel.status === "active" ? "default" : "secondary"}
                   className="ml-2"
                 >
-                  {hotel.rating}★
+                  {hotel.rating || 'N/A'}★
                 </Badge>
               </div>
             </SelectItem>

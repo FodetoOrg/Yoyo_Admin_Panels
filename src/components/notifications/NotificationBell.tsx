@@ -53,6 +53,54 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  // Function to play notification sound
+  const playNotificationSound = () => {
+    try {
+      // Create audio context for notification sound
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      // Create a big notification sound (very loud and longer)
+      oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+      oscillator.frequency.setValueAtTime(1400, audioContext.currentTime + 0.4);
+      oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.6);
+      oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.8);
+      
+      // Very high volume (0.8) and longer duration (1.0 seconds)
+      gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+      
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 1.0);
+    } catch (error) {
+      console.log('Could not play notification sound:', error);
+    }
+  };
+
+  // Listen for messages from service worker
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data && event.data.type === 'PLAY_NOTIFICATION_SOUND') {
+        playNotificationSound();
+      }
+    };
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+    }
+
+    return () => {
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.removeEventListener('message', handleMessage);
+      }
+    };
+  }, []);
+
   // Ensure component is mounted before accessing browser APIs
   useEffect(() => {
     setMounted(true);
@@ -217,6 +265,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({
     
     try {
       await webPushClient.sendTestNotification('This is a test notification from your hotel admin dashboard!');
+      
+      // Play notification sound immediately for test
+      playNotificationSound();
+      
       alert('Test notification sent! Check your browser notifications.');
     } catch (error) {
       console.error('Failed to send test notification:', error);

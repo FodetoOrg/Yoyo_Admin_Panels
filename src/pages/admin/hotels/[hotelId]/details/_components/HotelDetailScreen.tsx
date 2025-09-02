@@ -31,7 +31,8 @@ import {
   Percent,
   CreditCard,
   Activity,
-  Home
+  Home,
+  Pencil
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -418,9 +419,17 @@ const HotelDetailScreen = ({ hotelData }: Props) => {
               </div>
             </div>
           </div>
-          <Badge variant={getStatusColor(hotel.status)} className="text-lg px-3 py-1">
-            {hotel.status}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={getStatusColor(hotel.status)} className=" px-3 py-1 text-base">
+              {hotel.status}
+            </Badge>
+            <a href={`/admin/hotels/${hotel.id}`}>
+              <Badge variant="outline" className="text-base px-3 py-1">
+                <Pencil className="h-3 w-3" />
+                Edit Hotel
+              </Badge>
+            </a>
+          </div>
         </div>
 
         {/* Statistics Cards */}

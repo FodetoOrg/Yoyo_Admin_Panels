@@ -43,8 +43,12 @@ interface HotelDashboardProps {
   hotels: Array<{
     id: string;
     name: string;
-    city: string;
-    rating: number;
+    city: {
+      name: string;
+      id: string;
+      state: string;
+    };
+    rating?: number;
     status: string;
   }>;
 }
@@ -117,7 +121,7 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
 
   // Mock hotels data for demo
   const mockHotels = [
-    { id: "hotel-1", name: "Charand Plaza", city: "Pallikarnai", rating: 4.5, status: "active" }
+    { id: "hotel-1", name: "Charand Plaza", city: { name: "Pallikarnai", id: "city-1", state: "State A" }, rating: 4.5, status: "active" }
   ];
 
   const actualHotels = hotels.length > 0 ? hotels : mockHotels;
@@ -206,7 +210,7 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
         <Card >
           <CardHeader>
             <CardTitle>
-              {hotelAnalytics?.overview?.hotelName || selectedHotelData?.name} - {hotelAnalytics?.overview?.city || selectedHotelData?.city || 'Unknown City'}
+              {hotelAnalytics?.overview?.hotelName || selectedHotelData?.name} - {hotelAnalytics?.overview?.city || selectedHotelData?.city?.name || 'Unknown City'}
             </CardTitle>
           </CardHeader>
           <CardContent>

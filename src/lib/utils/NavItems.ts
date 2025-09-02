@@ -320,14 +320,14 @@ export const navItems: NavItem[] = [
 
     ]
   },
-  // {
-  //   title: "Notifications",
-  //   url: "/admin/notifications",
-  //   icon: Bell,
-  //   isActive: false,
-  //   allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
-  //   show: true,
-  // },
+  {
+    title: "Notifications",
+    url: "/admin/notifications",
+    icon: Bell,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN, UserRole.HOTEL_ADMIN],
+    show: true,
+  },
   {
     title: "Settings",
     url: "/admin/configurations",

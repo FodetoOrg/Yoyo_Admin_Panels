@@ -95,6 +95,9 @@ export const ROUTES = {
   WEB_PUSH_TEST_ROUTE: "/api/v1/web-push/test",
   WEB_PUSH_VAPID_KEY_ROUTE: "/api/v1/web-push/vapid-public-key",
 
+  // Recent bookings route
+  GET_RECENT_BOOKINGS_ROUTE: "/api/v1/bookings/recent",
+
   // Add other route constants as needed
 } as const;
 

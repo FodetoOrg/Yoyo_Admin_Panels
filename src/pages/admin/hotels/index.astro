@@ -11,7 +11,17 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
   return Astro.redirect('/admin/dashboard');
 }
 
-const res:ApiResponse<{}> = await serverApiService.get(ROUTES.GET_ALL_HOTELS_ROUTE, Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "", Astro.cookies);
+// Get cityId from query parameters if provided
+const cityId = Astro.url.searchParams.get("cityId");
+const refresh = Astro.url.searchParams.get("refresh");
+
+// Build API URL with cityId if provided
+let apiUrl = ROUTES.GET_ALL_HOTELS_ROUTE;
+if (cityId && !refresh) {
+  apiUrl += `?cityId=${cityId}`;
+}
+
+const res:ApiResponse<any> = await serverApiService.get(apiUrl, Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "", Astro.cookies);
 
 let hotels:any[] = [];
 
@@ -23,6 +33,5 @@ console.log('hotels ',hotels)
 ---
 
 <DashboardLayout title="Hotels">
-    <Screen hotels={hotels} client:load writeAccess={true} />
-    
+    <Screen hotels={hotels} client:load writeAccess={true} cityId={cityId} />
 </DashboardLayout>

@@ -123,6 +123,16 @@ export const columns: ColumnDef<Category>[] = [
       return rowDate >= start && rowDate <= end;
     },
   },
+
+  {
+    accessorKey: "hotelId",
+    header: "View Hotel",
+    cell: ({ row }) => {
+      const hotel = row.getValue("hotelId");
+      console.log("hotel", hotel);
+      return hotel ? <a href={`/admin/hotels/${hotel}/details`} className="p-2 text-[12px] bg-black text-white rounded-md"> Open Hotel</a> : 'Not Assigned to Hotel'
+    },
+  },
   {
     id: "actions",
     cell: ({ row }) => {

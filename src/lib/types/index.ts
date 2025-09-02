@@ -4,19 +4,31 @@ import type { FieldConfig, FormConfig } from "./dynamicForm";
 // Booking types
 export interface Booking {
   id: string;
-  userId: string;
-  userName: string;
-  hotelId: string;
-  hotelName: string;
-  roomId: string;
-  roomName: string;
-  checkIn: Date;
-  checkOut: Date;
-  guests: number;
+  checkInDate: string;
+  checkOutDate: string;
+  bookingType: string;
+  guestCount: number;
   totalAmount: number;
+  commissionAmount: number;
+  paymentMode: string;
   status: "confirmed" | "pending" | "cancelled" | "completed";
   paymentStatus: "paid" | "pending" | "failed" | "refunded";
-  createdAt: Date;
+  bookingDate: string;
+  user: {
+    id: string;
+    name: string;
+    phone: string;
+  };
+  hotel: {
+    id: string;
+    name: string;
+    city: string;
+  };
+  room: {
+    id: string;
+    name: string;
+  };
+  addons?: any[];
 }
 
 // Invoice types

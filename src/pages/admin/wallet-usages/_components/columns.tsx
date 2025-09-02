@@ -147,6 +147,42 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
     },
   },
   {
+    id: "quickActions",
+    header: "Quick Actions",
+    cell: ({ row }) => {
+      const usage = row.original;
+
+      return (
+        <div className="flex flex-col gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => {
+              if (usage.refrenceType === "payment") {
+                window.open(`/admin/payments/${usage.refrenceId}`, '_blank');
+              } else if (usage.refrenceType === "booking") {
+                window.open(`/admin/bookings/${usage.refrenceId}`, '_blank');
+              }
+            }}
+            disabled={!usage.refrenceId}
+          >
+            View {usage.refrenceType === "payment" ? "Payment" : "Booking"}
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => window.open(`/admin/users/customers/${usage.userId}`, '_blank')}
+            disabled={!usage.userId}
+          >
+            View Customer
+          </Button>
+        </div>
+      );
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
       const usage = row.original;
@@ -187,6 +223,6 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
   },
 ];
 
-export const filterFields = [];
+export const filterFields = ["source", "refrenceType", "userName", "userPhone", "userEmail"];
 
 export const datePickers = [];

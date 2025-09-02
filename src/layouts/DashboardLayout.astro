@@ -5,6 +5,7 @@ import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
 import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { RecentBookingsWrapper } from "@/components/RecentBookingsWrapper";
 
 interface Props {
   title: string;
@@ -62,6 +63,12 @@ const allowedItems = navItems.filter((item) =>
       <slot />
     </DashboardSidebar>
 
+    <!-- Recent Bookings Modal and Button -->
+    <RecentBookingsWrapper 
+      userRole={currentUser.role}
+      client:load
+    />
+
     <!-- <Toaster client:load /> -->
 
     <script>
@@ -107,120 +114,53 @@ const allowedItems = navItems.filter((item) =>
 
         start() {
           if (this.isLoading) return;
-
+          
           this.isLoading = true;
           this.currentProgress = 0;
-
+          
           if (this.bar) {
             this.bar.classList.add("active");
-            this.updateProgress(10);
-
-            // Simulate progress
-            this.progressInterval = setInterval(() => {
-              if (this.currentProgress < 90) {
-                const increment = Math.random() * 30;
-                this.currentProgress = Math.min(
-                  90,
-                  this.currentProgress + increment,
-                );
-                this.updateProgress(this.currentProgress);
-              }
-            }, 200);
           }
-        }
-
-        updateProgress(percent) {
-          if (this.progress) {
-            this.progress.style.width = `${percent}%`;
-          }
+          
+          this.progressInterval = setInterval(() => {
+            this.currentProgress += Math.random() * 15;
+            
+            if (this.currentProgress >= 90) {
+              this.currentProgress = 90;
+              clearInterval(this.progressInterval!);
+            }
+            
+            if (this.progress) {
+              this.progress.style.width = `${this.currentProgress}%`;
+            }
+          }, 100);
         }
 
         complete() {
           if (!this.isLoading) return;
-
-          if (this.progressInterval) {
-            clearInterval(this.progressInterval);
-            this.progressInterval = null;
+          
+          clearInterval(this.progressInterval!);
+          
+          if (this.progress) {
+            this.progress.style.width = "100%";
           }
-
-          this.updateProgress(100);
-
+          
           setTimeout(() => {
             if (this.bar) {
               this.bar.classList.remove("active");
-              this.currentProgress = 0;
-              this.updateProgress(0);
-              this.isLoading = false;
+            }
+            this.isLoading = false;
+            this.currentProgress = 0;
+            
+            if (this.progress) {
+              this.progress.style.width = "0%";
             }
           }, 200);
         }
       }
 
-      // Initialize loading bar when DOM is ready
-      if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", () => {
-          new LoadingBar();
-        });
-      } else {
-        new LoadingBar();
-      }
-
-      // Re-initialize after view transitions
-      document.addEventListener("astro:after-swap", () => {
-        new LoadingBar();
-      });
-
-      // Initialize Web Push Notifications
-      document.addEventListener("DOMContentLoaded", () => {
-        // Check if notifications are supported
-        if ("serviceWorker" in navigator && "PushManager" in window) {
-          // Register service worker
-          navigator.serviceWorker
-            .register("/sw.js")
-            .then((registration) => {
-              console.log("Service Worker registered successfully");
-              
-              // Auto-check notification permission and show banner if needed
-              setTimeout(() => {
-                checkAndShowNotificationBanner();
-              }, 2000); // Wait 2 seconds after page load
-            })
-            .catch((error) => {
-              console.error("Service Worker registration failed:", error);
-            });
-        }
-      });
-
-      // Function to check and show notification banner
-      function checkAndShowNotificationBanner() {
-        // Only show on dashboard pages, not on auth
-        if (window.location.pathname.includes('/auth')) return;
-        
-        // Check if permission is default or denied but not subscribed
-        if (Notification.permission === 'default' || 
-            (Notification.permission === 'granted' && !localStorage.getItem('push-subscribed'))) {
-          
-          // Check if banner was dismissed recently
-          const dismissed = localStorage.getItem('notification-banner-dismissed');
-          const dismissedTime = dismissed ? parseInt(dismissed) : 0;
-          const oneDayAgo = Date.now() - (24 * 60 * 60 * 1000);
-          
-          if (dismissedTime < oneDayAgo) {
-            // Import and show the banner component
-            import('@/components/notifications/NotificationPermissionBanner').then(({ NotificationPermissionBanner }) => {
-              const container = document.getElementById('notification-banner-container');
-              if (container && !container.hasChildNodes()) {
-                // Create a React root and render the banner
-                const bannerElement = document.createElement('div');
-                container.appendChild(bannerElement);
-                
-                // You would need to use React.render here in a real implementation
-                // For now, we'll handle this in the sidebar component
-              }
-            });
-          }
-        }
-      }
+      // Initialize loading bar
+      new LoadingBar();
     </script>
   </body>
 </html>

@@ -84,6 +84,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
     id: refund.id,
     bookingId: refund.bookingId,
     paymentId: refund.originalPaymentId,
+    userId: refund.userId,
     amount: refund.refundAmount,
     reason: refund.refundReason,
     status: refund.status,
@@ -118,10 +119,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
         {/* Statistics */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Refunds</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+          
             <CardContent>
               <div className="text-2xl font-bold">₹{totalRefundAmount.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">
@@ -131,10 +129,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <RefreshCw className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+            
             <CardContent>
               <div className="text-2xl font-bold">{completedRefunds}</div>
               <p className="text-xs text-muted-foreground">
@@ -144,10 +139,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+           
             <CardContent>
               <div className="text-2xl font-bold">{pendingRefunds}</div>
               <p className="text-xs text-muted-foreground">
@@ -157,10 +149,7 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
           </Card>
 
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Avg. Refund</CardTitle>
-              <TrendingDown className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
+          
             <CardContent>
               <div className="text-2xl font-bold">
                 ₹{refundsData.length > 0 ? Math.round(totalRefundAmount / refundsData.length) : 0}
@@ -181,10 +170,10 @@ const Screen: React.FC<Props> = ({ refunds, pagination, currentUser }) => {
             <DataTable
               columns={columns()}
               data={transformedRefunds}
-              searchKey="userName"
-              loading={loading}
               filterFields={filterFields}
               datePickers={datePickers}
+              isLoading={loading}
+              onMarkAsPaid={() => {}}
             />
           </CardContent>
         </Card>

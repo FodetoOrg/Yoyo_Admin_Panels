@@ -63,9 +63,9 @@ export interface NavItem {
 
 
 const company = {
-  name: "Packed Freshly",
+  name: "Yoyo Lite",
   logo: GalleryVerticalEnd,
-  plan: "Enterprise",
+  plan: "",
 };
 
 

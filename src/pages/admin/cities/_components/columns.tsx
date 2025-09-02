@@ -74,18 +74,20 @@ export const columns: ColumnDef<any>[] = [
   },
 
   {
-    accessorKey: "createdAt",
-    header: "Created At",
+    id: "viewHotels",
+    header: "View Hotels",
     cell: ({ row }) => {
-      if (!row.getValue("createdAt")) return "—";
-      const date = new Date(row.getValue("createdAt"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
+      const city = row.original;
+      return (
+        <a href={`/admin/hotels?cityId=${city.id}`}>
+          <Button variant="default" size="sm" className="bg-black text-white text-xs">
+            View Hotels
+          </Button>
+        </a>
+      );
     },
   },
+
   {
     id: "actions",
     cell: ({ row }) => {

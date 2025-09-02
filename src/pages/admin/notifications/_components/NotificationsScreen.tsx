@@ -139,6 +139,32 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     
     try {
       await webPushClient.sendTestNotification('Test notification from admin dashboard!');
+      
+      // Play notification sound immediately for test
+      try {
+        const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+        
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+        
+        // Create a big notification sound (very loud and longer)
+        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+        oscillator.frequency.setValueAtTime(1400, audioContext.currentTime + 0.4);
+        oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.6);
+        oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.8);
+        
+        // Very high volume (0.8) and longer duration (1.0 seconds)
+        gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+        
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 1.0);
+      } catch (soundError) {
+        console.log('Could not play test notification sound:', soundError);
+      }
     } catch (error) {
       console.error('Failed to send test notification:', error);
     }
@@ -383,10 +409,44 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
                 )}
                 
                 {isSubscribed && (
-                  <Button onClick={handleSendTestNotification} variant="outline">
-                    <Send className="h-4 w-4 mr-2" />
-                    Test
-                  </Button>
+                  <>
+                    <Button onClick={handleSendTestNotification} variant="outline">
+                      <Send className="h-4 w-4 mr-2" />
+                      Test
+                    </Button>
+                    <Button 
+                      onClick={() => {
+                        try {
+                          const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+                          const oscillator = audioContext.createOscillator();
+                          const gainNode = audioContext.createGain();
+                          
+                          oscillator.connect(gainNode);
+                          gainNode.connect(audioContext.destination);
+                          
+                          // Create a big notification sound (very loud and longer)
+                          oscillator.frequency.setValueAtTime(1200, audioContext.currentTime);
+                          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.2);
+                          oscillator.frequency.setValueAtTime(1400, audioContext.currentTime + 0.4);
+                          oscillator.frequency.setValueAtTime(1200, audioContext.currentTime + 0.6);
+                          oscillator.frequency.setValueAtTime(1000, audioContext.currentTime + 0.8);
+                          
+                          // Very high volume (0.8) and longer duration (1.0 seconds)
+                          gainNode.gain.setValueAtTime(0.8, audioContext.currentTime);
+                          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.0);
+                          
+                          oscillator.start(audioContext.currentTime);
+                          oscillator.stop(audioContext.currentTime + 1.0);
+                        } catch (error) {
+                          console.log('Could not play test sound:', error);
+                        }
+                      }} 
+                      variant="outline"
+                    >
+                      🔊 Test Sound (Big)
+                    </Button>
+                    
+                  </>
                 )}
               </div>
             </div>

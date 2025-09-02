@@ -72,18 +72,8 @@ export const columns: ColumnDef<Addon>[] = [
   {
     accessorKey: "hotel.name",
     header: 'Hotel Name',
-    // header: ({ column }) => (
-    //   <Button
-    //     variant="ghost"
-    //     onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-    //   >
-    //     Hotel Name
-    //     <ArrowUpDown className="ml-2 h-4 w-4" />
-    //   </Button>
-    // ),
     cell: ({ row }) => {
       const addon = row.original;
-
       return <div className="font-medium">{addon.hotel?.name || 'N/A'}</div>
     },
   },
@@ -92,14 +82,6 @@ export const columns: ColumnDef<Addon>[] = [
   //   header: "Description",
   //   cell: ({ row }) => row.getValue("description") || "—",
   // },
-  {
-    accessorKey: "hotelName",
-    accessorFn: (row) => row.hotel?.name || "Unknown Hotel",
-    header: "Hotel",
-    cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("hotelName")}</div>
-    ),
-  },
   {
     accessorKey: "price",
     header: "Price",
@@ -143,6 +125,25 @@ export const columns: ColumnDef<Addon>[] = [
     },
   },
   {
+    id: "viewHotel",
+    header: "View Hotel",
+    cell: ({ row }) => {
+      const addon = row.original;
+
+      return (
+        <Button
+          variant="outline"
+          size="sm"
+          className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+          onClick={() => window.open(`/admin/hotels/${addon.hotel?.id}/details`, '_blank')}
+          disabled={!addon.hotel?.id}
+        >
+          View Hotel
+        </Button>
+      );
+    },
+  },
+  {
     id: "actions",
     cell: ({ row }) => {
       const addon = row.original;
@@ -176,5 +177,5 @@ export const columns: ColumnDef<Addon>[] = [
   },
 ];
 
-export const filterFields = ["name", "status", "hotelName"];
+export const filterFields = ["name", "status", "hotel.name"];
 export const datePickers = ["createdAt"];

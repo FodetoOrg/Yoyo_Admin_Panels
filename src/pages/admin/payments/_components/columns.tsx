@@ -1,7 +1,7 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, Eye, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -51,9 +51,20 @@ export const columns = [
   },
   {
     accessorKey: "id",
-    header: "Payment ID",
+    header: "Transaction Details",
     cell: ({ row }) => (
-      <div className="font-mono text-sm">{row.getValue("id")}</div>
+      <div className="space-y-1">
+        <div className="font-mono text-sm font-medium">{row.getValue("id")}</div>
+        <div className="text-xs text-muted-foreground">
+          {new Date(row.original.transactionDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          })}
+        </div>
+      </div>
     ),
   },
   {
@@ -63,37 +74,39 @@ export const columns = [
         variant="ghost"
         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
       >
-        Customer
+        Customer & Booking
         <ArrowUpDown className="ml-2 h-4 w-4" />
       </Button>
     ),
     cell: ({ row }) => (
-      <div className="font-medium">{row.getValue("user.name")}</div>
-    ),
-  },
-  {
-    accessorKey: "bookingId",
-    header: "Booking ID",
-    cell: ({ row }) => (
-      <div className="font-mono text-sm">{row.getValue("bookingId")}</div>
+      <div className="space-y-1">
+        <div className="font-medium">{row.original.user.phone}</div>
+        <div className="text-xs text-muted-foreground font-mono">
+          Booking: {row.original.bookingId}
+        </div>
+      </div>
     ),
   },
   {
     accessorKey: "amount",
-    header: "Amount",
+    header: "Payment Info",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
       const currency = row.original.currency;
-      return new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: currency,
-      }).format(amount);
+      return (
+        <div className="space-y-1">
+          <div className="font-medium">
+            {new Intl.NumberFormat("en-IN", {
+              style: "currency",
+              currency: currency,
+            }).format(amount)}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {row.original.paymentMode}
+          </div>
+        </div>
+      );
     },
-  },
-  {
-    accessorKey: "paymentMode",
-    header: "Payment Method",
-    cell: ({ row }) => row.getValue("paymentMode"),
   },
   {
     accessorKey: "status",
@@ -127,27 +140,36 @@ export const columns = [
     },
   },
   {
-    accessorKey: "transactionDate",
-    header: "Transaction Date",
+    id: "quickActions",
+    header: "Quick Actions",
     cell: ({ row }) => {
-      const date = new Date(row.getValue("transactionDate"));
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      });
+      const payment = row.original;
+      return (
+        <div className="flex space-x-2 gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => window.open(`/admin/bookings/${payment.bookingId}`)}
+          >
+            Booking
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 px-2 text-xs bg-black text-white hover:bg-gray-800 border-black"
+            onClick={() => window.open(`/admin/users/customers/${payment.user.id}`)}
+          >
+            Customer
+          </Button>
+        </div>
+      );
     },
-    filterFn: (row, id, filterValue) => {
-      if (!filterValue || filterValue.length !== 2) return true;
-      const [start, end] = filterValue;
-      const rowDate = new Date(row.getValue(id));
-      return rowDate >= start && rowDate <= end;
-    },
+    enableSorting: false,
   },
   {
     id: "actions",
+    header: "Actions",
     cell: ({ row }) => {
       const payment = row.original;
 
@@ -168,10 +190,16 @@ export const columns = [
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <a href={`/admin/payments/${payment.id}`}>
-              <DropdownMenuItem >View Details</DropdownMenuItem>
+              <DropdownMenuItem>View Payment Details</DropdownMenuItem>
             </a>
+            <DropdownMenuItem>Download Receipt</DropdownMenuItem>
             {payment.status === "successful" && (
-              <DropdownMenuItem>Process Refund</DropdownMenuItem>
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-red-600">
+                  Process Refund
+                </DropdownMenuItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
