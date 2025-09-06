@@ -40,7 +40,7 @@ export { CONSTANTS };
 
 // Create client-side axios instance
 const clientApi = axios.create({
-  baseURL: import.meta.env.PUBLIC_API_URL || "http://192.168.29.53:3000",
+  baseURL: import.meta.env.PUBLIC_API_URL || "https://aqua-home-backend-latest.fly.dev",
   headers: {
     "Content-Type": "application/json",
   },
@@ -48,7 +48,7 @@ const clientApi = axios.create({
 
 // Create server-side axios instance
 const serverApi = axios.create({
-  baseURL: import.meta.env.PUBLIC_API_URL || "http://192.168.29.53:3000",
+  baseURL: import.meta.env.PUBLIC_API_URL || "https://aqua-home-backend-latest.fly.dev",
   headers: {
     "Content-Type": "application/json",
   },
