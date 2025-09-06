@@ -69,7 +69,7 @@ export const columns: ColumnDef<Booking>[] = [
       <div className="space-y-1">
         <div className="font-medium">{row.original.user?.name || row.original.user?.phone}</div>
         <div className="text-xs text-muted-foreground">
-          {row.original.hotel.name}
+          {row.original.hotel?.name || 'No hotel assigned'}
         </div>
         
       </div>
@@ -187,22 +187,26 @@ export const columns: ColumnDef<Booking>[] = [
 
       return (
         <div className="flex flex-col gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
-            onClick={() => window.open(`/admin/hotels/${booking.hotel.id}/details`, '_blank')}
-          >
-            Hotel Details
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs bg-black text-white hover:bg-gray-800 border-black"
-            onClick={() => window.open(`/admin/users/customers/${booking.user.id}`, '_blank')}
-          >
-            Customer Details
-          </Button>
+          {booking.hotel?.id && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+              onClick={() => window.open(`/admin/hotels/${booking.hotel.id}/details`, '_blank')}
+            >
+              Hotel Details
+            </Button>
+          )}
+          {booking.user?.id && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-xs bg-black text-white hover:bg-gray-800 border-black"
+              onClick={() => window.open(`/admin/users/customers/${booking.user.id}`, '_blank')}
+            >
+              Customer Details
+            </Button>
+          )}
         </div>
       );
     },

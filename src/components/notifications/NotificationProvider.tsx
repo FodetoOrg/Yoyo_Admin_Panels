@@ -1,22 +1,28 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { WebPushClient } from "@/lib/utils/webPushClient";
-import { apiService } from "@/lib/utils/api";
+import { apiService, notificationApi, type NotificationItem } from "@/lib/utils/api";
 import { CONSTANTS } from "@/lib/utils/constants";
+import { notificationPermissionManager, type NotificationPermissionState } from "@/lib/utils/notificationPermissionManager";
 
 interface NotificationContextType {
   webPushClient: WebPushClient | null;
   isSubscribed: boolean;
   permissionStatus: NotificationPermission;
+  permissionState: NotificationPermissionState | null;
   unreadCount: number;
-  notifications: any[];
+  notifications: NotificationItem[];
+  isLoadingNotifications: boolean;
+  requiresPermission: boolean;
   subscribe: () => Promise<boolean>;
   unsubscribe: () => Promise<boolean>;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   deleteNotification: (id: string) => Promise<void>;
   refreshNotifications: () => Promise<void>;
+  checkPermissions: (forceCheck?: boolean) => Promise<NotificationPermissionState>;
+  forceEnableNotifications: () => Promise<boolean>;
 }
 
 const NotificationContext = createContext<NotificationContextType | null>(null);
@@ -41,8 +47,11 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const [webPushClient, setWebPushClient] = useState<WebPushClient | null>(null);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [permissionStatus, setPermissionStatus] = useState<NotificationPermission>('default');
+  const [permissionState, setPermissionState] = useState<NotificationPermissionState | null>(null);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [notifications, setNotifications] = useState<any[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
+  const [requiresPermission, setRequiresPermission] = useState(false);
 
   // Helper function to get cookie
   const getCookie = (name: string): string | null => {
@@ -100,36 +109,75 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     };
   }, []);
 
-  // Initialize web push client
+  // Initialize web push client and check permissions on mount/reload
   useEffect(() => {
     const initWebPush = async () => {
       const authToken = getCookie(CONSTANTS.ACCESS_TOKEN_KEY);
+      if (!authToken) {
+        console.log('No auth token found, skipping notification initialization');
+        return;
+      }
+
+      // Initialize the permission manager
+      await notificationPermissionManager.initialize(authToken);
+      
+      // Initialize web push client
       const client = new WebPushClient({ authToken });
       setWebPushClient(client);
       
       // Check permission status
       setPermissionStatus(Notification.permission);
       
-      // Check if already subscribed
-      const subscribed = await client.checkExistingSubscription();
-      setIsSubscribed(subscribed);
+      // Perform comprehensive permission check with backend validation
+      const state = await notificationPermissionManager.checkAndValidatePermissions();
+      setPermissionState(state);
+      setRequiresPermission(state.requiresPermission);
+      
+      // Use the backend-validated subscription status
+      setIsSubscribed(state.isSubscribed);
+      
+      console.log('Notification State:', {
+        browserPermission: Notification.permission,
+        isSubscribed: state.isSubscribed,
+        needsUpdate: state.needsUpdate,
+        requiresPermission: state.requiresPermission,
+        hasPermission: state.hasPermission
+      });
+      
+      // If user is required to have notifications but doesn't, we'll handle it
+      if (state.requiresPermission && !state.isSubscribed) {
+        console.warn('User requires notification permissions but is not subscribed');
+        // The UI should show a mandatory notification permission banner
+      }
     };
 
     initWebPush();
+    
+    // Re-check permissions when window regains focus
+    const handleFocus = () => {
+      initWebPush();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
-  // Fetch notifications
-  const refreshNotifications = async () => {
+  // Fetch notifications (today only by default)
+  const refreshNotifications = useCallback(async () => {
+    setIsLoadingNotifications(true);
     try {
-      const response = await apiService.get('/api/v1/notifications');
+      // Get today's notifications by default
+      const response = await notificationApi.getNotifications(1, 10, true);
       if (response.success) {
         setNotifications(response.data.notifications || []);
         setUnreadCount(response.data.unreadCount || 0);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
+    } finally {
+      setIsLoadingNotifications(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     refreshNotifications();
@@ -145,8 +193,17 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     try {
       const success = await webPushClient.subscribe();
       if (success) {
-        setIsSubscribed(true);
+        // Re-validate with backend to get the updated state
+        const state = await notificationPermissionManager.checkAndValidatePermissions();
+        setPermissionState(state);
+        setIsSubscribed(state.isSubscribed);
         setPermissionStatus('granted');
+        
+        console.log('After subscribe - Notification State:', {
+          isSubscribed: state.isSubscribed,
+          needsUpdate: state.needsUpdate,
+          hasPermission: state.hasPermission
+        });
       }
       return success;
     } catch (error) {
@@ -161,7 +218,16 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     try {
       const success = await webPushClient.unsubscribe();
       if (success) {
-        setIsSubscribed(false);
+        // Re-validate with backend to get the updated state
+        const state = await notificationPermissionManager.checkAndValidatePermissions();
+        setPermissionState(state);
+        setIsSubscribed(state.isSubscribed);
+        
+        console.log('After unsubscribe - Notification State:', {
+          isSubscribed: state.isSubscribed,
+          needsUpdate: state.needsUpdate,
+          hasPermission: state.hasPermission
+        });
       }
       return success;
     } catch (error) {
@@ -172,7 +238,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
   const markAsRead = async (id: string): Promise<void> => {
     try {
-      const response = await apiService.put(`/api/v1/notifications/${id}/read`);
+      const response = await notificationApi.markAsRead(id);
       if (response.success) {
         setNotifications(prev => 
           prev.map(n => n.id === id ? { ...n, isRead: true } : n)
@@ -186,7 +252,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
   const markAllAsRead = async (): Promise<void> => {
     try {
-      const response = await apiService.put('/api/v1/notifications/mark-all-read');
+      const response = await notificationApi.markAllAsRead();
       if (response.success) {
         setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
@@ -198,7 +264,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
 
   const deleteNotification = async (id: string): Promise<void> => {
     try {
-      const response = await apiService.delete(`/api/v1/notifications/${id}`);
+      const response = await notificationApi.deleteNotification(id);
       if (response.success) {
         const notification = notifications.find(n => n.id === id);
         setNotifications(prev => prev.filter(n => n.id !== id));
@@ -211,18 +277,48 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     }
   };
 
+  // Check permissions (can be called manually)
+  const checkPermissions = async (forceCheck = false): Promise<NotificationPermissionState> => {
+    const state = await notificationPermissionManager.checkAndValidatePermissions(forceCheck);
+    setPermissionState(state);
+    setRequiresPermission(state.requiresPermission);
+    setIsSubscribed(state.isSubscribed);
+    return state;
+  };
+
+  // Force enable notifications (when required)
+  const forceEnableNotifications = async (): Promise<boolean> => {
+    try {
+      const success = await notificationPermissionManager.forceEnableNotifications();
+      if (success) {
+        setIsSubscribed(true);
+        setPermissionStatus('granted');
+        await checkPermissions(true);
+      }
+      return success;
+    } catch (error) {
+      console.error('Failed to force enable notifications:', error);
+      return false;
+    }
+  };
+
   const value: NotificationContextType = {
     webPushClient,
     isSubscribed,
     permissionStatus,
+    permissionState,
     unreadCount,
     notifications,
+    isLoadingNotifications,
+    requiresPermission,
     subscribe,
     unsubscribe,
     markAsRead,
     markAllAsRead,
     deleteNotification,
     refreshNotifications,
+    checkPermissions,
+    forceEnableNotifications,
   };
 
   return (

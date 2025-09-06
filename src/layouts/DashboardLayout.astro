@@ -3,9 +3,7 @@ import "../styles/global.css";
 import DashboardSidebar from "@/components/sidebar";
 import { navItems } from "@/lib/utils/NavItems";
 import { ClientRouter } from "astro:transitions";
-import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
-import { NotificationBell } from "@/components/notifications/NotificationBell";
-import { RecentBookingsWrapper } from "@/components/RecentBookingsWrapper";
+import { SimpleNotificationBanner } from "@/components/notifications/SimpleNotificationBanner";
 
 interface Props {
   title: string;
@@ -38,6 +36,24 @@ const allowedItems = navItems.filter((item) =>
       rel="stylesheet"
     />
     <ClientRouter />
+    
+    <!-- Add animation styles for notification banner -->
+    <style>
+      @keyframes gradient-x {
+        0%, 100% {
+          background-size: 200% 200%;
+          background-position: left center;
+        }
+        50% {
+          background-size: 200% 200%;
+          background-position: right center;
+        }
+      }
+      .animate-gradient-x {
+        animation: gradient-x 15s ease infinite;
+        background-size: 200% 200%;
+      }
+    </style>
   </head>
   <body>
     <!-- Loading Progress Bar -->
@@ -45,15 +61,9 @@ const allowedItems = navItems.filter((item) =>
       <div class="loading-progress"></div>
     </div>
 
-    <!-- Auto-show notification permission banner -->
-    <div id="notification-banner-container"></div>
-    <NotificationPermissionBanner
-    onPermissionGranted={() => {
-      
-      localStorage.setItem('push-subscribed', 'true');
-    }}
+    <!-- Simple Notification Banner - Shows when notifications are blocked -->
+    <SimpleNotificationBanner client:load />
 
-  />
     <DashboardSidebar
       client:load
       pathname={pathname}
@@ -62,12 +72,6 @@ const allowedItems = navItems.filter((item) =>
     >
       <slot />
     </DashboardSidebar>
-
-    <!-- Recent Bookings Modal and Button -->
-    <RecentBookingsWrapper 
-      userRole={currentUser.role}
-      client:load
-    />
 
     <!-- <Toaster client:load /> -->
 

@@ -43,6 +43,7 @@ import { Breadcrumbs } from "./Breadcrumbs";
 import { Icons } from "./Icons";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { NotificationPermissionBanner } from "@/components/notifications/NotificationPermissionBanner";
+import { RecentBookingsIcon } from "@/components/RecentBookingsIcon";
 
 
 // Enhanced NavItem interface with role-based access
@@ -211,7 +212,7 @@ export default function AppSidebar({
 
     // If it's already a React element
     if (React.isValidElement(IconComponent)) {
-      return React.cloneElement(IconComponent, { className: "w-5 h-5" });
+      return React.cloneElement(IconComponent as React.ReactElement<any>, { className: "w-5 h-5" });
     }
 
 
@@ -371,7 +372,7 @@ export default function AppSidebar({
                   <AvatarFallback className="rounded-lg">
                     {user?.name
                       ?.split(" ")
-                      .map((n) => n[0])
+                      .map((n: string) => n[0])
                       .join("")}
                   </AvatarFallback>
                 </Avatar>
@@ -397,6 +398,7 @@ export default function AppSidebar({
             <Breadcrumbs pathname={pathname} />
           </div>
           <div className="flex items-center gap-2 px-4">
+            <RecentBookingsIcon userRole={user?.role} />
             <NotificationBell userId={user?.id} />
           </div>
         </header>

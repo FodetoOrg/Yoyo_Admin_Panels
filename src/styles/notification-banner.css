@@ -1,0 +1,44 @@
+/* Notification Banner Animations */
+
+@keyframes gradient-x {
+  0%, 100% {
+    background-size: 200% 200%;
+    background-position: left center;
+  }
+  50% {
+    background-size: 200% 200%;
+    background-position: right center;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-gradient-x {
+  animation: gradient-x 15s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+/* Sticky banner adjustment for content */
+.notification-banner-active {
+  padding-top: 56px !important;
+}
+
+.notification-banner-expanded {
+  padding-top: 200px !important;
+}
+
+/* Smooth transitions */
+.notification-banner-transition {
+  transition: padding-top 0.3s ease, margin-top 0.3s ease;
+}

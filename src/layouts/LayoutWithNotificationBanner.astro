@@ -1,0 +1,64 @@
+---
+// Example Astro Layout with Notification Banner
+import NotificationSystemWrapper from '@/components/notifications/NotificationSystemWrapper';
+
+export interface Props {
+  title?: string;
+}
+
+const { title = 'Admin Dashboard' } = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Admin Dashboard" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{title}</title>
+    
+    <style>
+      /* Notification Banner Animations */
+      @keyframes gradient-x {
+        0%, 100% {
+          background-size: 200% 200%;
+          background-position: left center;
+        }
+        50% {
+          background-size: 200% 200%;
+          background-position: right center;
+        }
+      }
+
+      @keyframes shimmer {
+        0% {
+          transform: translateX(-100%);
+        }
+        100% {
+          transform: translateX(100%);
+        }
+      }
+
+      .animate-gradient-x {
+        animation: gradient-x 15s ease infinite;
+        background-size: 200% 200%;
+      }
+
+      .animate-shimmer {
+        animation: shimmer 2s ease-in-out infinite;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Notification System with Banner -->
+    <NotificationSystemWrapper 
+      client:load 
+      showBanner={true} 
+      showModal={false}
+    />
+    
+    <!-- Main Content -->
+    <slot />
+  </body>
+</html>

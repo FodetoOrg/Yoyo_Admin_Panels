@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { apiService } from "@/lib/utils/api";
 import { useNotifications } from "@/components/notifications/NotificationProvider";
+import type { ColumnDef } from "@tanstack/react-table";
 
 interface Notification {
   id: string;
@@ -47,19 +48,31 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
   const {
     isSubscribed,
     permissionStatus,
+    permissionState,
     subscribe,
     unsubscribe,
     webPushClient
   } = useNotifications();
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('NotificationsScreen State:', {
+      isSubscribed,
+      permissionStatus,
+      permissionState,
+      needsUpdate: permissionState?.needsUpdate,
+      hasValidSubscription: isSubscribed && !permissionState?.needsUpdate
+    });
+  }, [isSubscribed, permissionStatus, permissionState]);
 
   // Fetch notifications
   const fetchNotifications = async () => {
     setLoading(true);
     try {
-      const response = await apiService.get('/api/v1/notifications');
-      if (response.success) {
-        setNotifications(response.data.notifications || []);
-        setUnreadCount(response.data.unreadCount || 0);
+      const response: any = await apiService.get('/api/v1/notifications');
+      if (response?.success) {
+        setNotifications(response.data?.notifications || []);
+        setUnreadCount(response.data?.unreadCount || 0);
       }
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -74,8 +87,8 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
 
   const handleMarkAsRead = async (notificationId: string) => {
     try {
-      const response = await apiService.put(`/api/v1/notifications/${notificationId}/read`);
-      if (response.success) {
+      const response: any = await apiService.put(`/api/v1/notifications/${notificationId}/read`);
+      if (response?.success) {
         setNotifications(prev => 
           prev.map(n => n.id === notificationId ? { ...n, isRead: true } : n)
         );
@@ -88,8 +101,8 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
 
   const handleMarkAllAsRead = async () => {
     try {
-      const response = await apiService.put('/api/v1/notifications/mark-all-read');
-      if (response.success) {
+      const response: any = await apiService.put('/api/v1/notifications/mark-all-read');
+      if (response?.success) {
         setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
         setUnreadCount(0);
       }
@@ -100,8 +113,8 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
 
   const handleDeleteNotification = async (notificationId: string) => {
     try {
-      const response = await apiService.delete(`/api/v1/notifications/${notificationId}`);
-      if (response.success) {
+      const response: any = await apiService.delete(`/api/v1/notifications/${notificationId}`);
+      if (response?.success) {
         const notification = notifications.find(n => n.id === notificationId);
         setNotifications(prev => prev.filter(n => n.id !== notificationId));
         if (notification && !notification.isRead) {
@@ -117,11 +130,11 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     if (selectedRows.length === 0) return;
     
     try {
-      const response = await apiService.post('/api/v1/notifications/bulk-delete', {
+      const response: any = await apiService.post('/api/v1/notifications/bulk-delete', {
         notificationIds: selectedRows
       });
       
-      if (response.success) {
+      if (response?.success) {
         const deletedNotifications = notifications.filter(n => selectedRows.includes(n.id));
         const unreadDeleted = deletedNotifications.filter(n => !n.isRead).length;
         
@@ -195,10 +208,10 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     }
   };
 
-  const columns = [
+  const columns: ColumnDef<Notification>[] = [
     {
       id: "select",
-      header: ({ table }) => (
+      header: ({ table }: any) => (
         <input
           type="checkbox"
           checked={table.getIsAllPageRowsSelected()}
@@ -212,7 +225,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
           }}
         />
       ),
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <input
           type="checkbox"
           checked={selectedRows.includes(row.original.id)}
@@ -229,7 +242,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       accessorKey: "type",
       header: "Type",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <div className="flex items-center gap-2">
           <span className="text-lg">{getNotificationIcon(row.getValue("type"))}</span>
           <Badge variant="outline" className="capitalize">
@@ -241,7 +254,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       accessorKey: "title",
       header: "Title",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <div className={`font-medium ${!row.original.isRead ? 'text-blue-600' : ''}`}>
           {row.getValue("title")}
         </div>
@@ -250,7 +263,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       accessorKey: "body",
       header: "Message",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <div className="max-w-xs truncate text-sm text-muted-foreground">
           {row.getValue("body")}
         </div>
@@ -259,7 +272,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       accessorKey: "isRead",
       header: "Status",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <Badge variant={row.getValue("isRead") ? "secondary" : "default"}>
           {row.getValue("isRead") ? "Read" : "Unread"}
         </Badge>
@@ -268,7 +281,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       accessorKey: "createdAt",
       header: "Date",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <div className="text-sm">
           {formatDate(row.getValue("createdAt"))}
         </div>
@@ -277,7 +290,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
     {
       id: "actions",
       header: "Actions",
-      cell: ({ row }) => (
+      cell: ({ row }: any) => (
         <div className="flex items-center gap-1">
           {!row.original.isRead && (
             <Button
@@ -379,6 +392,23 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
           </Card>
         </div>
 
+        {/* Debug Info Card - Remove this in production */}
+        <Card className="border-yellow-500 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-sm">Debug Info (Remove in Production)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-xs space-y-1">
+              <div>Browser Permission: <strong>{permissionStatus}</strong></div>
+              <div>Is Subscribed (Backend): <strong>{isSubscribed ? 'Yes' : 'No'}</strong></div>
+              <div>Needs Update: <strong>{permissionState?.needsUpdate ? 'Yes' : 'No'}</strong></div>
+              <div>Has Permission: <strong>{permissionState?.hasPermission ? 'Yes' : 'No'}</strong></div>
+              <div>Requires Permission: <strong>{permissionState?.requiresPermission ? 'Yes' : 'No'}</strong></div>
+              <div>Valid Subscription: <strong>{isSubscribed && !permissionState?.needsUpdate ? 'Yes' : 'No'}</strong></div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Push Notification Settings */}
         <Card>
           <CardHeader>
@@ -389,10 +419,34 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-medium">Web Push Notifications</h4>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="font-medium">Web Push Notifications</h4>
+                  {isSubscribed && !permissionState?.needsUpdate && (
+                    <Badge variant="default" className="bg-green-500">
+                      <Check className="h-3 w-3 mr-1" />
+                      Active
+                    </Badge>
+                  )}
+                  {isSubscribed && permissionState?.needsUpdate && (
+                    <Badge variant="destructive">
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Update Required
+                    </Badge>
+                  )}
+                  {!isSubscribed && (
+                    <Badge variant="secondary">
+                      Inactive
+                    </Badge>
+                  )}
+                </div>
                 <p className="text-sm text-muted-foreground">
-                  Get instant notifications for bookings, payments, and updates
+                  {!isSubscribed 
+                    ? "Get instant notifications for bookings, payments, and updates"
+                    : permissionState?.needsUpdate 
+                      ? "Your notification settings need to be updated. Please re-enable."
+                      : "You're receiving instant notifications for bookings, payments, and updates"
+                  }
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -401,6 +455,11 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
                     <Bell className="h-4 w-4 mr-2" />
                     Enable Notifications
                   </Button>
+                ) : permissionState?.needsUpdate ? (
+                  <Button onClick={subscribe} variant="default">
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Re-enable Notifications
+                  </Button>
                 ) : (
                   <Button onClick={unsubscribe} variant="outline">
                     <BellRing className="h-4 w-4 mr-2" />
@@ -408,7 +467,7 @@ const NotificationsScreen: React.FC<NotificationsScreenProps> = ({
                   </Button>
                 )}
                 
-                {isSubscribed && (
+                {isSubscribed && !permissionState?.needsUpdate && (
                   <>
                     <Button onClick={handleSendTestNotification} variant="outline">
                       <Send className="h-4 w-4 mr-2" />

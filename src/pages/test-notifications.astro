@@ -1,0 +1,182 @@
+---
+// Test page to verify notification banner is working
+import NotificationSystemWrapper from '@/components/notifications/NotificationSystemWrapper';
+import DebugNotificationStatus from '@/components/notifications/DebugNotificationStatus';
+import SimpleNotificationBanner from '@/components/notifications/SimpleNotificationBanner';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Notification Banner</title>
+    
+    <style>
+      /* Animation for banner */
+      @keyframes gradient-x {
+        0%, 100% {
+          background-size: 200% 200%;
+          background-position: left center;
+        }
+        50% {
+          background-size: 200% 200%;
+          background-position: right center;
+        }
+      }
+      .animate-gradient-x {
+        animation: gradient-x 15s ease infinite;
+        background-size: 200% 200%;
+      }
+      
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        margin: 0;
+        padding: 20px;
+      }
+      
+      .test-content {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 40px 20px;
+      }
+      
+      .status-card {
+        background: #f3f4f6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+      }
+      
+      .button {
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 6px;
+        cursor: pointer;
+        margin: 5px;
+      }
+      
+      .button:hover {
+        background: #2563eb;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Simple Notification Banner (no context required) -->
+    <SimpleNotificationBanner client:load />
+    
+    <!-- Full Notification System (optional - comment out if testing simple banner) -->
+    <!-- <NotificationSystemWrapper 
+      client:load 
+      showBanner={true} 
+      showModal={false}
+    /> -->
+    
+    <!-- Debug Status Component (requires NotificationProvider) -->
+    <!-- <DebugNotificationStatus client:load /> -->
+    
+    <div class="test-content">
+      <h1>🔔 Notification Banner Test Page</h1>
+      
+      <div class="status-card">
+        <h2>Current Browser Permission Status</h2>
+        <p id="permission-status">Checking...</p>
+      </div>
+      
+      <div class="status-card">
+        <h2>Instructions to Test:</h2>
+        <ol>
+          <li>Click "Block Notifications" to simulate blocked state</li>
+          <li>The red banner should appear at the top</li>
+          <li>To re-enable, follow the banner instructions</li>
+        </ol>
+      </div>
+      
+      <div class="status-card">
+        <h2>Quick Actions:</h2>
+        <button class="button" onclick="blockNotifications()">
+          🚫 Block Notifications (Open Settings)
+        </button>
+        <button class="button" onclick="checkPermission()">
+          🔍 Check Permission Status
+        </button>
+        <button class="button" onclick="requestPermission()">
+          ✅ Request Permission
+        </button>
+        <button class="button" onclick="window.location.reload()">
+          🔄 Refresh Page
+        </button>
+      </div>
+      
+      <div class="status-card">
+        <h2>Debug Info:</h2>
+        <pre id="debug-info"></pre>
+      </div>
+    </div>
+    
+    <script>
+      // Check and display permission status
+      function checkPermission() {
+        if ('Notification' in window) {
+          const status = Notification.permission;
+          const statusEl = document.getElementById('permission-status');
+          const debugEl = document.getElementById('debug-info');
+          
+          if (statusEl) {
+            statusEl.textContent = `Notification Permission: ${status.toUpperCase()}`;
+          }
+          
+          // Update debug info
+          if (debugEl) {
+            debugEl.textContent = JSON.stringify({
+              permission: status,
+              isBlocked: status === 'denied',
+              isGranted: status === 'granted',
+              isPending: status === 'default',
+              timestamp: new Date().toISOString()
+            }, null, 2);
+          }
+          
+          // Color code the status
+          if (statusEl) {
+            if (status === 'denied') {
+              statusEl.style.color = 'red';
+              statusEl.innerHTML += ' ⛔ - Banner should be visible!';
+            } else if (status === 'granted') {
+              statusEl.style.color = 'green';
+              statusEl.innerHTML += ' ✅';
+            } else {
+              statusEl.style.color = 'orange';
+              statusEl.innerHTML += ' ⏳';
+            }
+          }
+        }
+      }
+      
+      // Request notification permission
+      async function requestPermission() {
+        if ('Notification' in window) {
+          const result = await Notification.requestPermission();
+          alert(`Permission result: ${result}`);
+          checkPermission();
+          
+          // Reload after a moment to update the banner
+          setTimeout(() => window.location.reload(), 500);
+        }
+      }
+      
+      // Guide to block notifications
+      function blockNotifications() {
+        alert('To block notifications:\n\n1. Click the lock icon in the address bar\n2. Find "Notifications" setting\n3. Change it to "Block"\n4. Refresh this page\n\nThe banner should then appear!');
+      }
+      
+      // Check on load
+      window.addEventListener('load', checkPermission);
+      
+      // Check periodically
+      setInterval(checkPermission, 2000);
+    </script>
+  </body>
+</html>

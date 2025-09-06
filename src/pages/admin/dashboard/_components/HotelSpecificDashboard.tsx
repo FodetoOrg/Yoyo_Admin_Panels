@@ -5,7 +5,15 @@ import { apiService } from "@/lib/utils/api";
 import React, { useCallback, useEffect, useState, useMemo } from "react";
 
 
-const StatsCard = ({ title, value, trend, isLoading = false, icon }) => (
+interface StatsCardProps {
+  title: string;
+  value: string;
+  trend?: number;
+  isLoading?: boolean;
+  icon?: string;
+}
+
+const StatsCard: React.FC<StatsCardProps> = ({ title, value, trend, isLoading = false, icon }) => (
   <div className="bg-white p-4 rounded-lg border shadow-sm hover:shadow-md transition-shadow">
     <div className="flex items-center justify-between">
       <div className="flex-1">
@@ -30,37 +38,59 @@ const StatsCard = ({ title, value, trend, isLoading = false, icon }) => (
   </div>
 );
 
-const Card = ({ children, className = "" }) => (
+interface CardProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+const Card: React.FC<CardProps> = ({ children, className = "" }) => (
   <div className={`bg-white rounded-lg border shadow-sm ${className}`}>
     {children}
   </div>
 );
 
-const CardHeader = ({ children }) => (
+interface CardHeaderProps {
+  children: React.ReactNode;
+}
+
+const CardHeader: React.FC<CardHeaderProps> = ({ children }) => (
   <div className="px-6 py-4 border-b">
     {children}
   </div>
 );
 
-const CardTitle = ({ children, action }) => (
+interface CardTitleProps {
+  children: React.ReactNode;
+  action?: React.ReactNode;
+}
+
+const CardTitle: React.FC<CardTitleProps> = ({ children, action }) => (
   <div className="flex items-center justify-between">
     <h2 className="text-lg font-semibold text-gray-900">{children}</h2>
     {action && <div>{action}</div>}
   </div>
 );
 
-const CardContent = ({ children }) => (
+interface CardContentProps {
+  children: React.ReactNode;
+}
+
+const CardContent: React.FC<CardContentProps> = ({ children }) => (
   <div className="px-6 py-4">
     {children}
   </div>
 );
 
-const LoadingSkeleton = ({ className = "" }) => (
+interface LoadingSkeletonProps {
+  className?: string;
+}
+
+const LoadingSkeleton: React.FC<LoadingSkeletonProps> = ({ className = "" }) => (
   <div className={`animate-pulse bg-gray-200 rounded ${className}`}></div>
 );
 
 const ROUTES = {
-  GET_DASHBOARD_ANALYTICS_ROUTE: (type, id) => `/api/v1/analytics/dashboard?type=hotel&hotelId=${id}`
+  GET_DASHBOARD_ANALYTICS_ROUTE: (type: string, id: string) => `/api/v1/analytics/dashboard?type=hotel&hotelId=${id}`
 };
 
 interface HotelDashboardProps {
@@ -163,14 +193,14 @@ const HotelDashboard: React.FC<HotelDashboardProps> = ({
         url += `&${params.toString()}`;
       }
 
-      const response = await apiService.get(url);
+      const response: any = await apiService.get(url);
       console.log('Hotel Analytics Response:', JSON.stringify(response, null, 2));
 
-      if (response.success) {
+      if (response?.success) {
         setHotelAnalytics(response.data);
         setLastUpdated(new Date());
       } else {
-        setError(response.message || "Failed to load hotel analytics");
+        setError(response?.message || "Failed to load hotel analytics");
       }
     } catch (err) {
       console.error("Error fetching hotel analytics:", err);
@@ -295,19 +325,12 @@ const HotelDashboard: React.FC<HotelDashboardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <StatsCard
               title="Total Rooms"
               value={hotelAnalytics?.overview?.totalRooms?.toString() || "0"}
               isLoading={loading}
               icon="🏨"
-            />
-            <StatsCard
-              title="Current Occupancy"
-              value={`${hotelAnalytics?.overview?.occupancyRate || 0}%`}
-              trend={computedMetrics?.occupancyTrend}
-              isLoading={loading}
-              icon="🛏️"
             />
             <StatsCard
               title="Total Revenue"
@@ -321,19 +344,6 @@ const HotelDashboard: React.FC<HotelDashboardProps> = ({
               value={hotelAnalytics?.overview?.totalBookings?.toString() || "0"}
               isLoading={loading}
               icon="📅"
-            />
-
-            <StatsCard
-              title="Available Rooms"
-              value={hotelAnalytics?.overview?.availableRooms?.toString() || "0"}
-              isLoading={loading}
-              icon="✅"
-            />
-            <StatsCard
-              title="Occupied Rooms"
-              value={hotelAnalytics?.overview?.occupiedRooms?.toString() || "0"}
-              isLoading={loading}
-              icon="🔴"
             />
             <StatsCard
               title="Paid Revenue"
@@ -366,12 +376,6 @@ const HotelDashboard: React.FC<HotelDashboardProps> = ({
               trend={hotelAnalytics?.overview?.revenueGrowth}
               isLoading={loading}
               icon="📈"
-            />
-            <StatsCard
-              title="Avg Revenue/Room"
-              value={formatCurrency(Number(computedMetrics?.avgRevenuePerRoom || 0))}
-              isLoading={loading}
-              icon="🎯"
             />
           </div>
         </CardContent>

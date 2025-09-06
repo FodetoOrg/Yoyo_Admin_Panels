@@ -1,4 +1,4 @@
-import { apiService } from "./api";
+import { apiService, notificationApi, type WebPushSubscription } from "./api";
 
 export interface NotificationData {
   title: string;
@@ -59,10 +59,10 @@ export class WebPushClient {
 
   async getVapidPublicKey(): Promise<void> {
     try {
-      const response = await apiService.get(`${this.apiUrl}/vapid-public-key`);
+      const response = await apiService.get<any>(`${this.apiUrl}/vapid-public-key`);
 
-      if (response.success) {
-        this.vapidPublicKey = response.data.publicKey;
+      if (response && response.success) {
+        this.vapidPublicKey = response.data?.publicKey;
       }
     } catch (error) {
       console.error('Failed to get VAPID public key:', error);
@@ -76,9 +76,38 @@ export class WebPushClient {
       this.subscription = await this.registration.pushManager.getSubscription();
 
       if (this.subscription) {
-        console.log('Existing web push subscription found');
-        localStorage.setItem('push-subscribed', 'true');
-        return true;
+        console.log('Existing web push subscription found, validating with backend...');
+        
+        // Always validate with backend to ensure DB row exists
+        try {
+          const subscriptionJson = this.subscription.toJSON();
+          const keys = subscriptionJson.keys as { p256dh: string; auth: string };
+          
+          const statusResponse = await notificationApi.checkSubscriptionStatus(
+            this.subscription.endpoint,
+            keys.p256dh,
+            keys.auth
+          );
+          
+          if (statusResponse.data.hasValidSubscription && !statusResponse.data.needsUpdate) {
+            // Subscription is valid in both browser and backend
+            localStorage.setItem('push-subscribed', 'true');
+            return true;
+          } else {
+            // DB row is missing or keys don't match - need to resubscribe
+            console.warn('Browser subscription exists but backend validation failed, need to resubscribe');
+            localStorage.removeItem('push-subscribed');
+            
+            // Trigger resubscription
+            await this.subscribe();
+            return true;
+          }
+        } catch (error) {
+          console.error('Backend validation failed:', error);
+          // If backend check fails, assume subscription is invalid
+          localStorage.removeItem('push-subscribed');
+          return false;
+        }
       }
 
       localStorage.removeItem('push-subscribed');
@@ -90,18 +119,40 @@ export class WebPushClient {
   }
 
   async requestPermission(): Promise<NotificationPermission> {
-    const permission = await Notification.requestPermission();
-
-    if (permission !== 'granted') {
-      throw new Error('Notification permission denied');
+    // Check if permission is already denied
+    if (Notification.permission === 'denied') {
+      console.warn('Notification permission is already denied. User must enable it manually in browser settings.');
+      throw new Error('Notification permission is blocked. Please enable it in your browser settings.');
     }
 
-    return permission;
+    // Only request if permission is 'default'
+    if (Notification.permission === 'default') {
+      const permission = await Notification.requestPermission();
+
+      if (permission !== 'granted') {
+        if (permission === 'denied') {
+          // Store that permission was denied
+          localStorage.setItem('notifications-denied', 'true');
+          localStorage.setItem('notifications-denied-time', Date.now().toString());
+        }
+        throw new Error('Notification permission denied');
+      }
+
+      return permission;
+    }
+
+    return Notification.permission;
   }
 
   async subscribe(): Promise<boolean> {
     try {
-      // Request notification permission
+      // Check if permission is denied first
+      if (Notification.permission === 'denied') {
+        console.error('Cannot subscribe: Notification permission is denied in browser settings');
+        return false;
+      }
+
+      // Request notification permission if needed
       await this.requestPermission();
 
       if (!this.vapidPublicKey) {
@@ -112,22 +163,56 @@ export class WebPushClient {
         throw new Error('Service Worker not registered');
       }
 
-      // Create subscription
+      // Check if we already have a subscription
+      const existingSubscription = await this.registration.pushManager.getSubscription();
+      
+      if (existingSubscription) {
+        // Check if the existing subscription is valid
+        const subscriptionJson = existingSubscription.toJSON();
+        const keys = subscriptionJson.keys as { p256dh: string; auth: string };
+        
+        // Check subscription status with backend
+        const statusResponse = await notificationApi.checkSubscriptionStatus(
+          existingSubscription.endpoint,
+          keys.p256dh,
+          keys.auth
+        );
+
+        if (statusResponse.data.needsUpdate) {
+          // Unsubscribe the old subscription
+          await existingSubscription.unsubscribe();
+        } else if (statusResponse.data.hasValidSubscription) {
+          // Subscription is valid, no need to create new one
+          this.subscription = existingSubscription;
+          localStorage.setItem('push-subscribed', 'true');
+          return true;
+        }
+      }
+
+      // Create new subscription
       this.subscription = await this.registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: this.urlBase64ToUint8Array(this.vapidPublicKey!)
       });
 
-      // Send subscription to server
-      const response = await apiService.post(`${this.apiUrl}/subscribe`, {
-        subscription: this.subscription.toJSON()
-      });
+      // Send subscription to server using the new API
+      const subscriptionData: WebPushSubscription = {
+        endpoint: this.subscription.endpoint,
+        keys: {
+          p256dh: (this.subscription.toJSON().keys as any).p256dh,
+          auth: (this.subscription.toJSON().keys as any).auth
+        }
+      };
+
+      const response = await notificationApi.subscribe(subscriptionData);
 
       console.log('response from backend is ', response)
 
       if (response.success) {
         console.log('Successfully subscribed to web push notifications');
+        console.log('Action:', response.data.action);
         localStorage.setItem('push-subscribed', 'true');
+        localStorage.setItem('push-subscription-time', Date.now().toString());
         return true;
       } else {
         throw new Error(response.message);
@@ -172,13 +257,13 @@ export class WebPushClient {
 
   async sendTestNotification(message: string): Promise<any> {
     try {
-      const response = await apiService.post(`${this.apiUrl}/test`, { message });
+      const response = await apiService.post<any>(`${this.apiUrl}/test`, { message });
 
-      if (response.success) {
+      if (response && response.success) {
         console.log('Test notification sent successfully');
         return response;
       } else {
-        throw new Error(response.message);
+        throw new Error(response?.message || 'Failed to send test notification');
       }
 
     } catch (error) {

@@ -40,7 +40,7 @@ export { CONSTANTS };
 
 // Create client-side axios instance
 const clientApi = axios.create({
-  baseURL: import.meta.env.PUBLIC_API_URL || "https://hotel-booking-backend-ekngog.fly.dev",
+  baseURL: import.meta.env.PUBLIC_API_URL || "http://192.168.29.53:3000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -48,7 +48,7 @@ const clientApi = axios.create({
 
 // Create server-side axios instance
 const serverApi = axios.create({
-  baseURL: import.meta.env.PUBLIC_API_URL || "https://hotel-booking-backend-ekngog.fly.dev",
+  baseURL: import.meta.env.PUBLIC_API_URL || "http://192.168.29.53:3000",
   headers: {
     "Content-Type": "application/json",
   },
@@ -120,6 +120,52 @@ export interface PaginatedResponse<T> {
   total: number;
   page: number;
   limit: number;
+}
+
+// Web Push Notification Types
+export interface WebPushSubscription {
+  endpoint: string;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+}
+
+export interface SubscriptionStatus {
+  isSubscribed: boolean;
+  hasValidSubscription: boolean;
+  needsUpdate: boolean;
+  subscriptionCount: number;
+}
+
+export interface PermissionValidation {
+  hasSubscription: boolean;
+  requiresPermission: boolean;
+  userRole: string;
+  message: string;
+}
+
+export interface SubscribeResponse {
+  success: boolean;
+  message: string;
+  action: 'created' | 'updated' | 'existing';
+}
+
+export interface NotificationItem {
+  id: string;
+  title: string;
+  body: string;
+  type: string;
+  isRead: boolean;
+  createdAt: string;
+  data?: any;
+}
+
+export interface NotificationsResponse {
+  notifications: NotificationItem[];
+  isToday: boolean;
+  total: number;
+  unreadCount: number;
 }
 
 // Client-side API service
@@ -485,4 +531,60 @@ export const serverApiService = {
       return error.response.data;
     }
   },
+};
+
+// Notification API Service
+export const notificationApi = {
+  // Check subscription status
+  checkSubscriptionStatus: async (
+    endpoint: string, 
+    p256dh: string, 
+    auth: string
+  ): Promise<ApiResponse<SubscriptionStatus>> => {
+    const params = new URLSearchParams({
+      endpoint,
+      p256dh,
+      auth
+    });
+    return apiService.get(`/api/v1/web-push/subscription-status?${params.toString()}`);
+  },
+
+  // Validate permissions (on login/reload)
+  validatePermissions: async (): Promise<ApiResponse<PermissionValidation>> => {
+    return apiService.get('/api/v1/web-push/validate-permissions');
+  },
+
+  // Subscribe or update subscription
+  subscribe: async (subscription: WebPushSubscription): Promise<ApiResponse<SubscribeResponse>> => {
+    return apiService.post('/api/v1/web-push/subscribe', { subscription });
+  },
+
+  // Get notifications (today only by default)
+  getNotifications: async (
+    page = 1, 
+    limit = 10, 
+    todayOnly = true
+  ): Promise<ApiResponse<NotificationsResponse>> => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      todayOnly: todayOnly.toString()
+    });
+    return apiService.get(`/api/v1/notifications?${params.toString()}`);
+  },
+
+  // Mark notification as read
+  markAsRead: async (id: string): Promise<ApiResponse<any>> => {
+    return apiService.put(`/api/v1/notifications/${id}/read`);
+  },
+
+  // Mark all notifications as read
+  markAllAsRead: async (): Promise<ApiResponse<any>> => {
+    return apiService.put('/api/v1/notifications/mark-all-read');
+  },
+
+  // Delete a notification
+  deleteNotification: async (id: string): Promise<ApiResponse<any>> => {
+    return apiService.delete(`/api/v1/notifications/${id}`);
+  }
 };

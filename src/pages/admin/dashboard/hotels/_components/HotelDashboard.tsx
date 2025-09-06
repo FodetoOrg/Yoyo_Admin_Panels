@@ -214,14 +214,10 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 ">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
               <StatsCard
                 title="Total Rooms"
                 value={loading ? "..." : (hotelAnalytics?.overview?.totalRooms || "0").toString()}
-              />
-              <StatsCard
-                title="Current Occupancy"
-                value={loading ? "..." : `${hotelAnalytics?.overview?.occupancyRate || 0}%`}
               />
               <StatsCard
                 title="Total Revenue"
@@ -230,17 +226,6 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
               <StatsCard
                 title="Rating"
                 value={selectedHotelData?.rating?.toString() || "N/A"}
-              />
-
-
-
-              <StatsCard
-                title="Available Rooms"
-                value={loading ? "..." : (hotelAnalytics?.overview?.availableRooms || "0").toString()}
-              />
-              <StatsCard
-                title="Occupied Rooms"
-                value={loading ? "..." : (hotelAnalytics?.overview?.occupiedRooms || "0").toString()}
               />
               <StatsCard
                 title="Total Bookings"
