@@ -39,6 +39,25 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
   const isSuperAdmin = currentUser.role === UserRole.SUPER_ADMIN;
   const effectiveHotelId = currentUser.role === UserRole.HOTEL_ADMIN ? currentUser.hotelId : null;
 
+  console.log('roomTypes from RoomForm', roomTypes)
+  console.log('hotels from RoomForm', hotels)
+  console.log('roomData from RoomForm', roomData)
+  console.log('currentUser from RoomForm', currentUser)
+  
+  // Debug the actual values being received
+  if (roomData) {
+    console.log('Room data fields:', {
+      isHourlyBooking: roomData.isHourlyBooking,
+      isDailyBooking: roomData.isDailyBooking,
+      amenities: roomData.amenities,
+      typeOfHourly: typeof roomData.isHourlyBooking,
+      typeOfDaily: typeof roomData.isDailyBooking,
+      images: roomData.images,
+      imagesType: typeof roomData.images,
+      firstImage: roomData.images?.[0],
+      imageKeys: roomData.images?.[0] ? Object.keys(roomData.images[0]) : 'no images',
+    });
+  }
   const getFormConfig = () => {
     // Hotel selection field (only for super admin when not viewing as hotel admin)
     const hotelField = {
@@ -124,36 +143,67 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
       floor: roomData.floor,
       pricePerNight: roomData.pricePerNight,
       pricePerHour: roomData.pricePerHour,
-      isHourlyBooking: roomData.isHourlyBooking,
-      isDailyBooking: roomData.isDailyBooking,
+      // Convert boolean values to strings for the select fields
+      isHourlyBooking: String(roomData.isHourlyBooking),
+      isDailyBooking: String(roomData.isDailyBooking),
       amenities: roomData.amenities || [],
-      images: roomData.images?.map(img => img.url) || [],
+      // Extract URLs from image objects - handle different possible structures
+      images: (() => {
+        const extractedUrls = roomData.images?.map((img: any) => {
+          console.log('Processing image:', img);
+          // If it's already a string, return it
+          if (typeof img === 'string') return img;
+          // If it's an object, try to get the URL from various possible properties
+          if (img && typeof img === 'object') {
+            const url = img.url || img.imageUrl || img.image || '';
+            console.log('Extracted URL:', url);
+            return url;
+          }
+          return '';
+        }).filter(url => url) || [];
+        console.log('Final extracted URLs:', extractedUrls);
+        return extractedUrls;
+      })(),
       status: roomData.status,
     } : (effectiveHotelId ? {
       hotelId: effectiveHotelId,
-      isHourlyBooking: true,
-      isDailyBooking: true,
+      isHourlyBooking: "true",
+      isDailyBooking: "true",
     } : {
-      isHourlyBooking: true,
-      isDailyBooking: true,
+      isHourlyBooking: "true",
+      isDailyBooking: "true",
     });
 
-    return roomData ? {
-      ...formConfig,
-      title: roomData ? "Edit Room" : "Add Room",
-      fields,
-      defaultValues,
-    } : {
-      ...formConfig,
-      title: roomData ? "Edit Room" : "Add Room",
-      fields,
+    // Debug the actual defaultValues being set
+    console.log('Default values being set:', defaultValues);
+    console.log('Images in defaultValues:', defaultValues.images);
 
-    }
+    const finalConfig = {
+      ...formConfig,
+      title: roomData ? "Edit Room" : "Add Room",
+      fields,
+      defaultValues: roomData ? defaultValues : (effectiveHotelId ? {
+        hotelId: effectiveHotelId,
+        isHourlyBooking: "true",
+        isDailyBooking: "true",
+      } : {
+        isHourlyBooking: "true",
+        isDailyBooking: "true",
+      })
+    };
+    
+    console.log('Final config being returned:', finalConfig);
+    console.log('Final config images:', finalConfig.defaultValues?.images);
+    
+    return finalConfig;
   };
 
+  // Use a key to force re-render when roomData changes
+  const formKey = roomData ? `room-${roomData.id}` : 'new-room';
+  
   return (
     <PageContainer>
-      <DynamicForm config={getFormConfig()} />
+      <DynamicForm key={formKey} config={getFormConfig()} />
     </PageContainer>
   );
 };

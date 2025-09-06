@@ -47,6 +47,7 @@ const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
 const roomTypes = roomTypesResponse.success 
   ? roomTypesResponse.data.map((rt: any) => ({ id: rt.id, name: rt.name }))
   : [];
+
 ---
 
 <DashboardLayout title="Room Management">
