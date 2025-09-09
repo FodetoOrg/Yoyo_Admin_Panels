@@ -822,7 +822,7 @@ const ConfigurationsScreen = ({
                     <CardContent className="flex flex-col gap-4">
                         {/* Default Cancellation Hours */}
                         <div className="flex flex-col gap-2">
-                            <Label htmlFor="cancellation-hours">Default Cancellation Hours</Label>
+                            <Label htmlFor="cancellation-hours">Default Platform Fee(in rupees)</Label>
                             <div className="flex space-x-2">
                                 <Input
                                     id="cancellation-hours"
