@@ -104,6 +104,30 @@ try {
                 description: "Default platform fee  in rupees ",
                 category: "app",
             },
+            general_inquiries_phone: {
+                value: apiConfigs.general_inquiries_phone || "",
+                type: "string",
+                description: "Phone number for general inquiries",
+                category: "contact",
+            },
+            general_inquiries_email: {
+                value: apiConfigs.general_inquiries_email || "",
+                type: "string",
+                description: "Email address for general inquiries",
+                category: "contact",
+            },
+            support_phone: {
+                value: apiConfigs.support_phone || "",
+                type: "string",
+                description: "Phone number for customer support",
+                category: "contact",
+            },
+            support_email: {
+                value: apiConfigs.support_email || "",
+                type: "string",
+                description: "Email address for customer support",
+                category: "contact",
+            },
         };
     } else {
         error = configResponse.message || "Failed to fetch configurations";
@@ -181,6 +205,30 @@ try {
             type: "number",
             description: "Default platform fee",
             category: "app",
+        },
+        general_inquiries_phone: {
+            value: "",
+            type: "string",
+            description: "Phone number for general inquiries",
+            category: "contact",
+        },
+        general_inquiries_email: {
+            value: "",
+            type: "string",
+            description: "Email address for general inquiries",
+            category: "contact",
+        },
+        support_phone: {
+            value: "",
+            type: "string",
+            description: "Phone number for customer support",
+            category: "contact",
+        },
+        support_email: {
+            value: "",
+            type: "string",
+            description: "Email address for customer support",
+            category: "contact",
         },
     };
 }

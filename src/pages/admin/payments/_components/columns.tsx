@@ -88,7 +88,7 @@ export const columns = [
     ),
   },
   {
-    accessorKey: "amount",
+    accessorKey: "paymentMethod",
     header: "Payment Info",
     cell: ({ row }) => {
       const amount = parseFloat(row.getValue("amount"));
@@ -209,4 +209,4 @@ export const columns = [
 ];
 
 export const filterFields = ["status", "paymentMethod"];
-export const datePickers = ["transactionDate"];
+export const datePickers = [];

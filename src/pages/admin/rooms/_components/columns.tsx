@@ -328,4 +328,4 @@ export const getColumns = (
   ];
 
 export const filterFields = ["hotelName"];
-export const datePickers = ["createdAt"];
+export const datePickers = [];

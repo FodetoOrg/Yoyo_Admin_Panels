@@ -91,16 +91,29 @@ const getPaymentColor = (status) => {
 
 const pretty = (iso) => {
   if (!iso) return "-";
-  const d = new Date(iso);
+  
+  // Remove the 'Z' suffix to treat the time as local time instead of UTC
+  // This is appropriate for hotel check-in/check-out times which are local to the hotel
+  const localIso = iso.replace('Z', '');
+  const d = new Date(localIso);
+  
   if (isNaN(+d)) return "-";
-  return d.toLocaleString("en-IN", {
+  
+  // Format as local time without timezone conversion
+  const options: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
     hour12: true,
-  });
+  };
+  
+  // Use formatToParts to get the components and format them
+  const parts = new Intl.DateTimeFormat("en-IN", options).formatToParts(d);
+  const formatted = parts.map(part => part.value).join('');
+  
+  return formatted;
 };
 
 const canShowRefund = (userRole, booking) => {
@@ -465,7 +478,7 @@ export default function BookingDetailsScreen({
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Duration:</span>
-                <span className="font-medium">{booking.nights} night{booking.nights > 1 ? 's' : ''}</span>
+                <span className="font-medium">{booking.nights}  {booking.bookingType==='hourly' ? 'hour' : 'night'} {booking.nights > 1 ? 's' : ''}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Type:</span>
@@ -512,18 +525,31 @@ export default function BookingDetailsScreen({
             </CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 text-sm">
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span className="text-gray-600">Room Rate:</span>
-              <span>{formatINR(booking.priceBreakdown.roomRate)}</span>
+              <span>{formatINR(booking.priceBreakdown?.roomRate || 0)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Taxes:</span>
-              <span>{formatINR(booking.priceBreakdown.taxes)}</span>
+              <span className="text-gray-600">GST{booking.priceBreakdown?.gstPercentage ? ` (${booking.priceBreakdown.gstPercentage}%)` : ''}:</span>
+           
+              <span>{formatINR((booking.priceBreakdown?.gstPercentage/100) * (booking?.totalAmount || 0) || 0)}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-600">Service Fee:</span>
-              <span>{formatINR(booking.priceBreakdown.serviceFee)}</span>
+              <span className="text-gray-600">Platform Fee:</span>
+              <span>{formatINR(booking.priceBreakdown?.platformFeePercentage || 0)}</span>
             </div>
+            {booking.priceBreakdown?.couponAppliedAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Coupon Discount:</span>
+                <span>-{formatINR(booking.priceBreakdown.couponAppliedAmount)}</span>
+              </div>
+            )}
+            {booking.priceBreakdown?.walletAmount > 0 && (
+              <div className="flex justify-between text-green-600">
+                <span>Wallet Applied:</span>
+                <span>-{formatINR(booking.priceBreakdown.walletAmount)}</span>
+              </div>
+            )} */}
             <Separator />
             <div className="flex justify-between font-semibold">
               <span>Total:</span>

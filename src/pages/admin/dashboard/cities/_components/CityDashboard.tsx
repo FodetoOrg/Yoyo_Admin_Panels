@@ -96,13 +96,28 @@ const CityDashboard = ({ selectedCity, cities }: CityDashboardProps) => {
       setCityAnalytics(null); // Clear previous data
       
       try {
-        const response = await apiService.get(
+        const response: any = await apiService.get(
           ROUTES.GET_CITY_ANALYTICS_ROUTE(selectedCity)
         );
         console.log('response ',JSON.stringify(response))
         
         if (response.success) {
-          setCityAnalytics(response.data);
+          const data = response.data;
+          // Sort recent bookings: confirmed first, then by booking/creation date
+          if (data.recentBookings && Array.isArray(data.recentBookings)) {
+            data.recentBookings.sort((a: any, b: any) => {
+              // First priority: confirmed bookings come first
+              if (a.status === 'confirmed' && b.status !== 'confirmed') return -1;
+              if (a.status !== 'confirmed' && b.status === 'confirmed') return 1;
+              
+              // Second priority: sort by booking date (latest bookings first)
+              // Try bookingDate, createdAt, or fallback to checkInDate
+              const dateA = new Date(a.bookingDate || a.createdAt || a.checkInDate).getTime();
+              const dateB = new Date(b.bookingDate || b.createdAt || b.checkInDate).getTime();
+              return dateB - dateA;
+            });
+          }
+          setCityAnalytics(data);
         } else {
           setError(response.message || "Failed to load city analytics");
         }

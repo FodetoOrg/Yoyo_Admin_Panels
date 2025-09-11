@@ -77,7 +77,7 @@ export const columns = (): ColumnDef<Refund>[] => [
     },
   },
   {
-    accessorKey: "hotelName",
+    accessorKey: "refundMethod",
     header: "Hotel & Method",
     cell: ({ row }) => {
       const refund = row.original;
@@ -245,6 +245,6 @@ export const columns = (): ColumnDef<Refund>[] => [
   },
 ];
 
-export const filterFields = ["status", "refundMethod", "userName", "userPhone", "userEmail", "hotelName", "reason"];
+export const filterFields = ["status", "refundMethod", "userName", "reason"];
 
 export const datePickers = [];

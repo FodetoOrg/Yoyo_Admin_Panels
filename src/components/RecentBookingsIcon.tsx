@@ -66,8 +66,19 @@ export const RecentBookingsIcon: React.FC<RecentBookingsIconProps> = ({
         
         if (response.success) {
           const recentBookings = response.data.bookings || [];
-          setBookings(recentBookings.slice(0, 10)); // Show only 10 most recent
-          setBookingCount(recentBookings.length);
+          // Sort bookings: confirmed status first, then by booking date (latest first)
+          const sortedBookings = recentBookings.sort((a: RecentBooking, b: RecentBooking) => {
+            // First priority: confirmed bookings come first
+            if (a.status === 'confirmed' && b.status !== 'confirmed') return -1;
+            if (a.status !== 'confirmed' && b.status === 'confirmed') return 1;
+            
+            // Second priority: sort by booking date (latest bookings first)
+            const dateA = new Date(a.bookingDate || a.createdAt).getTime();
+            const dateB = new Date(b.bookingDate || b.createdAt).getTime();
+            return dateB - dateA;
+          });
+          setBookings(sortedBookings.slice(0, 10)); // Show only 10 most recent
+          setBookingCount(sortedBookings.length);
         }
       } catch (error) {
         console.error('Failed to fetch recent bookings:', error);
@@ -207,7 +218,7 @@ export const RecentBookingsIcon: React.FC<RecentBookingsIconProps> = ({
                     key={booking.bookingId}
                     className="p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                     onClick={() => {
-                      window.location.href = `/admin/bookings?id=${booking.bookingId}`;
+                      window.location.href = `/admin/bookings/${booking.bookingId}`;
                       setIsOpen(false);
                     }}
                   >

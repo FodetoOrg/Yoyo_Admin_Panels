@@ -214,6 +214,6 @@ export const columns: ColumnDef<Category>[] = [
 ];
 
 // Specify which fields to allow filtering
-export const filterFields = ["name", "active","city_name"];
+export const filterFields = ["name", "status","city_name"];
 
-export const datePickers = ["createdAt"];
+export const datePickers = [];

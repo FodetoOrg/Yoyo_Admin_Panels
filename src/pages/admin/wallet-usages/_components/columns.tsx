@@ -223,6 +223,6 @@ export const columns = (): ColumnDef<WalletUsage>[] => [
   },
 ];
 
-export const filterFields = ["source", "refrenceType", "userName", "userPhone", "userEmail"];
+export const filterFields = ["source", "refrenceType", "userPhone"];
 
 export const datePickers = [];

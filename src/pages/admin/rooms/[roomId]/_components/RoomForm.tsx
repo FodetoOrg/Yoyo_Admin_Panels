@@ -192,7 +192,7 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
       })
     };
     
-    console.log('Final config being returned:', finalConfig);
+    // console.log('Final config being returned:', finalConfig);
     console.log('Final config images:', finalConfig.defaultValues?.images);
     
     return finalConfig;

@@ -120,6 +120,6 @@ export const columns: ColumnDef<any>[] = [
 ];
 
 // Specify which fields to allow filtering
-export const filterFields = ["name", "active"];
+export const filterFields = ["name", "status"];
 
-export const datePickers = ["createdAt"];
+export const datePickers = [];

@@ -18,7 +18,8 @@ import {
   PieChart,
   TrendingUp,
   Gift,
-  Bell
+  Bell,
+  UserPlus
 } from "lucide-react";
 import { UserRole } from "./auth";
 
@@ -319,6 +320,14 @@ export const navItems: NavItem[] = [
       },
 
     ]
+  },
+  {
+    title: "Partner Contacts",
+    url: "/admin/partner-contacts",
+    icon: UserPlus,
+    isActive: false,
+    allowedRoles: [UserRole.SUPER_ADMIN],
+    show: true,
   },
   {
     title: "Notifications",

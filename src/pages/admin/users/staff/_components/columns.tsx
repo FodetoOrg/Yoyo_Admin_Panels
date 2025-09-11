@@ -159,6 +159,6 @@ export const columns: ColumnDef<Category>[] = [
 ];
 
 // Specify which fields to allow filtering
-export const filterFields = ["name", "active"];
+export const filterFields = ["name", "status"];
 
-export const datePickers = ["createdAt"];
+export const datePickers = [];

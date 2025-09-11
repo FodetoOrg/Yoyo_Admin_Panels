@@ -68,7 +68,19 @@ export const RecentBookingsModal: React.FC<RecentBookingsModalProps> = ({
       const response: any = await apiService.get(ROUTES.GET_RECENT_BOOKINGS_ROUTE);
       
       if (response.success) {
-        setBookings(response.data.bookings || []);
+        const bookingsData = response.data.bookings || [];
+        // Sort bookings: confirmed status first, then by booking date (latest first)
+        const sortedBookings = bookingsData.sort((a: RecentBooking, b: RecentBooking) => {
+          // First priority: confirmed bookings come first
+          if (a.status === 'confirmed' && b.status !== 'confirmed') return -1;
+          if (a.status !== 'confirmed' && b.status === 'confirmed') return 1;
+          
+          // Second priority: sort by booking date (latest bookings first)
+          const dateA = new Date(a.bookingDate || a.createdAt).getTime();
+          const dateB = new Date(b.bookingDate || b.createdAt).getTime();
+          return dateB - dateA;
+        });
+        setBookings(sortedBookings);
       } else {
         setError(response.message || 'Failed to fetch recent bookings');
       }
@@ -174,7 +186,10 @@ export const RecentBookingsModal: React.FC<RecentBookingsModalProps> = ({
               <ScrollArea className="h-[60vh] md:h-[70vh] lg:h-[75vh]">
                 <div className="flex flex-col gap-2 md:gap-3">
                   {bookings.map((booking) => (
-                    <div key={booking.bookingId} className="border rounded-lg p-3 hover:shadow-sm transition-shadow">
+                    <div 
+                      key={booking.bookingId} 
+                      className="border rounded-lg p-3 hover:shadow-sm transition-shadow cursor-pointer"
+                      onClick={() => handleViewBooking(booking.bookingId)}>
                       {/* Line 1: Guest, Hotel (if admin), Amount, Status */}
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
@@ -217,7 +232,10 @@ export const RecentBookingsModal: React.FC<RecentBookingsModalProps> = ({
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleViewBooking(booking.bookingId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewBooking(booking.bookingId);
+                            }}
                             className="text-xs h-6 px-2"
                           >
                             <ExternalLink className="h-3 w-3 mr-1" />
@@ -227,7 +245,10 @@ export const RecentBookingsModal: React.FC<RecentBookingsModalProps> = ({
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => handleViewCustomer(booking.customerId)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleViewCustomer(booking.customerId);
+                            }}
                             className="text-xs h-6 px-2"
                           >
                             <User className="h-3 w-3 mr-1" />
@@ -238,7 +259,10 @@ export const RecentBookingsModal: React.FC<RecentBookingsModalProps> = ({
                             <Button
                               size="sm"
                               variant="outline"
-                              onClick={() => handleViewHotel(booking.hotelId!)}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewHotel(booking.hotelId!);
+                              }}
                               className="text-xs h-6 px-2"
                             >
                               <Hotel className="h-3 w-3 mr-1" />

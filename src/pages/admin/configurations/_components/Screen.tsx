@@ -29,7 +29,10 @@ import {
     RotateCcw,
     Timer,
     XCircle,
-    Play
+    Play,
+    Phone,
+    Mail,
+    Headphones
 } from 'lucide-react';
 import { UserRole } from '@/lib/utils/auth';
 
@@ -921,6 +924,164 @@ const ConfigurationsScreen = ({
                     </Card>
                 )}
             </div>
+
+            {/* Contact Information Section - Full width */}
+            {canManageGlobalSettings && (
+                <Card className="col-span-full">
+                    <CardHeader>
+                        <div className="flex items-center space-x-2">
+                            <Headphones className="h-5 w-5" />
+                            <CardTitle>Contact Information</CardTitle>
+                        </div>
+                        <CardDescription>
+                            Configure contact details for customer inquiries and support
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* General Inquiries Section */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Mail className="h-4 w-4 text-blue-500" />
+                                    <h3 className="font-semibold">General Inquiries</h3>
+                                </div>
+                                
+                                {/* General Inquiries Phone */}
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="general-inquiries-phone">Phone Number</Label>
+                                    <div className="flex space-x-2">
+                                        <Input
+                                            id="general-inquiries-phone"
+                                            type="tel"
+                                            placeholder="+91 98765 43210"
+                                            value={configurations.general_inquiries_phone?.value || ''}
+                                            onChange={(e) => handleStringChange('general_inquiries_phone', e.target.value)}
+                                            disabled={saving.general_inquiries_phone}
+                                        />
+                                        <Button
+                                            onClick={() => handleStringSave('general_inquiries_phone')}
+                                            disabled={saving.general_inquiries_phone}
+                                            size="icon"
+                                        >
+                                            {saving.general_inquiries_phone ? 
+                                                <RefreshCw className="h-4 w-4 animate-spin" /> : 
+                                                <Save className="h-4 w-4" />
+                                            }
+                                        </Button>
+                                    </div>
+                                    {errors.general_inquiries_phone && (
+                                        <p className="text-sm text-red-500">{errors.general_inquiries_phone}</p>
+                                    )}
+                                    {success.general_inquiries_phone && (
+                                        <p className="text-sm text-green-500">✓ Updated successfully</p>
+                                    )}
+                                </div>
+
+                                {/* General Inquiries Email */}
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="general-inquiries-email">Email Address</Label>
+                                    <div className="flex space-x-2">
+                                        <Input
+                                            id="general-inquiries-email"
+                                            type="email"
+                                            placeholder="info@yourhotel.com"
+                                            value={configurations.general_inquiries_email?.value || ''}
+                                            onChange={(e) => handleStringChange('general_inquiries_email', e.target.value)}
+                                            disabled={saving.general_inquiries_email}
+                                        />
+                                        <Button
+                                            onClick={() => handleStringSave('general_inquiries_email')}
+                                            disabled={saving.general_inquiries_email}
+                                            size="icon"
+                                        >
+                                            {saving.general_inquiries_email ? 
+                                                <RefreshCw className="h-4 w-4 animate-spin" /> : 
+                                                <Save className="h-4 w-4" />
+                                            }
+                                        </Button>
+                                    </div>
+                                    {errors.general_inquiries_email && (
+                                        <p className="text-sm text-red-500">{errors.general_inquiries_email}</p>
+                                    )}
+                                    {success.general_inquiries_email && (
+                                        <p className="text-sm text-green-500">✓ Updated successfully</p>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Customer Support Section */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Phone className="h-4 w-4 text-green-500" />
+                                    <h3 className="font-semibold">Customer Support</h3>
+                                </div>
+                                
+                                {/* Support Phone */}
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="support-phone">Support Phone</Label>
+                                    <div className="flex space-x-2">
+                                        <Input
+                                            id="support-phone"
+                                            type="tel"
+                                            placeholder="+91 98765 43210"
+                                            value={configurations.support_phone?.value || ''}
+                                            onChange={(e) => handleStringChange('support_phone', e.target.value)}
+                                            disabled={saving.support_phone}
+                                        />
+                                        <Button
+                                            onClick={() => handleStringSave('support_phone')}
+                                            disabled={saving.support_phone}
+                                            size="icon"
+                                        >
+                                            {saving.support_phone ? 
+                                                <RefreshCw className="h-4 w-4 animate-spin" /> : 
+                                                <Save className="h-4 w-4" />
+                                            }
+                                        </Button>
+                                    </div>
+                                    {errors.support_phone && (
+                                        <p className="text-sm text-red-500">{errors.support_phone}</p>
+                                    )}
+                                    {success.support_phone && (
+                                        <p className="text-sm text-green-500">✓ Updated successfully</p>
+                                    )}
+                                </div>
+
+                                {/* Support Email */}
+                                <div className="flex flex-col gap-2">
+                                    <Label htmlFor="support-email">Support Email</Label>
+                                    <div className="flex space-x-2">
+                                        <Input
+                                            id="support-email"
+                                            type="email"
+                                            placeholder="support@yourhotel.com"
+                                            value={configurations.support_email?.value || ''}
+                                            onChange={(e) => handleStringChange('support_email', e.target.value)}
+                                            disabled={saving.support_email}
+                                        />
+                                        <Button
+                                            onClick={() => handleStringSave('support_email')}
+                                            disabled={saving.support_email}
+                                            size="icon"
+                                        >
+                                            {saving.support_email ? 
+                                                <RefreshCw className="h-4 w-4 animate-spin" /> : 
+                                                <Save className="h-4 w-4" />
+                                            }
+                                        </Button>
+                                    </div>
+                                    {errors.support_email && (
+                                        <p className="text-sm text-red-500">{errors.support_email}</p>
+                                    )}
+                                    {success.support_email && (
+                                        <p className="text-sm text-green-500">✓ Updated successfully</p>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 };

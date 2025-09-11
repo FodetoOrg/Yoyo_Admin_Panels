@@ -55,7 +55,7 @@ export const columns: ColumnDef<Booking>[] = [
     ),
   },
   {
-    accessorKey: "user.phone",
+    accessorKey: "hotel.name",
     header: ({ column }) => (
       <Button
         variant="ghost"
@@ -128,54 +128,61 @@ export const columns: ColumnDef<Booking>[] = [
   },
   {
     accessorKey: "status",
-    header: "Status",
+    header: "Booking Status",
     cell: ({ row }) => {
       const bookingStatus = row.getValue("status") as string;
-      const paymentStatus = row.original.paymentStatus as string;
       
       return (
-        <div className="space-y-2 flex flex-col gap-2">
-          <Badge
-            variant={
-              bookingStatus === "confirmed"
-                ? "default"
-                : bookingStatus === "pending"
-                  ? "secondary"
-                  : bookingStatus === "cancelled"
-                    ? "destructive"
-                    : "outline"
-            }
-            className={
-              bookingStatus === "confirmed"
-                ? "bg-green-500 text-white"
-                : bookingStatus === "pending"
-                  ? "bg-yellow-500 text-white"
-                  : bookingStatus === "cancelled"
-                    ? "bg-red-500 text-white"
-                    : "bg-blue-500 text-white"
-            }
-          >
-            {bookingStatus.charAt(0).toUpperCase() + bookingStatus.slice(1)}
-          </Badge>
-          <Badge
-            variant={
-              paymentStatus === "paid"
-                ? "default"
-                : paymentStatus === "pending"
-                  ? "secondary"
-                  : "destructive"
-            }
-            className={`text-xs ${
-              paymentStatus === "paid"
-                ? "bg-green-100 text-green-800 border-green-300"
-                : paymentStatus === "pending"
-                  ? "bg-yellow-100 text-yellow-800 border-yellow-300"
-                  : "bg-red-100 text-red-800 border-red-300"
-            }`}
-          >
-            Payment: {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
-          </Badge>
-        </div>
+        <Badge
+          variant={
+            bookingStatus === "confirmed"
+              ? "default"
+              : bookingStatus === "pending"
+                ? "secondary"
+                : bookingStatus === "cancelled"
+                  ? "destructive"
+                  : "outline"
+          }
+          className={
+            bookingStatus === "confirmed"
+              ? "bg-green-500 text-white"
+              : bookingStatus === "pending"
+                ? "bg-yellow-500 text-white"
+                : bookingStatus === "cancelled"
+                  ? "bg-red-500 text-white"
+                  : "bg-blue-500 text-white"
+          }
+        >
+          {bookingStatus.charAt(0).toUpperCase() + bookingStatus.slice(1)}
+        </Badge>
+      );
+    },
+  },
+  {
+    accessorKey: "paymentStatus",
+    header: "Payment Status",
+    cell: ({ row }) => {
+      const paymentStatus = row.getValue("paymentStatus") as string;
+      
+      return (
+        <Badge
+          variant={
+            paymentStatus === "paid"
+              ? "default"
+              : paymentStatus === "pending"
+                ? "secondary"
+                : "destructive"
+          }
+          className={
+            paymentStatus === "paid"
+              ? "bg-green-100 text-green-800 border-green-300"
+              : paymentStatus === "pending"
+                ? "bg-yellow-100 text-yellow-800 border-yellow-300"
+                : "bg-red-100 text-red-800 border-red-300"
+          }
+        >
+          {paymentStatus.charAt(0).toUpperCase() + paymentStatus.slice(1)}
+        </Badge>
       );
     },
   },
@@ -243,5 +250,5 @@ export const columns: ColumnDef<Booking>[] = [
   },
 ];
 
-export const filterFields = ["status", "paymentStatus", "hotel.name", "user.name", "user.phone"];
+export const filterFields = ["status", "paymentStatus", "hotel_name"];
 export const datePickers = [];

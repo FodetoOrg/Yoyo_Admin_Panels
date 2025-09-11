@@ -1,0 +1,55 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import Screen from "./_components/screen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS } from "@/lib/utils/constants";
+
+// Check if user has permission (middleware already authenticated)
+const currentUser = Astro.locals.user;
+if (
+  !currentUser ||
+  (currentUser.role !== UserRole.SUPER_ADMIN &&
+    currentUser.role !== UserRole.HOTEL_ADMIN)
+) {
+  return Astro.redirect("/admin/dashboard");
+}
+
+// Fetch partner contacts from API
+let partnerContacts: any[] = [];
+let error = null;
+
+try {
+  const response: ApiResponse<any> = await serverApiService.get(
+    "/api/v1/partner-contacts",
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies,
+  );
+  
+  if (response.success) {
+    partnerContacts = response.data.contacts || response.data || [];
+    // Sort by createdAt date (most recent first)
+    partnerContacts.sort((a: any, b: any) => {
+      const dateA = new Date(a.createdAt || a.submittedAt || 0).getTime();
+      const dateB = new Date(b.createdAt || b.submittedAt || 0).getTime();
+      return dateB - dateA;
+    });
+  } else {
+    error = response.message || "Failed to fetch partner contacts";
+  }
+} catch (err) {
+  console.error("Error fetching partner contacts:", err);
+  error = "An error occurred while fetching partner contacts";
+}
+
+console.log("partner contacts:", partnerContacts);
+---
+
+<DashboardLayout title="Partner Contacts">
+  <Screen 
+    partnerContacts={partnerContacts} 
+    user={currentUser} 
+    error={error}
+    client:load 
+  />
+</DashboardLayout>

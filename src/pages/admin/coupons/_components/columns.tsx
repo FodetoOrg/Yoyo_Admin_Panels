@@ -188,4 +188,4 @@ export const columns: ColumnDef<Coupon>[] = [
 ];
 
 export const filterFields = ["status", "discountType"];
-export const datePickers = ["validFrom", "validTo", "createdAt"];
+export const datePickers = [];

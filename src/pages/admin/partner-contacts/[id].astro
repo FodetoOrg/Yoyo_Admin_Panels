@@ -1,0 +1,51 @@
+---
+import DashboardLayout from "../../../layouts/DashboardLayout.astro";
+import DetailsScreen from "./_components/DetailsScreen";
+import { UserRole } from "@/lib/utils/auth";
+import { serverApiService, type ApiResponse } from "@/lib/utils/api";
+import { CONSTANTS } from "@/lib/utils/constants";
+
+// Check if user has permission
+const currentUser = Astro.locals.user;
+if (
+  !currentUser ||
+  (currentUser.role !== UserRole.SUPER_ADMIN &&
+    currentUser.role !== UserRole.HOTEL_ADMIN)
+) {
+  return Astro.redirect("/admin/dashboard");
+}
+
+const { id } = Astro.params;
+
+// Fetch partner contact details from API
+let partnerContact = null;
+let error = null;
+
+try {
+  const response: ApiResponse<any> = await serverApiService.get(
+    `/api/v1/partner-contacts/${id}`,
+    Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
+    Astro.cookies,
+  );
+  
+  if (response.success) {
+    partnerContact = response.data;
+  } else {
+    error = response.message || "Failed to fetch partner contact details";
+  }
+} catch (err) {
+  console.error("Error fetching partner contact:", err);
+  error = "An error occurred while fetching partner contact details";
+}
+
+console.log("partner contact details:", partnerContact);
+---
+
+<DashboardLayout title="Partner Contact Details">
+  <DetailsScreen 
+    partnerContact={partnerContact} 
+    user={currentUser}
+    error={error}
+    client:load 
+  />
+</DashboardLayout>

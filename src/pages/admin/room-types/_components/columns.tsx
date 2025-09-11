@@ -132,4 +132,4 @@ export const columns: ColumnDef<RoomType>[] = [
 ];
 
 export const filterFields = ["name", "status"];
-export const datePickers = ["createdAt"];
+export const datePickers = [];

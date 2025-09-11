@@ -133,12 +133,27 @@ const HotelDashboard = ({ selectedHotel = "hotel-1", hotels = [] }: HotelDashboa
       setLoading(true);
       setError(null);
       try {
-        const response = await apiService.get(
+        const response: any = await apiService.get(
           ROUTES.GET_DASHBOARD_ANALYTICS_ROUTE('hotel', selectedHotel)
         );
         console.log(JSON.stringify(response));
         if (response.success) {
-          setHotelAnalytics(response.data);
+          const data = response.data;
+          // Sort recent bookings: confirmed first, then by booking/creation date
+          if (data.recentBookings && Array.isArray(data.recentBookings)) {
+            data.recentBookings.sort((a: any, b: any) => {
+              // First priority: confirmed bookings come first
+              if (a.status === 'confirmed' && b.status !== 'confirmed') return -1;
+              if (a.status !== 'confirmed' && b.status === 'confirmed') return 1;
+              
+              // Second priority: sort by booking date (latest bookings first)
+              // Try bookingDate, createdAt, or fallback to checkInDate
+              const dateA = new Date(a.bookingDate || a.createdAt || a.checkInDate).getTime();
+              const dateB = new Date(b.bookingDate || b.createdAt || b.checkInDate).getTime();
+              return dateB - dateA;
+            });
+          }
+          setHotelAnalytics(data);
         } else {
           setError(response.message || "Failed to load hotel analytics");
         }

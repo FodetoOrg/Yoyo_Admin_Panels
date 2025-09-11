@@ -177,5 +177,5 @@ export const columns: ColumnDef<Addon>[] = [
   },
 ];
 
-export const filterFields = ["name", "status", "hotel.name"];
-export const datePickers = ["createdAt"];
+export const filterFields = ["name", "status", "hotel_name"];
+export const datePickers = [];
