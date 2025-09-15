@@ -13,7 +13,6 @@ if (!currentUser || currentUser.role !== UserRole.SUPER_ADMIN) {
 }
 
 const page = Astro.url.searchParams.get("page") || 1;
-const limit = Astro.url.searchParams.get("limit") || 10;
 
 interface userSchema {
   id: string;
@@ -30,7 +29,7 @@ const customers: ApiResponse<{
   page: number;
   limit: number;
 }> = await serverApiService.get(
-  ROUTES.GET_ALL_USERS_ROUTE("hotel", Number(page), Number(limit)),
+  ROUTES.GET_ALL_USERS_ROUTE("hotel", Number(page)),
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
   Astro.cookies,
 );

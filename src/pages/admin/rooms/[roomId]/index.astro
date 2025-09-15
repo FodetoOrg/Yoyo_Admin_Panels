@@ -9,8 +9,12 @@ const { roomId } = Astro.params;
 
 // Check if user has permission (middleware already authenticated)
 const currentUser = Astro.locals.user;
-if (!currentUser || (currentUser.role !== UserRole.SUPER_ADMIN && currentUser.role !== UserRole.HOTEL_ADMIN)) {
-  return Astro.redirect('/admin/dashboard');
+if (
+  !currentUser ||
+  (currentUser.role !== UserRole.SUPER_ADMIN &&
+    currentUser.role !== UserRole.HOTEL_ADMIN)
+) {
+  return Astro.redirect("/admin/dashboard");
 }
 
 let roomData: any = null;
@@ -19,7 +23,7 @@ if (roomId && roomId !== "new") {
   const roomResponse: ApiResponse<any> = await serverApiService.get(
     ROUTES.GET_ROOM_BY_ID_ROUTE(roomId),
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-    Astro.cookies
+    Astro.cookies,
   );
   roomData = roomResponse.success ? roomResponse.data.room : null;
 }
@@ -30,10 +34,13 @@ if (currentUser.role === UserRole.SUPER_ADMIN) {
   const hotelsResponse: ApiResponse<any> = await serverApiService.get(
     ROUTES.GET_ALL_HOTELS_ROUTE,
     Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-    Astro.cookies
+    Astro.cookies,
   );
-  hotels = hotelsResponse.success 
-    ? hotelsResponse.data.map((hotel: any) => ({ id: hotel.id, name: hotel.name }))
+  hotels = hotelsResponse.success
+    ? hotelsResponse.data.map((hotel: any) => ({
+        id: hotel.id,
+        name: hotel.name,
+      }))
     : [];
 }
 
@@ -41,21 +48,21 @@ if (currentUser.role === UserRole.SUPER_ADMIN) {
 const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
   ROUTES.GET_ROOM_TYPES_ROUTE,
   Astro.cookies.get(CONSTANTS.ACCESS_TOKEN_KEY)?.value || "",
-  Astro.cookies
+  Astro.cookies,
 );
 
-const roomTypes = roomTypesResponse.success 
+const roomTypes = roomTypesResponse.success
   ? roomTypesResponse.data.map((rt: any) => ({ id: rt.id, name: rt.name }))
   : [];
 
 ---
 
 <DashboardLayout title="Room Management">
-  <RoomForm 
-    roomData={roomData} 
-    hotels={hotels} 
+  <RoomForm
+    roomData={roomData}
+    hotels={hotels}
     roomTypes={roomTypes}
     currentUser={currentUser}
-    client:load 
+    client:load
   />
 </DashboardLayout>

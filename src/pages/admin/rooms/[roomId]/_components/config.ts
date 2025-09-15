@@ -165,6 +165,7 @@ const formConfig: FormConfig = {
   onSubmit: async (values: any, isUpdate: boolean) => {
     try {
       console.log('Room form values:', values);
+      console.log('room isUpdate:', isUpdate);
 
       // Convert string boolean values to actual booleans
       if (typeof values.isHourlyBooking === 'string') {

@@ -15,8 +15,8 @@ export const ROUTES = {
   GET_CITY_ROUTE: (cityId: string) => `/api/v1/cities/${cityId}`,
   CREATE_CITY_ROUTE: "/api/v1/cities/",
   UPDATED_CITY_ROUTE: (cityId: string) => `/api/v1/cities/${cityId}`,
-  GET_ALL_USERS_ROUTE: (userType: string, page: number, limit: number) =>
-    `/api/v1/auth/users?role=${userType}&page=${page}&limit=${limit}`,
+  GET_ALL_USERS_ROUTE: (userType: string, page: number) =>
+    `/api/v1/auth/users?role=${userType}&page=${page}`,
   CREATE_HOTEL_ADMIN_ROUTE: "/api/v1/auth/addHotelAdmin",
   GET_HOTEL_ALLUSERS_ROUTE: "/api/v1/hotels/hotelUsers",
   GET_ALL_CITIES_ROUTE: "/api/v1/cities/",

@@ -55,6 +55,7 @@ const roomTypesResponse: ApiResponse<any> = await serverApiService.get(
 );
 
 const roomTypes = roomTypesResponse.success ? roomTypesResponse.data : [];
+console.log("length of rooms", rooms.length);
 ---
 
 <DashboardLayout title="Rooms">

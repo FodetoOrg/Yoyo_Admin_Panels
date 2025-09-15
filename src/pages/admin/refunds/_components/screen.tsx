@@ -48,7 +48,7 @@ interface RefundData {
 
 interface Pagination {
   page: number;
-  limit: number;
+  limit?: number;
   total: number;
   pages: number;
 }

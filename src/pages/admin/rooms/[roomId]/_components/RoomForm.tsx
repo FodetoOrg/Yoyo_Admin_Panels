@@ -178,7 +178,7 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
     console.log('Default values being set:', defaultValues);
     console.log('Images in defaultValues:', defaultValues.images);
 
-    const finalConfig = {
+    return  roomData ?  {
       ...formConfig,
       title: roomData ? "Edit Room" : "Add Room",
       fields,
@@ -190,12 +190,14 @@ const RoomForm = ({ roomData, hotels, roomTypes, currentUser }: Props) => {
         isHourlyBooking: "true",
         isDailyBooking: "true",
       })
-    };
+    }:{
+      ...formConfig,
+      title: roomData ? "Edit Room" : "Add Room",
+      fields,
+      
+    }
     
-    // console.log('Final config being returned:', finalConfig);
-    console.log('Final config images:', finalConfig.defaultValues?.images);
-    
-    return finalConfig;
+ 
   };
 
   // Use a key to force re-render when roomData changes
