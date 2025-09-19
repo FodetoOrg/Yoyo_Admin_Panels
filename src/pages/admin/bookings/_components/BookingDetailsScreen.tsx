@@ -178,7 +178,12 @@ export default function BookingDetailsScreen({
   // Check if current time is before checkout time
   const isBeforeCheckout = useMemo(() => {
     const now = new Date();
-    const checkout = new Date(booking.checkOut);
+    // remove the 'Z' suffix to treat the time as local time instead of UTC
+    const localIso = booking.checkOut.replace('Z', '');
+    console.log('localIso ', localIso)
+    const checkout = new Date(localIso);
+    console.log('now ', now)
+    console.log('checkout ', checkout)
     return !isNaN(+checkout) && now < checkout;
   }, [booking.checkOut]);
 
